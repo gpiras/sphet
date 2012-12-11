@@ -1,0 +1,31 @@
+Changes in Version 1.1-0
+
+  o Fixed diagonal matrix computations in gstslshet(). Due to incorrect
+ trace computations, prior versions could lead to erroneous results.
+ However, for the Boston data in Piras (2009) - see the vignette for more
+ details - only slight differences occur.
+
+Details:
+
+The old command line
+R> gammas<-as(Diagonal(,as.vector(gamma)),"sparseMatrix")
+in the function gstslshet() was producing incorrect results in the computation of the following trace term (for R versions newer than 2.9.0):
+R> tr1<-sum(diag(A1A1t%*%gammas%*%A1A1t%*%gammas))/2
+For the Boston data results are only slightly different from those in Piras (2009) 
+(see sphet vignette for greater details).
+With different data, differences could be quite large. 
+
+
+  o added the zero.policy option as in spdep
+  
+  o impacts() calculation for objects of class "sphet"
+
+
+Changes in Version 1.2-0
+
+  o Added the function spreg to match stata and GeoDa. 
+
+
+Changes in Version 1.4-0
+
+  o Read the instrument and endogenous variable from the data

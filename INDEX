@@ -1,0 +1,17 @@
+coldis                  Object of class distance for Columbus dataset
+dist.euclidean          Distance measures available in distance
+distance                Writes distance matrices
+fistslsfast             Functions used by gstslshet.
+gstslshet               GM estimation of a Cliff-Ord type model with
+                        Heteroskedastic Innovations
+kernel                  Spatial two stages least square with HAC
+                        standard errors
+listw2dgCMatrix         Interface between Matrix class objects and
+                        weights list
+print.sphet             print method for class sphet
+read.gwt2dist           Read distance ojbects
+sphet-package           Estimation of spatial models with
+                        heteroskedastic innovations
+stslshac                Spatial two stages least square with HAC
+                        standard errors
+summary.sphet           print method for class sphet

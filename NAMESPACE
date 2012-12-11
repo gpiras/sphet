@@ -1,0 +1,12 @@
+importFrom(stats, model.matrix, model.response, aggregate)
+import(nlme)
+import(spdep)
+import(Matrix)
+
+export(distance,gstslshet,read.gwt2dist,stslshac,summary.sphet, print.sphet, listw2dgCMatrix,impacts.gstsls,spreg, circular)
+
+
+
+S3method(print,sphet)
+S3method(print,summary.sphet)
+S3method(impacts, gstsls)

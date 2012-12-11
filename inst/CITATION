@@ -1,0 +1,19 @@
+citHeader("To cite sphet in publications use:")
+
+citEntry(entry = "Article",
+  title        = "{sphet}: Spatial Models with Heteroskedastic Innovations in {R}",
+  author       = personList(as.person("Gianfranco Piras")),
+  journal      = "Journal of Statistical Software",
+  year         = "2010",
+  volume       = "35",
+  number       = "1",
+  pages        = "1--21",
+  url          = "http://www.jstatsoft.org/v35/i01/",
+
+  textVersion  =
+  paste("Gianfranco Piras (2010).",
+        "sphet: Spatial Models with Heteroskedastic Innovations in R.",
+        "Journal of Statistical Software, 35(1), 1-21.",
+        "URL http://www.jstatsoft.org/v35/i01/.")
+)
+

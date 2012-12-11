@@ -1,0 +1,995 @@
+\documentclass[article, nojss]{jss}
+\usepackage{amsmath} 
+
+%% need no \usepackage{Sweave.sty}
+%\VignetteIndexEntry{sphet: Spatial Models with Heteroskedastic Innovations}
+%\VignetteKeywords{spatial models, R, computational methods, semiparametric methods, kernel functions, heteroskedasticity}
+%\VignettePackage{sphet}
+
+\author{Gianfranco Piras\\Cornell University}
+\Plainauthor{Gianfranco Piras}
+
+\title{\pkg{sphet}: Spatial Models with Heteroskedastic Innovations in \proglang{R}}
+\Plaintitle{sphet: Spatial Models with Heteroskedastic Innovations in R}
+
+\Abstract{
+This introduction to the \proglang{R} package \pkg{sphet} is a (slightly)
+modified version of \cite{Piras:2010}, published in the
+\emph{Journal of Statistical Software}.
+
+\pkg{sphet} is a package for estimating and testing spatial models with heteroskedastic innovations. 
+We implement recent generalized moments estimators and semiparametric methods for the 
+estimation of the coefficients variance-covariance matrix. This paper is a general description of \pkg{sphet} 
+and all functionalities are illustrated by application to the popular Boston housing dataset. 
+The package in its current version is limited to the estimators based on \cite{ArraizDrukkerKelejianPrucha:08,
+KelejianPrucha:07,KelejianPrucha:07b}. The estimation functions implemented in \pkg{sphet} are 
+able to deal with virtually any sample size.  
+
+}
+
+\Keywords{spatial models,  \proglang{R}, computational methods, semiparametric methods, kernel functions, heteroskedasticity}
+\Plainkeywords{spatial models, R, computational methods, semiparametric methods, kernel functions, heteroskedasticity}
+
+\Address{
+Gianfranco Piras\\
+Department of City and Regional Planning\\
+Cornell University\\
+and\\
+IDEAR, Universidad Catolica del Norte\\
+323 West Sibley Hall\\ 
+Ithaca, New York 14853 USA\\
+ E-mail: \email{gpiras@mac.com} 
+}
+
+
+\begin{document}
+
+\section{Introduction}
+\pkg{sphet} is a package for estimating 
+and testing a variety of spatial models 
+with heteroskedastic innovations. 
+The estimation procedures are based on 
+generalized moments (GM). 
+
+An increasing number of datasets 
+contain information on the location 
+of the observations along with the  
+values of the variables of interest. 
+Taking into account the spatial 
+nature of the data can improve efficiency or,
+in some cases, even be essential for consistency. 
+This increasing interest in spatial data 
+is corroborated by the large number of 
+packages in the \proglang{R} 
+language \citep{Rdev} for analyzing multiple 
+typologies of spatial data under 
+different methodological perspectives.    
+Among these alternatives, 
+\pkg{spdep} is one of several 
+packages that deals with spatial dependence 
+\citep{Bivand:01,Bivand:02,Bivand:06,BivandGebhardt:00,BivandPortnov:04}. 
+\pkg{spdep} includes 
+functions to create and manipulate spatial objects 
+(i.e., creating spatial weights matrices).
+%to be used in spatial data analysis. 
+It also contains a collection of tests 
+for spatial autocorrelation and 
+functions for estimating spatial models. 
+For what concerns estimation features, 
+general method of moments (GMM), instrumental variables 
+(IV) and maximum likelihood (ML) 
+are supported.
+
+\pkg{sphet} complements but does not 
+overlap with the econometric features already available 
+in \pkg{spdep}. Specifically, \pkg{spdep}
+focuses on spatial lag and error models, whereas
+our departure point 
+is the following model:
+\begin{eqnarray}
+\label{sarar}
+y &=& X \beta + \lambda Wy + u \\
+u &= &\rho W u+ \varepsilon  \nonumber
+\end{eqnarray}
+\cite{KelejianPrucha:07} do 
+not assume any specific structure for the disturbance process.
+Their focus is to develop 
+an estimation theory (for the regression parameters)
+that is robust against possible misspecification 
+of the disturbances. Nonetheless, 
+the general assumptions made
+on the disturbance process 
+cover the spatial autoregressive
+process as a special case.
+
+%where, in general, $y \sim N(0, \sigma^2 \Omega).$
+Although Model~\eqref{sarar} is well established 
+in the econometrics literature, regional scientists and 
+geographers generally follow a different approach. 
+They start from an 
+OLS regression and try to determine 
+(via Lagrange multipliers (LM) tests on estimated residuals) 
+whether the true data generating process 
+is a spatial error, or a spatial lag model. 
+This is unfortunate because the 
+spatial patterns implied by Model~\eqref{sarar} 
+are richer than those implied by either 
+the spatial error or the spatial lag model \citep{KelejianPrucha:98}.
+We believe that providing this alternative implementation 
+is a useful contribution to both scientific communities.
+%This confusion derives from the erroneous
+%assumption of an
+%identification condition that restricts the 
+%consideration of the general model.
+%To see this, let us consider the special case in which $\beta = 0$
+%(i.e., all the parameters corresponding to the exogenous regressors are zero).
+%The inverse of $\Omega$ would be:
+%\begin{equation}
+%\Omega^{-1} = (I-\lambda W')(I-\rho W')(I-\rho W) (I-\lambda W )= GG'
+%\end{equation}
+%where $G=[I-(\lambda + \rho) W' + \lambda \rho W'W'].$  
+%Under the assumption that $\beta$ is zero, 
+%the likelihood is then symmetrical 
+%in the two spatial parameters and therefore 
+%they are not identified. However models 
+%without regressors are almost not considered 
+%in practice and when $\beta \neq 0$ there is no identification 
+%problem concerning the spatial parameters of model \eqref{sarar}. 
+Related to this, \cite{KelejianPrucha:07b}
+give results concerning the 
+joint asymptotic distribution of 
+IV and GMM estimators  
+for Model~\eqref{sarar}. 
+Their results permit testing the (joint) 
+hypothesis of no spatial spillovers originated 
+from the endogenous 
+variables or from the disturbances. 
+As a consequence, if one of the 
+corresponding coefficients turns out not to be statistically 
+different from zero, one could still go back to the
+estimation of a reduced model. 
+
+In \pkg{sphet}, we only concentrate 
+on GM and IV methods, leaving aside the ML approach. 
+%There are various reasons for this, some of which 
+%we will discuss in the paper. 
+Reasons for this will be discussed 
+throughout the paper. 
+In general terms, GM requires weaker assumptions 
+than ML. 
+Additionally, there are still  various 
+unsolved problems 
+related to the ML approach. 
+Numerical difficulties related to the 
+computation of the Jacobian term 
+\citep{KelejianPrucha:98,KelejianPrucha:99}
+may potentially limit the application 
+of ML to 
+large datasets. However, various solutions have been 
+proposed in the literature 
+that have attenuated the problem 
+\citep[see e.g.,][among others]{Ord:75,SmirnovAnselin:01,Pace:97,
+PaceBarry:97,BarryPace:99,PaceLeSage:04}.
+\cite{Lee:04} 
+derives the conditions 
+that ensure consistency 
+and asymptotic normality 
+of ML estimators for 
+the general spatial model considered but
+some of the assumptions are 
+stronger than those required by GM. 
+On the other hand, there is reasonably general theory 
+for the GM approach in the cross sectional case 
+\citep{KelejianPrucha:98,KelejianPrucha:99,KelejianPrucha:07b}.
+
+
+One final point relates to the possible presence of 
+heteroskedasticity in the innovations of the model.
+Since spatial units may 
+differ in important characteristics (e.g., size) 
+homoskedasticity is a strong assumption
+that may not hold in many applied spatial problems. \cite{AnselinLozano}
+and \cite{BaltagiEgger:08} are two 
+typical examples of empirical applications that require 
+the use of spatial heteroskedasticity and autocorrelation consistent (HAC) estimators.
+The estimation theory 
+developed by \cite{Lee:04} for the quasi-maximum likelihood estimator under 
+the assumption of homoskedastic innovations does not carry over to the 
+case of heteroskedastic innovations.
+To support this, \cite{ArraizDrukkerKelejianPrucha:08} 
+provide simulation evidence that when the innovations are heteroskedastic, 
+ML produces inconsistent estimates.
+%\footnote{ 
+%Nonetheless, we will discuss the implementation 
+%of ML methods. } 
+We implement various GM and IV procedures to 
+obtain spatial HAC
+estimators of the variance-covariance matrix 
+of the model coefficients. 
+In its current version, the package is limited to 
+methodologies implemented in 
+\cite{KelejianPrucha:07,KelejianPrucha:07b} 
+and \cite{ArraizDrukkerKelejianPrucha:08}. 
+The \code{gstslshet} code was tested 
+against the original \proglang{Stata} \citep{Stata} code 
+used to produce the simulation results in 
+\cite{ArraizDrukkerKelejianPrucha:08}. 
+The function \code{stslshac} give results like 
+those implemented in \proglang{Python} \citep{Python}
+and used in \cite{AnselinLozano}. Unfortunately, none of the 
+cited implementations are available to the general public.
+The estimation functions implemented in \pkg{sphet} are 
+able to handle virtually any sample size. 
+
+To overcome part of the technical 
+difficulties that arise in the implementation, 
+we make extensive use of classes of objects 
+defined in \pkg{spdep} as for example spatial weights matrix objects (of class \code{listw}).
+Furthermore, we also make substantial use of code from the \pkg{Matrix} package \citep{BatesMaechler:09}.
+
+The remainder of the present paper is a general description of \pkg{sphet} 
+and all functionalities are illustrated by application to the popular Boston housing dataset \citep{HarrisonRubinfeld:75}. 
+%This dataset contains information on property crimes in 49 neighbors in Columbus, Ohio in %1980 
+%and has been widely used in the illustration of spatial models. \
+
+The Boston data contain information on property values and characteristics
+in the area of Boston, Massachusetts and has been widely used for 
+illustrating spatial models.
+Specifically, there is a total of 506 units of observation
+for each of which a variety of attributes are available, such as: 
+(corrected) median values of owner-occupied homes (\code{CMEDV}); 
+per-capita crime rate (\code{CRIM}); 
+nitric oxides concentration (\code{NOX}); 
+average number of rooms (\code{RM}); 
+proportions of residential land zoned for lots over 25,000 sq. ft (\code{ZN}); 
+proportions of non-retail business acres per town (\code{INDUS});
+Charles River dummy variable (\code{CHAS});
+proportions of units built prior to 1940 (\code{AGE});
+weighted distances to five Boston employment centers (\code{DIS});
+index of accessibility to highways (\code{RAD});
+property-tax rate (\code{TAX});
+pupil-teacher ratios (\code{PTRATIO});
+proportion of blacks (\code{B}); 
+and \% of the lower status of the population (\code{LSTAT}).
+
+
+The dataset with Pace's tract coordinates is available to the \proglang{R} community as part of \pkg{spdep}.
+
+The \code{library("sphet")} command loads \pkg{sphet}; the \code{data("boston", package = "spdep") }
+command loads the Boston data from \pkg{spdep}.
+
+<<optionsset, echo=FALSE>>=
+options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
+@
+   
+<<readdata, results=hide>>=
+library("sphet")
+data("boston", package = "spdep")
+@
+
+The spatial weights matrix is a sphere of influence neighbors list 
+also available from \pkg{spdep}
+once the Boston data are loaded: 
+
+<<defformula>>=
+listw <- nb2listw(boston.soi)
+@
+
+\section{Tools}
+\pkg{sphet} supports a series of capabilities 
+to generate \code{distance} objects that are required
+by the semiparametric estimation 
+of the variance-covariance matrix 
+discussed in Section~\ref{estimation:functions}. 
+These functionalities can be accessed 
+through the functions 
+\code{distance} 
+and \code{read.gwt2dist}.
+
+The function \code{distance} reads points 
+coordinates and generates a 
+\code{matrix}. 
+The object created is similar to 
+the content of a `\code{.GWT}' file. A `\code{.GWT}' file 
+format is a well known structure among spatial statisticians and econometricians. 
+These (memory efficient) types of weights matrices can be calculated using 
+\pkg{GeoDa} \citep{geoda} and other softwares. 
+In fact, one advantage of \proglang{R} over other packages 
+is the availability of these models that are well established among users.
+The generated object is made up of three columns. 
+The third column lists the distances, while the first two columns contain the 
+id of the two points for which the distance is calculated. 
+
+Currently, five distance measures are implemented, namely:
+Euclidean ($d_{ij}=\sqrt{\sum{(x_i - y_i)^2}}$), Chebyshev 
+($d_{ij}=\max(|x_i - y_i|)$), Bray-Curtis ($d_{ij}=\sum{|x_i - y_i|}/\sum{|x_i + y_i|}$),
+Canberra ($d_{ij}=\sum{|x_i - y_i|}/\sum{|x_i| + |y_i|}$) and the Great Circle distance. For 
+details on how to calculate this last distance measure one should see the function \code{rdist.earth} 
+in the package \pkg{fields} \citep{fields}.
+ 
+ 
+%\subsubsection*{Demonstration}
+The following instructions demonstrate 
+the usage of the function \code{distance}.
+We first generate a set of XY- coordinates 
+corresponding to one hundred points. 
+The first coordinate is 
+a random sample from 
+the uniform distribution 
+on the interval $(0, 70)$, 
+whereas the second coordinate
+is generated on the interval $(-30, 20)$. 
+The object \code{coord1} is a matrix
+whose first column is intended to contain 
+the identification for the points.
+
+<<generatecoordinates>>=
+set.seed(1234)
+X <- runif(100, 0, 70)
+Y <- runif(100, -30, 20)
+coord1 <- cbind(seq(1, 100), X, Y)
+@
+
+The (optional) id variable has the principal scope
+of providing the ordering of the observations. 
+When specified, it could be 
+the first column of the argument \code{coord}. 
+Alternatively, it could be specified separately as 
+\code{region.id}. 
+When \code{region.id} is not \code{NULL} 
+and \code{coord} has three columns (i.e., an id variable 
+has been specified twice) 
+the function performs some checks 
+to make sure that the two variables 
+point to the same ordering. 
+On the other hand, if an id variable is not specified at all, 
+it is assumed to be a 
+sequence from one to the number of observations 
+(i.e., the number of coordinates).
+
+<<distance1>>=
+thm1 <- distance(coord = coord1, region.id = NULL, output = FALSE, type = "inverse", measure = "euclidean")
+print(thm1[1:15, ])
+@
+
+
+The \code{measure} argument 
+specifies the distance measure 
+and should be one of 
+\code{"euclidean"},
+\code{"gcircle"},
+\code{"chebyshev"},
+\code{"braycur"}, and
+\code{"canberra"}.
+The \code{type} argument is used to 
+define the distance criteria 
+and should be one of 
+\code{"inverse"}, \code{"NN"} or \code{"distance"}.
+Both \code{"inverse"} and \code{"distance"} 
+can be specified along with a \code{cutoff}. 
+The \code{cutoff} takes up three values: \code{1}, \code{2}, and \code{3}
+indicating the lower, median and upper 
+quantile of the distance distribution. 
+Specifically, when \code{cutoff} is set to \code{1}, 
+only observations within a distance 
+less than the first quantile 
+are neighbors to each other. 
+All other interactions
+are considered negligible. 
+\code{"NN"} (nearest neighbors)
+should be specified along with \code{nn}, 
+the argument to define
+the number of nearest neighbors, 
+as it is illustrated in the following example. 
+
+<<distance2>>=
+thm2 <- distance(coord1, region.id = NULL, output = FALSE, type = "NN", nn = 6)
+print(thm2[1:15, ])
+@
+
+When \code{output} is TRUE, 
+the function writes the data to a file. 
+The output file can have any format. 
+In particular, it could be a `\code{.GWT}' file. 
+When \code{firstline} is \code{TRUE}, 
+an header line is added to the `\code{.GWT}' file. 
+The first element is simply a place holder, 
+the second is the number of observations. 
+The name of the shape file and of the id variable 
+can be specified by the options \code{shape.name}
+and \code{region.id.name} respectively. 
+If an output file is produced, 
+the name of the file can be set by \code{file.name}.
+
+<<distance3>>=
+thm3 <- distance(coord1, region.id = NULL, output = TRUE, type = "distance", cutoff = 1, measure = "gcircle", shape.name = "shapefile", region.id.name = "id1", firstline = TRUE, file.name = "dist_100.GWT")
+class(thm3)
+@
+
+The value is a \code{matrix} of three columns. 
+The third column lists the distances, 
+while the first two columns contain the 
+id of the two points for which 
+the distance is calculated.   
+
+To create an object of class \code{distance}, 
+one should use the function \code{read.gwt2dist}, 
+as in the following example:
+
+<<read>>=
+id1 <- seq(1, nrow(boston.utm))
+tmp <- distance(boston.utm, region.id = id1, output = TRUE, type = "NN", nn = 10, shape.name = "shapefile", region.id.name = "id1", firstline = TRUE, file.name = "boston_nn_10.GWT")
+coldist <- read.gwt2dist(file = "boston_nn_10.GWT", region.id = id1, skip = 1)
+@
+
+The function \code{read.gwt2dist} 
+reads a `\code{.GWT}' file (e.g., generated using the function \code{distance}). 
+In this example we are using 
+the matrix of tract point 
+coordinates projected to UTM zone 19 
+\code{boston.utm} available from \pkg{spdep}
+to generate a `\code{.GWT}' file of the 
+10 nearest neighbors. 
+The file `\code{boston_nn_10.GWT}" is then inputted 
+to the function \code{read.gwt2dist} along with the 
+\code{region.id}.
+
+It is worth noticing that 
+the function \code{read.gwt2dist} could	
+also read other extensions 
+(such as `\code{.txt}'). 
+It is important, however, that the input file 
+exhibits the general format described above.
+When the file has a `\code{.GWT}' extension, 
+the number of observations 
+is generally retrieved from the first line. 
+Alternatively, it is fixed to the length 
+of the (\code{unique}) \code{region.id} variable.
+The argument \code{skip} determines 
+the number of lines to disregard
+before reading the data. The value is an object of class 
+\code{distance}.
+We generate 
+a new class of objects to be able 
+to perform some of the checks 
+necessary to make sure that 
+the distance measure specified 
+in the function \code{stslshac} is appropriate.
+
+<<read2>>=
+class(coldist)
+@
+
+A \code{summary} method is available to 
+print some of the basic features of the \code{distance} object. 
+In particular, the total number of observations 
+and some general descriptive statistics 
+for both distances 
+and neighbors are displayed.
+We believe that this information 
+is of guidance while choosing the type of bandwidth to employ in the 
+spatial HAC estimation discussed in Section~\ref{estimation:functions}.
+
+<<printsummarydist>>=
+summary(coldist)
+@
+ 
+
+
+
+\section{Estimation functions}\label{estimation:functions}
+
+%\pkg{sphet}
+%allows to estimate 
+%spatial models with 
+%heteroskedastic innovations. 
+Spatial models in \pkg{sphet} 
+are fitted by 
+the functions 
+\code{stslshac} 
+and \code{gstslshet}. 
+Below, we first review
+some of the theory and then 
+demonstrate the use of these functions.  
+
+\subsection{Spatial two stages least squares with HAC standard errors}\label{stslshac}
+Consider the following spatial model:
+\begin{equation}
+y=X \beta + \lambda Wy + \varepsilon
+\label{estim}
+\end{equation}
+or also, more compactly
+\begin{equation}
+y= Z\gamma + \varepsilon
+\end{equation} 
+with  $Z=[X, Wy ]$ and $\gamma=[\beta^\top, \lambda]^\top$.  
+The presence of the spatially lagged 
+dependent variable $Wy$ introduces 
+a form of endogeneity. 
+Under typical specifications, 
+$Wy$  will be correlated 
+with the disturbances $\varepsilon$, 
+which motivates an instrumental 
+variable approach. 
+The spatial two stage least squares (S2SLS) 
+regression is a straightforward extension 
+of the ``classical" two stage 
+least squares procedure. 
+The selection of instruments 
+as an approximation to ideal instruments 
+has been extensively 
+discussed in the literature 
+\citep[see e.g.,][among others]{KelejianPrucha:98,KelejianPrucha:99, KelejianPruchaYuze:04, Lee:03} 
+and is based on the reduced form of the model. 
+In empirical problems, the matrix 
+of instruments can be defined in the following way:
+\begin{equation}
+H=(X, WX, \dots, W^q X )
+\label{instruments}
+\end{equation}
+where, typically, $q \leq 2$. The matrix of instruments implemented in \textbf{sphet} is $H=(X, WX, W^2X ).$ 
+
+The S2SLS estimator 
+for the parameter vector $\gamma$ 
+can be obtained as:
+\begin{equation}
+\hat{\gamma}_{S2SLS} = [\hat{Z}^\top Z]^{-1} \hat{Z}^\top y
+\label{S2SLS}
+\end{equation}
+where $\hat{Z}=PZ=[X,\widehat{Wy}]$, 
+$\widehat{Wy}=PWy$ and $P=H(H^\top H)^{-1}H^\top$.
+Statistical inference is generally based 
+on the asymptotic variance covariance matrix:
+\begin{equation}\label{vctsls}
+Var(\hat{\gamma}_{S2SLS}) = \hat{\sigma}^2 (\hat{Z}^\top Z)^{-1}
+\end{equation}
+with $\hat{\sigma}^2=e^\top e/n$ 
+and $e=y-Z\hat{\gamma}_{S2SLS}$.
+
+\cite{KelejianPrucha:07} propose 
+a HAC
+consistent estimation of the 
+variance covariance matrix of Model~\eqref{estim}. 
+The spatial HAC estimator
+ is robust against possible misspecification 
+of the disturbances and allows for (unknown) forms 
+of heteroskedasticity and correlation across spatial units. 
+The disturbance vector is assumed to be generated 
+by the following very general process:
+\begin{equation}
+\varepsilon = R \xi
+\end{equation} 
+where $\xi$ is a vector of innovations 
+and $R$ is an $n \times n$ non stochastic matrix 
+whose elements are not known. 
+Additionally, $R$ is non-singular 
+and the row and column sums of $R$ and $R^{-1}$ 
+are bounded uniformly in absolute value by some constant \citep[for technical details see ][]{Lee:02,Lee:03,Lee:04,KelejianPrucha:98,KelejianPrucha:99,KelejianPrucha:04}. 
+This specification of the error term 
+covers SARMA($p$,$q$) processes as special cases. 
+Even if we assume such a general specification 
+for the disturbance process 
+we still have to be concerned about possible 
+misspecifications 
+(e.g., due to an incorrect specification of the weights matrices). 
+The asymptotic distribution of corresponding 
+IV estimators involves the variance covariance matrix
+\begin{equation}
+\Psi = n^{-1} H^\top \Sigma H
+\end{equation}
+where $\Sigma=RR^\top$ denotes the variance covariance matrix of $\xi$. \\
+\cite{KelejianPrucha:07}, propose to estimate the $r, s$ elements of $\Psi$ by:
+\begin{equation}
+\hat{\psi}_{rs} = n^{-1} \sum_{i=1}^n \sum_{j=1}^n h_{ir} h_{js} \hat{\varepsilon}_i \hat{\varepsilon}_j K(d^*_{ij}/d)
+\label{psi}
+\end{equation}
+where the subscripts refer 
+to the elements of the matrix of instruments 
+$H$ and the vector of estimated 
+residuals $\hat{\varepsilon}$. \cite{KelejianPrucha:07} 
+also contains a generalization to several distance measures. In that case, the expression for the spatial HAC estimator of the true variance covariance matrix assumes a slightly different form. However, we only implement the estimator based on the case of a single measure. $K()$ is a Kernel function used to form the weights for the different covariance elements. 
+The Kernel function is a real, 
+continuous and symmetric function 
+that determines the pairs of observations 
+included in the cross products in~\eqref{psi}. 
+The Kernel function 
+is defined in terms of a distance measure. 
+More specifically, $d^*_{ij}$ 
+represent the distance between observations 
+$i$ and $j$ and 
+$d$ is the bandwidth. Note 
+that \cite{KelejianPrucha:07} allows 
+for the case where the researcher measures 
+these distances with error. 
+More in detail, the distance measure 
+employed by the researcher is given by 
+$$d_{ij}^*=d_{ij}+ \upsilon_{ij}$$ 
+where $\upsilon_{ij}$ denotes 
+the measurement error. 
+The only assumption made 
+on the random measurement error 
+is that it is independent on the innovations of the model $\xi$. 
+The bandwidth is such that 
+if $d^*_{ij} \geq d$, 
+the associated Kernel is set to zero ($K(d^*_{ij}/d)=0$).  
+In other words, the bandwidth plays the same role 
+as in the time series literature; 
+Together with the Kernel function 
+it limits the number of sample covariances. 
+Furthermore, the bandwidth can be assumed 
+either fixed or variable. A fixed 
+bandwidth corresponds to a constant distance 
+for all spatial units. 
+On the other hand, a variable bandwidth 
+varies for each observation 
+(i.e., the distance corresponding to the \textit{n}-nearest neighbors).
+
+Based on the spatial HAC estimator 
+of $\Psi$ given in~\eqref{psi}, 
+the asymptotic variance covariance 
+matrix $(\hat{\Phi})$ of the S2SLS 
+estimator of the parameters vector is given by:
+\begin{equation}
+\hat{\Phi} = n^2  (\hat{Z}^\top \hat{Z})^{-1} Z^\top H(H^\top H)^{-1} \hat{\Psi} (H^\top H)^{-1}H^\top Z (\hat{Z}^\top \hat{Z})^{-1}
+\end{equation} 
+Therefore, small sample inference can be based on the approximation $\hat{\gamma}\sim N(\gamma,n^{-1}\hat{\Phi})$.
+
+\subsubsection*{Demonstration}
+The function that deals with 
+the spatial HAC estimator is \code{stslshac}. 
+Crucial arguments are 
+\code{listw}, 
+\code{distance},  
+\code{type} and 
+\code{bandwidth}. 
+\code{stslshac} requires 
+the specification of two different lists: 
+one for the spatial weights matrix $W$ and 
+one to define the distance measure $d$. 
+As in \pkg{spdep}, 
+\code{listw} is the argument that handles 
+the spatial weights matrix $W$
+in the form of a list. 
+The object \code{listw} can be 
+generated for example by the function 
+\code{nb2listw} available in \pkg{spdep}. 
+On the other hand, the argument \code{distance} 
+that specifies the distance 
+measure, is 
+an object of class \code{distance} 
+created for example by \code{read.gwt2dist}.
+Note that the two objects, although belonging to a different \code{class}, 
+may be generated according to the same definition.
+
+<<stslshac>>=
+res <- stslshac(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw, distance = coldist, type = "Triangular", HAC = TRUE) 
+summary(res)
+@
+
+The argument \code{type} deals 
+with the specification of the kernel function. 
+Currently, six different kernels are available:
+\begin{enumerate}
+    \item \code{"Epanechnikov"}: $K(z) = 1-z^2$,
+    \item  \code{"Triangular"}: $K(z) = 1-z$, 
+    \item \code{"Bisquare"}: $K(z) = (1-z^2)^2$,
+    \item \code{"Parzen"}:  $K(z) = 1-6z^2+6 |z|^3  \mathop{\rm{if}}  z \leq 0.5  \mathop{\rm{and }}
+K(z) = 2(1-|z|)^3  \mathop{\rm{if}} 0.5 < z \leq 1$, 
+    \item \code{"TH"} (Tukey - Hanning):  $ K(z) =\frac{1+ \cos(\pi z)}{2}$,
+    \item  \code{"QS"} (Quadratic Spectral): $K(z) = \frac{25}{12\pi^2z^2} 
+  (\frac{\sin(6\pi z)/5)}{6\pi z/5} - \cos(6\pi z)/5))$.
+    \end{enumerate}
+If the kernel \code{type} is not one of the six implemented, 
+the function will terminate with an error message. 
+It is good practice to test the robustness 
+of model specification to different Kernel functions. 
+Note that if the argument \code{HAC} is set to 
+\code{FALSE} (default is \code{TRUE}), 
+the ``classical" two stage least square 
+estimator of the variance covariance matrix is provided.
+
+<<stslshac1>>=
+res <- stslshac(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw, distance = coldist, HAC = FALSE)
+summary(res)
+@
+
+Note that this last result corresponds to the one  
+obtained by \code{stsls}
+in \pkg{spdep} (with \code{robust} = \code{FALSE}).
+Both functions have a logical argument (\code{W2X})
+that  if set to \code{TRUE} (the default)
+uses the matrix of instruments $H = (X, WX, W^2X)$ 
+in the spatial two stages least squares. 
+%On the other hand, in \pkg{spdep}
+%$H$ consists of the linearly independent
+%columns of $X$ and $WX$. 
+%In general, this leads to differences 
+%in the values of the estimated coefficients
+%(as it is the case with the Boston data).
+Since \citep{KelejianPruchaYuze:04} show the advantages
+of including  $W^2X$ in the matrix of instruments, 
+we strongly recommend to leave the 
+argument \code{W2X} at its default value. 
+%As a consequence, 
+%the standard errors are also different even though 
+%the two functions use the same formula to estimate 
+%the variance covariance matrix. 
+In this example, no substantial differences are observed in terms of 
+significance of the coefficients when using the robust estimator. 
+It would be good practice to 
+always estimate HAC standard errors at least to 
+compare them with traditional results. 
+If this leads to different significance levels, one should always present 
+robust results. 
+
+<<stsls>>=
+res <- stsls(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw = listw)
+summary(res)
+@
+
+\code{stsls}
+allows an heteroskedasticity correction 
+to the coefficients' variance covariance matrix 
+by setting the argument \code{robust} to \code{TRUE}.
+The additional argument \code{legacy}
+chooses between two different implementations of the
+robustness correction. When it is set to \code{FALSE}
+(the default used in our examples), a White consistent estimator 
+of the variance-covariance matrix is provided. 
+On the other hand, if \code{legacy} equals \code{TRUE}
+a GLS estimator is performed that yields different coefficient 
+estimates. Results are displayed in the following example.
+
+<<stsls2>>=
+res <- stsls(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw = listw, robust = TRUE)
+summary(res)
+@
+
+The heteroskedasticity correction leads to 
+results similar to those obtained 
+with the spatial HAC estimator implemented in \pkg{sphet} 
+(on the Boston housing data). The spatial HAC 
+seems to be more conservative in that it changes 
+the significance level of some of the variables 
+(i.e., \code{NOX2}, \code{RM2} and \code{B}). 
+ 
+The argument \code{bandwidth} 
+by default sets the bandwidth 
+for each observation to the maximum distance for that observation.
+Alternatively, a fixed bandwidth can be 
+used as in the next example 
+that fixes as bandwidth the maximum distance (overall).
+
+<<stslshac2>>=
+fix <- max(unlist(attributes(coldist)$GeoDa$dist))
+res <- stslshac(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw, distance = coldist, type = "Parzen", bandwidth = fix)
+summary(res)
+@
+
+\code{summary} and \code{print} methods are available. 
+The \code{summary} method provides a short description of 
+the model followed by a printout of the most recent call, a summary of 
+the residuals, and the table 
+of the results. The first row of the
+table of estimated coefficients 
+is always the spatial lag of the dependent 
+variable $Wy$. 
+Note that the name of the column of
+the standard errors clearly make reference to the use of the
+spatial HAC estimator. 
+On the other hand, the \code{print} method 
+simply prints basic information. 
+
+One final point deserves to be mentioned.
+As we anticipated in the introduction, 
+we are not giving much attention to the ML approach
+because of various shortcomings. 
+It is technically possible, however,
+to make heteroskedasticity corrections to standard errors in 
+a ML context using functions in the \pkg{lmtest}  \citep{lmtest} and 
+\pkg{sandwich} \citep{sandwich,sandwich2} packages.\footnote{As a referee correctly 
+pointed out, to fully explore the ML approach one would need
+to implement \code{vcov} methods for \code{lagsarlm}.
+The theory has not yet been developed and therefore 
+we leave this for future developments.} 
+An example on 
+how to perform the correction is given 
+in the help file of the function 
+\code{bptest.sarlm} available from \pkg{spdep}.
+We run this example on the Boston data set 
+and we did not observe big shifts in the estimated coefficients
+or substantial differences 
+in their significance.
+
+\subsection{General spatial two stage least squares}\label{gstslshet}
+In Section~\ref{stslshac} we assumed 
+a very general form for the disturbance process. 
+As an alternative, 
+one could assume that the disturbance process is known to follow 
+a first order spatial autoregressive process 
+\begin{equation}
+\varepsilon = \rho W \varepsilon + \xi
+\end{equation}
+where the innovations $\xi_1,\dots, \xi_n$ 
+are assumed independent 
+with zero mean and non-constant variance $\sigma^2_i$. 
+\cite{KelejianPrucha:07b} define a GM estimator for 
+$\rho$ and give results for both consistency and asymptotic normality. Note that \cite{KelejianPrucha:99} had only proven consistency of the GM estimator under the assumption of homoskedastic innovations. In other words, $\rho$ was seen as a nuisance parameter (e.g., the distribution of the regression's parameters does not depend on the estimator for $\rho$).  \cite{KelejianPrucha:07b} also give results for the joint asymptotic distribution of the GM estimator for $\rho$ and the IV estimators for $\gamma$. The suggested estimation procedure consists of two steps alternating GM and IV estimators. Each of the two steps includes sub-steps. In the first step, $\gamma$ is estimated by S2SLS with the matrix of instruments defined in Equation~\ref{instruments}. 
+The estimated residuals from the first step are employed to obtain a sample analogue of the moment conditions \citep[for greater detail on the specification of the moments conditions see][]{KelejianPrucha:07b, ArraizDrukkerKelejianPrucha:08}. An initial GM estimator for $\rho$ is defined in terms of these moment conditions and S2SLS residuals. The initial estimator can be viewed as an unweighted nonlinear least square estimator. Although fully consistent, it is not efficient because of a lack of weighting. This is why in the third sub-step of the first step, an efficient GM estimator for $\rho$ is derived based on S2SLS residuals and moments conditions appropriately weighted by an estimator of the variance covariance matrix of the limiting distribution of the normalized sample moments.
+Following \cite{KelejianPrucha:98}, the consistent and efficient estimator for $\rho$ is used to take a spatial Cochrane-Orcutt transformation of the model. In the second step of the estimation procedure the transformed model is estimated by S2SLS: this is the generalized spatial two-stage least square (GS2SLS) procedure presented in \cite{KelejianPrucha:98}. Specifically, the GS2SLS estimator for the parameter vector $\gamma$ is defined as:
+\begin{equation}
+\tilde{\gamma}_{GS2SLS} = [\hat{Z^\top_*}Z_* ]^{-1} \hat{Z^\top_*} y_*
+\label{GS2SLS}
+\end{equation}
+where $y_*=y-\hat{\rho}W y$, $Z_*=Z-\hat{\rho}WZ$, $\hat{Z_*}=PZ_*$, and $P=H(H^\top H)^{-1}H^\top $.
+In the second and final sub-step of the second step, new sample moments are obtained by replacing S2SLS residuals by GS2SLS  residuals obtained from Equation~\ref{GS2SLS}. 
+The efficient GM estimator for $\rho$ based on GS2SLS residuals is obtained from
+\begin{equation}
+\tilde{\rho} = \operatornamewithlimits{\mathop{\rm{argmin}}}_{\rho}  [m(\rho, \hat{\gamma})^\top  \hat{\Upsilon}^{-1} m(\rho, \hat{\gamma})]
+\end{equation}
+where the weighting matrix $\hat{\Upsilon}^{-1}$ is an estimator of the variance covariance matrix of the limiting distribution of the sample moments. 
+Under the assumptions made in \cite{KelejianPrucha:07b},  $\tilde{\gamma}$ and $\tilde{\rho}$ are both consistent and asymptotically (jointly) normal. Therefore, small sample inference can be based on the following estimator for the variance covariance matrix:
+\begin{displaymath}\label{vcmatrix}
+\tilde{\Omega}= n^{-1}\left[ \begin{array}{cc}
+\tilde{P^\top } & 0 \\
+0 & (\tilde{J^\top } \tilde{\Upsilon}^{-1}\tilde{J} )^{-1} \tilde{J^\top } \tilde{\Upsilon}^{-1}\\
+\end{array}
+\right] \tilde{\Upsilon}_o 
+\left[ \begin{array}{cc}
+\tilde{P} & 0 \\
+0 & \tilde{\Upsilon}^{-1}\tilde{J} (\tilde{J^\top } \tilde{\Upsilon}^{-1}\tilde{J} )^{-1}  \\
+\end{array}
+\right]
+\end{displaymath}
+where
+\begin{displaymath}
+ \tilde{\Upsilon}_o =
+\left[ \begin{array}{cc}
+ \tilde{\Upsilon}_{\gamma \gamma}& \tilde{\Upsilon}_{\gamma \rho} \\
+\tilde{\Upsilon}_{\gamma \rho}^\top  & \tilde{\Upsilon}  \\
+\end{array}
+\right]
+\end{displaymath}
+and $\tilde{\Upsilon}_{\gamma \gamma}=n^{-1} H^\top  \tilde{\Sigma}H$, $\tilde{\Upsilon}_{\gamma \rho}=n^{-1} H^\top  \tilde{\Sigma}\tilde{a}$. Finally, $P$, $J$, $\Sigma$ and $a$ are all expressions (based on the instruments and the transformed variables) needed to estimate the asymptotic variance covariance matrix of the moment conditions. The tilde explicitly denotes that all quantities are based on estimated residuals from GS2SLS procedure. 
+
+As a final point, a joint test of significance on the spatial 
+coefficients can be derived. 
+Let $B$ be a $1 \times (K+2)$ 
+matrix and $\tilde{\theta} = [\tilde{\gamma},\tilde{\rho}^\top]^\top $
+the $(K+2) \times 1$ vector of estimated parameters (including the two spatial parameters). 
+A restriction (e.g., that both spatial parameters are zero) can then be formulated in terms of 
+\begin{equation}
+B \theta = 0 \nonumber
+\end{equation}
+A Wald test can then be based on \citep{Greene:03}:
+\begin{equation}
+\mathit{Wald} = [B \tilde{\theta}]^\top  [B \tilde{\Omega} B^\top ]^{-1}[B \tilde{\theta}]
+\end{equation}
+and under $H_0$ will have a chi-squared distribution with one degree of freedom (i.e., the number of rows in $B$).
+
+A complication appears from a computational perspective. The  
+estimation of the variance covariance matrix of the limiting 
+distribution of the normalized sample moments based on two stages least squares residuals 
+involves the inversion of an $n \times n$ matrix. 
+This is the main reason for transforming the object of class \code{listw} 
+into a sparse \code{Matrix}
+and use code from the \pkg{Matrix} package to calculate the inverse. 
+However, for very large problems the inversion could still be computationally intensive. 
+In these cases
+the inverse can be calculated using the approximation 
+\begin{equation}\label{approx}
+(I -\rho W)^{-1} = I +\rho W + \rho^2 W^2 + ...+ \rho^n W^n. 
+\end{equation}
+where the last element of the sum depends on each specific $W$ and $\rho$
+and is determined through a condition. \footnote{Roughly speaking, the 
+function will keep adding terms until the absolute value of the \code{sum} of all elements 
+of the matrix $\rho^i W^i$ is greater than a fixed $\epsilon$.} 
+For particular spatial weights matrices the results obtained using the approximation could be 
+very close to the actual inverse of the variance covariance matrix. 
+Furthermore, the inverse only influences 
+the expression of the estimated variance covariance matrix of the limiting 
+distribution of the normalized sample moments based on 2SLS residuals. In other words,  
+small differences in the weighting matrix may imply even smaller differences in the 
+estimated value of the spatial parameter 
+resulting from the optimization procedure. As an example, on the Boston data
+the value of $\rho$ resulting from the correct inverse is 0.1778462. If using the the approximation
+the value of $\rho$ turns out to be 0.1779276. We would suspect that with larger datasets 
+(for sparse $W$) the difference should be even smaller. 
+
+
+
+A second issue is related to the initial values of the optimization search for the parameter $\rho$.\footnote{
+After checking different alternatives, 
+we decided to use the function \code{nlminb} in the optimization 
+of the objective function since it appears to 
+reduce computational time.}
+The default  is to start from 0.2. As an alternative the user can either specify a different value or take as initial value 
+the estimated coefficient of a regression of the S2SLS residuals on their spatial lag 
+(i.e., fit a spatial autoregressive model on the residuals). 
+The initial value in successive steps is the optimal parameter in previous steps. 
+
+\subsubsection*{Demonstration}
+The function that allows estimating the model described in this Section is \code{gstslshet}. 
+It is also possible to estimate a restricted version of the model 
+for which the parameter $\lambda$ is set to zero by changing the 
+logical argument \code{sarar}. Such a model is generally referred to in the literature 
+as a spatial error model \citep{Anselin:88}.
+The syntax of the function is straightforward in its basic arguments.
+The model to be estimated is described by a \code{formula}, an optional \code{data.frame}
+can be specified, and the spatial weights matrix is an object of class \code{listw}. 
+The argument \code{initial.value}  manages the starting point of the optimization process
+in the search for the optimal $\rho$. 
+The default value for \code{initial.value} is \code{0.2}. Any other numeric value
+(within the search interval) is acceptable. 
+Alternatively, if \code{initial.value} is set to \code{"SAR"} the 
+optimization will start from the estimated coefficient of a regression of the 2SLS residuals over their spatial lag. 
+
+<<gstslshet1>>=
+res <- gstslshet(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw = listw, initial.value = 0.2)
+summary(res)
+@
+
+The argument \code{inverse} (default: \code{TRUE}) should be altered only when strictly necessary depending on the number of cross sectional 
+observations. 
+In this case, the inverse will be calculated by Equation~\ref{approx}. 
+The precision of the approximation
+can be managed through the argument \code{eps}. 
+The next example illustrates the use of the approximated inverse 
+in the context of a model where $\lambda$ is assumed to be zero (\code{sarar = FALSE}). 
+
+<<gstslshet2>>=
+res <- gstslshet(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw = listw, initial.value = 0.2, inverse = FALSE, eps = 1e-18, sarar = FALSE )
+summary(res)
+@
+
+After a brief description of the model, the \code{summary} method prints 
+the most recent call along with a summary of the residuals and
+the table of the estimated coefficients. The last rows of the table 
+contain the spatial coefficients:
+the spatial autoregressive ($\lambda$)
+and  the spatial autocorrelation ($\rho$) coefficients for the full model, 
+and the spatial autocorrelation coefficient when the option \code{sarar} is \code{FALSE}. 
+For the general case of the unrestricted model, after the table of estimated coefficients, 
+the \code{summary} method
+reports the results of a Wald test that both spatial coefficients are zero. 
+The \code{p-val} can be used to test the significance of the chi-squared statistics. 
+As before, the \code{print} method only
+displays basic information.
+
+\section{Conclusions and future development}
+The \pkg{sphet} package currently contains most of the 
+newly developed robust methodologies in spatial 
+econometrics \citep{KelejianPrucha:07,KelejianPrucha:07b}. 
+
+A possible addition could be the implementation of the 
+methodology proposed in \cite{Conley:99} and \cite{ConleyMolinari:07}.
+Also several alternative HAC estimators could be added such as, for example, those presented in
+\cite{Besteretal:09,IbragimovMuller:09,Pinkseetal:06}
+ 
+Other planned additions include 
+\cite{PinkseSladeBrett:02} and \cite{DriscollKraay:98} that 
+relate to a panel data model in which the number of time periods $T$ 
+limits to infinity. 
+
+
+
+\section*{Acknowledgments}
+Earlier developments of the present library 
+were  presented and discussed
+during various editions of the Spatial Econometrics Advanced Institute. 
+The valuable input from all participants is gratefully acknowledged. 
+The research was partly supported by the Nuclei 
+of the Millennium Science Initiative Program 
+``Regional Sciences and Public Policy" (MIDEPLAN -- Chile).
+Usual disclaimers apply. 
+
+
+
+
+
+\bibliography{bibconc}
+%\bibliographystyle{authordate1}
+
+\end{document}
+
+
