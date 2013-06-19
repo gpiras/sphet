@@ -60,7 +60,6 @@ A \code{matrix} of three columns: \code{from}, \code{to}, and \code{distance}
 X<-runif(100,0,70)
 Y<-runif(100,-30,20)
 coord1<-cbind(seq(1,100),X,Y)
-thm1 <- distance(coord1,region.id=NULL,output=TRUE,type="inverse", shape.name="shapefile",region.id.name="id1",firstline=TRUE,file.name="dist_100.GWT")
 thm2 <- distance(coord1,region.id=NULL,output=FALSE,type="NN", nn=6)
 thm2 <- distance(coord1,region.id=NULL,output=FALSE,type="distance", cutoff=1)
 }

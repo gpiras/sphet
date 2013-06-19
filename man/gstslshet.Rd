@@ -17,8 +17,11 @@ heteroskedastic of an unknown form.
 }
 
 \usage{
-gstslshet(formula, data=list(),listw,na.action=na.fail,zero.policy=NULL,initial.value=0.2,abs.tol=1e-20,rel.tol=1e-10,eps=1e-5,inverse=TRUE,sarar=TRUE)
-\method{impacts}{gstsls}(obj, \dots, tr, R = NULL, listw = NULL, tol = 1e-06, empirical = FALSE, Q=NULL)
+gstslshet(formula, data=list(), listw, na.action=na.fail, 
+zero.policy=NULL,initial.value=0.2, abs.tol=1e-20, 
+rel.tol=1e-10, eps=1e-5, inverse=T,sarar=T)
+\method{impacts}{gstsls}(obj, \dots, tr, R = NULL, listw = NULL,
+tol = 1e-06, empirical = FALSE, Q=NULL)
 }
 
 \arguments{

@@ -313,6 +313,7 @@ Zt <- Zmat - rhotilde * wZmat
 # if(!sarar && is.matrix(endog)) Hmat <- cbind(x, wx, instruments)	
 # else Hmat<- cbind(x,wx)	
 
+
 # print(Hmat)
     secondstep<-spatial.ivreg(y =yt , Zmat = Zt, Hmat = Hmat, het = het, HAC=HAC, type=type, bandwidth=bandwidth, distance=distance)
 delta <- coefficients(secondstep)

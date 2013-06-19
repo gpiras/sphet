@@ -15,7 +15,11 @@ heteroskedastic of an unknown form.
 }
 
 \usage{
-spreg(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, lag.instr = FALSE, initial.value=0.2, abs.tol=1e-20,rel.tol=1e-10,eps=1e-5, model = "sarar", het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), bandwidth="variable" , step1.c = FALSE)
+spreg(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, 
+lag.instr = FALSE, initial.value=0.2, abs.tol=1e-20,rel.tol=1e-10,eps=1e-5, 
+model = "sarar", het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, 
+distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), 
+bandwidth="variable" , step1.c = FALSE)
 }
 
 \arguments{

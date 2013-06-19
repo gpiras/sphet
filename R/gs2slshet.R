@@ -1,10 +1,12 @@
-gstslshet<-function(formula, data=list(),listw,na.action=na.fail,zero.policy=NULL,initial.value=0.2,abs.tol=1e-20,rel.tol=1e-10,eps=1e-5,inverse=TRUE,sarar=TRUE){
+gstslshet<-function(formula, data=list(),listw, na.action=na.fail, zero.policy=NULL, initial.value=0.2, abs.tol=1e-20, rel.tol=1e-10, eps=1e-5, inverse=T, sarar=T){
 
 ##functions that need to be sourced
 	#source("twostagels.R")
 	#source("utilities.R")
 	#source("listw2dgCMatrix.R")
 	#source("Omega.R")
+	
+	
 	if (is.null(zero.policy))
             zero.policy <- get.ZeroPolicyOption()
         stopifnot(is.logical(zero.policy))
