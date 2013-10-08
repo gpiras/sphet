@@ -1,12 +1,14 @@
 Package: sphet
 Version: 1.4
 Date: 2013-06-20
-Title: Spatial Models with heteroskedastic innovations
+Title: Estimation of spatial autoregressive models with and without
+        heteroskedastic innovations
 Author: Gianfranco Piras <gpiras@mac.com>
 Maintainer: Gianfranco Piras <gpiras@mac.com>
 Depends: R (>= 3.0.1), nlme, spdep, Matrix, fields
-Description: GM estimation and Spatial HAC
+Description: Generalized Method of Moment estimation of Cliff-Ord-type
+        spatial autoregressive models with and without heteroskedastic
+        innovations
 License: GPL-2
 LazyLoad: yes
 LazyData: no
-
