@@ -81,7 +81,7 @@ hac.ols<-function(y, x, HAC = HAC, distance = distance, type = c("Epanechnikov",
 	delta <- crossprod(xpxi, xpy)
 	yp <- x %*% delta
 	e <- y - yp
-
+if(ncol(x)==1) e <- e - mean(e) ### rescale the residuals if x has no intercept
 	n<-nrow(x)
 		Ker<-vector(mode='list',length=n)
 		ker.fun<-switch(match.arg(type), Triangular={
