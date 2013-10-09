@@ -17,7 +17,8 @@ heteroskedastic of an unknown form.
 \usage{
 spreg(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, 
 lag.instr = FALSE, initial.value=0.2, abs.tol=1e-20,rel.tol=1e-10,eps=1e-5, 
-model = "sarar", het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, 
+model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, 
+na.action = na.fail,  HAC = FALSE, 
 distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), 
 bandwidth="variable" , step1.c = FALSE)
 }
@@ -37,7 +38,7 @@ bandwidth="variable" , step1.c = FALSE)
   \item{abs.tol}{Absolute tolerance. See \link{nlminb} for details.}
     \item{rel.tol}{Relative tolerance. See \link{nlminb} for details.}
     \item{eps}{Tolerance level for the approximation. See Details.}
-    \item{model}{one of \code{lag}, \code{error}, or \code{sarar}.}
+    \item{model}{one of \code{lag}, \code{error}, \code{sarar}, \code{ivhac}, or \code{ols}.}
     \item{het}{default FALSE: if TRUE uses the methods developed for heteroskedasticity}
     \item{verbose}{print optimization details}
  \item{na.action}{a function which indicates what should happen when the data contains missing values. See \link{lm} for details.}

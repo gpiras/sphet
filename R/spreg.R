@@ -1,4 +1,4 @@
-spreg<-function(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, lag.instr = FALSE, initial.value=0.2, abs.tol=1e-20,rel.tol=1e-10,eps=1e-5, model = "sarar", het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), bandwidth="variable" ,step1.c = FALSE){
+spreg<-function(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, lag.instr = FALSE, initial.value=0.2, abs.tol=1e-20,rel.tol=1e-10,eps=1e-5, model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), bandwidth="variable" ,step1.c = FALSE){
          	
          		
 #extract model objects	
@@ -27,6 +27,7 @@ if (any(is.na(x)))
 if (model== "error" && !is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the error model")
 	
 if(HAC){
+	if(!(model %in% c("ivhac","ols"))) stop("Model should be one of 'ivhac' or 'ols' when HAC is true ")
 	if(is.null(distance)) stop("No distance measure specified")
 	if(!inherits(distance,"distance")) 
 	stop("The distance measure is not a distance object")
@@ -95,7 +96,7 @@ if (k > 1) {
  colnames(wy)<-"lambda"
 
 
-if(model %in% c("sarar","lag")){
+if(model %in% c("sarar","lag", "ivhac")){
  
 if (!is.null(endog)) {
 
@@ -177,8 +178,8 @@ else {
     }
     }
 
-
-else{
+if(model == "error"){
+# else{
 if (!is.null(endog)) {
 	
         if (is.character(endog)) {
@@ -396,7 +397,9 @@ else  results<-list(coefficients=coeff,var=vcmat$Omega, s2=s2, call=cl, residual
  
  }
 
- else{
+ 
+ if(model %in% c("lag", "ivhac")){
+ 	
 results <-spatial.ivreg(y =y , Zmat = Zmat, Hmat = Hmat, het = het, HAC=HAC, type=type, bandwidth=bandwidth, distance=distance)	
      model.data <- data.frame(cbind(y, x[, -1]))
     results$call <- cl
@@ -422,40 +425,40 @@ if(model == "ols")	{
 
 }
 
-if(model == "ivhac")	{
+# if(model == "ivhac")	{
 	
-if (is.character(endog)) {
-        	endognames <- endog  
-            xend <- match(endog, colnames(data))
-            endog <- data[, xend]
-            endog <- as.matrix(endog) 
-            colnames(endog) <- endognames
-        }
+# if (is.character(endog)) {
+        	# endognames <- endog  
+            # xend <- match(endog, colnames(data))
+            # endog <- data[, xend]
+            # endog <- as.matrix(endog) 
+            # colnames(endog) <- endognames
+        # }
         
-endog <- as.matrix(endog)             
-if(is.null(colnames(endog)))  endognames <- rep("endogenous", ncol(endog))  
+# endog <- as.matrix(endog)             
+# if(is.null(colnames(endog)))  endognames <- rep("endogenous", ncol(endog))  
 
 
-         if (is.character(instruments)) {
-            inst <- match(instruments, colnames(data))
-            instruments <- data[, inst]
-        }
-instruments <- as.matrix(instruments)   
+         # if (is.character(instruments)) {
+            # inst <- match(instruments, colnames(data))
+            # instruments <- data[, inst]
+        # }
+# instruments <- as.matrix(instruments)   
 
 
-	Zmat <- cbind(x,endog)
-	Hmat<-cbind(x,instruments)
-	results <-spatial.ivreg(y =y, Zmat = Zmat, Hmat = Hmat, HAC=HAC, type=type, bandwidth=bandwidth, distance=distance)	
-     model.data <- data.frame(cbind(y, x[, -1]))
-    results$call <- cl
-    results$model <- model.data
-    results$type <- type
-    results$bandwidth <- bandwidth
-    results$method <- "ivhac"
-    results$HAC <- HAC
-    class(results) <- c("sphet")
+	# Zmat <- cbind(x,endog)
+	# Hmat<-cbind(x,instruments)
+	# results <-spatial.ivreg(y =y, Zmat = Zmat, Hmat = Hmat, HAC=HAC, type=type, bandwidth=bandwidth, distance=distance)	
+     # model.data <- data.frame(cbind(y, x[, -1]))
+    # results$call <- cl
+    # results$model <- model.data
+    # results$type <- type
+    # results$bandwidth <- bandwidth
+    # results$method <- "ivhac"
+    # results$HAC <- HAC
+    # class(results) <- c("sphet")
 
-}
+# }
 
 
  return(results)
