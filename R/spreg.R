@@ -1,5 +1,7 @@
-spreg<-function(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, lag.instr = FALSE, initial.value=0.2, abs.tol=1e-20,rel.tol=1e-10,eps=1e-5, model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), bandwidth="variable" ,step1.c = FALSE){
-         	
+spreg<-function(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, lag.instr = FALSE, initial.value=0.2, model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), bandwidth="variable" ,step1.c = FALSE, control = list()){
+
+#abs.tol = 1e-20, rel.tol = 1e-10, eps = 1e-5,          	
+
          		
 #extract model objects	
 	mt<-terms(formula,data=data)
@@ -25,18 +27,19 @@ if (any(is.na(x)))
         stop("NAs in independent variable")
 
 if (model== "error" && !is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the error model")
-	
+
+if(HAC && model %in% c("lag","error","sarar")) stop("Model should be one of 'ivhac', or 'ols' when HAC is true ")
+
 if(HAC){
-	if(!(model %in% c("ivhac","ols"))) stop("Model should be one of 'ivhac' or 'ols' when HAC is true ")
+ if(model != "ivhac" && !is.null(endog)) model <- 'ols.end'	
 	if(is.null(distance)) stop("No distance measure specified")
 	if(!inherits(distance,"distance")) 
 	stop("The distance measure is not a distance object")
+	
 if(!(type %in% c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"))) stop("Unknown kernel")
-
-if(model == "ivhac" && is.null(endog)) stop("endogenous variable should be specified")
-if(model == "ivhac" && is.null(instruments)) stop("ivhac needs instrumental variables")
-
 }	
+	
+
 	
 #fix the dimensions of the problem
 	n<-nrow(x)
@@ -47,9 +50,14 @@ if(model == "ivhac" && is.null(instruments)) stop("ivhac needs instrumental vari
 	
 	
 #check that W is an object of class listw or a Matrix 
+
+if(!(model %in% c("ols", "ols.end"))){
+	
 if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
 if(inherits(listw,"listw"))  Ws<-listw2dgCMatrix(listw)	
 if(inherits(listw,"matrix"))  Ws<-Matrix(listw)	
+
+
 
 #check on the dimensions of x and W	
 if (nrow(x) != nrow(Ws))
@@ -94,6 +102,9 @@ if (k > 1) {
 
  wy<-Ws %*% y	
  colnames(wy)<-"lambda"
+
+}
+
 
 
 if(model %in% c("sarar","lag", "ivhac")){
@@ -178,7 +189,7 @@ else {
     }
     }
 
-if(model == "error"){
+if(model == "error" ){
 # else{
 if (!is.null(endog)) {
 	
@@ -193,6 +204,8 @@ if (!is.null(endog)) {
 # endog <- as.matrix(endog)                   
 # else if (is.null(colnames(endog)))  endognames <- rep("endogenous", ncol(endog)) 
 else  endognames <- rep("endogenous", ncol(endog)) 
+
+
 	
 	 if (is.character(instruments)) {
             inst <- match(instruments, names(data))
@@ -200,10 +213,13 @@ else  endognames <- rep("endogenous", ncol(endog))
            
         }
         
-        if(lag.instr) { 
+
+	 if(lag.instr) { 
+        	
 	        winst <- Ws %*% instruments           
 	        AddH<- cbind(instruments, as.matrix(winst))
 }
+
 else AddH<- cbind(instruments)
 
 Zmat<- cbind(x, endog)            
@@ -221,18 +237,50 @@ else Hmat<-cbind(1, x,wx)
 	}
 
 }
+
+if(model == "ols.end" ){
+# else{
+if (!is.null(endog)) {
 	
+        if (is.character(endog)) {
+        	 endognames <- endog  
+            xend <- match(endog, names(data))
+            endog <- as.data.frame(data)[, xend]
+            # endog <- matrix(endog) 
+            # names(endog) <- endognames
+        }
+
+# endog <- as.matrix(endog)                   
+# else if (is.null(colnames(endog)))  endognames <- rep("endogenous", ncol(endog)) 
+else  endognames <- rep("endogenous", ncol(endog)) 
+
+
 	
- # print(Hmat)
- # print(Zmat)
-# Hmat<-Hmat[,c(1,2)]
+	 if (is.character(instruments)) {
+            inst <- match(instruments, names(data))
+            instruments <- as.data.frame(data)[, inst]
+           
+        }
+        
+AddH<- cbind(instruments)
+
+Zmat<- cbind(x, endog)            
+colnames(Zmat) <- c(colnames(x), endognames) 
+
+if (K==2) Hmat<-cbind(x, AddH) 
+else Hmat<-cbind(1, x, AddH)
+
+ }
+ 
+}
+		
+	
 if(model %in% c("sarar","error")){
 
-# Hmat<-Hmat[,c(1,2)]
 
 firststep<-spatial.ivreg(y = y , Zmat = Zmat, Hmat = Hmat, het = het, HAC=HAC, type=type, bandwidth=bandwidth, distance=distance)
 ubase<-residuals(firststep)
- # print(firststep$coefficients)
+
 
 if (initial.value=="SAR"){
 		Wubase<-Ws2 %*% ubase
@@ -245,7 +293,9 @@ if(het){
 	
 Ggmat<-gg_het(Ws2, ubase, n)
 
-optres <-nlminb(pars, optimfunct, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps,control=list(abs.tol=abs.tol,rel.tol=rel.tol),v=Ggmat, verbose = verbose)
+optres <-nlminb(pars, optimfunct, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps, control= control, v = Ggmat, verbose = verbose)
+
+#list(abs.tol = abs.tol, rel.tol = rel.tol)
 
 rhotilde<-optres$par
  # print(rhotilde)
@@ -255,8 +305,7 @@ if(step1.c){
  # print(gmm.weghts1.c$Phiinv)
 # gmm.weghts1.c<-psirhorho_het_mod(rhotilde, ubase, Hmat, Zmat, Ws2, step1.c = TRUE)
 
-
-optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat= gmm.weghts1.c$Phiinv, verbose = verbose, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps,control=list(abs.tol=abs.tol,rel.tol=rel.tol))	
+optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat= gmm.weghts1.c$Phiinv, verbose = verbose, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps, control = control)	
 
 rhotilde<-optres$par
 gmm.weghts1.c<-psirhorho_het(rhotilde, ubase, Hmat, Zmat, Ws2, step1.c = TRUE)
@@ -298,7 +347,7 @@ W<-list(stat=stat,pval=pval)
 else{
 	
 Ggmat<-gg_hom(Ws2, ubase, n)
-optres <- nlminb(pars, optimfunct, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps,control=list(abs.tol=abs.tol,rel.tol=rel.tol), v = Ggmat, verbose = verbose)
+optres <- nlminb(pars, optimfunct, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps,control = control, v = Ggmat, verbose = verbose)
 rhotilde<-optres$par
 # print(rhotilde)	
 	}
@@ -331,7 +380,7 @@ Ggmat<-gg_het(Ws2, utildeb, n)
  # gmm.weghts<-psirhorho_het_mod(rhotilde, utildeb, Hmat, Zmat, Ws2, step1.c = FALSE)
 
 # print(gmm.weghts$Phiinv)
-optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat= gmm.weghts$Phiinv, verbose = verbose, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps,control=list(abs.tol=abs.tol,rel.tol=rel.tol))	
+optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat= gmm.weghts$Phiinv, verbose = verbose, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps, control = control)	
 
 rhofin<-optres$par
 	 gmm.weghts<-psirhorho_het(rhofin, utildeb, Hmat, Zmat, Ws2, step1.c = FALSE)
@@ -351,7 +400,7 @@ Ggmat<-gg_hom(Ws2, utildeb, n)
    # gmm.weghts<-psirhorho_hom_mod(rhotilde, utildeb, Hmat, Zmat, Ws2, Ggmat$d, Ggmat$v.vec )
 
 
-optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat= gmm.weghts$Phiinv, verbose = verbose, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps,control=list(abs.tol=abs.tol,rel.tol=rel.tol))	
+optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat= gmm.weghts$Phiinv, verbose = verbose, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps, control = control )	
 
 rhofin<-optres$par
  # print(rhofin)
@@ -398,7 +447,7 @@ else  results<-list(coefficients=coeff,var=vcmat$Omega, s2=s2, call=cl, residual
  }
 
  
- if(model %in% c("lag", "ivhac")){
+ if(model %in% c("lag", "ivhac", "ols.end")){
  	
 results <-spatial.ivreg(y =y , Zmat = Zmat, Hmat = Hmat, het = het, HAC=HAC, type=type, bandwidth=bandwidth, distance=distance)	
      model.data <- data.frame(cbind(y, x[, -1]))
@@ -424,41 +473,6 @@ if(model == "ols")	{
     class(results) <- c("sphet")
 
 }
-
-# if(model == "ivhac")	{
-	
-# if (is.character(endog)) {
-        	# endognames <- endog  
-            # xend <- match(endog, colnames(data))
-            # endog <- data[, xend]
-            # endog <- as.matrix(endog) 
-            # colnames(endog) <- endognames
-        # }
-        
-# endog <- as.matrix(endog)             
-# if(is.null(colnames(endog)))  endognames <- rep("endogenous", ncol(endog))  
-
-
-         # if (is.character(instruments)) {
-            # inst <- match(instruments, colnames(data))
-            # instruments <- data[, inst]
-        # }
-# instruments <- as.matrix(instruments)   
-
-
-	# Zmat <- cbind(x,endog)
-	# Hmat<-cbind(x,instruments)
-	# results <-spatial.ivreg(y =y, Zmat = Zmat, Hmat = Hmat, HAC=HAC, type=type, bandwidth=bandwidth, distance=distance)	
-     # model.data <- data.frame(cbind(y, x[, -1]))
-    # results$call <- cl
-    # results$model <- model.data
-    # results$type <- type
-    # results$bandwidth <- bandwidth
-    # results$method <- "ivhac"
-    # results$HAC <- HAC
-    # class(results) <- c("sphet")
-
-# }
 
 
  return(results)

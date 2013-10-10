@@ -16,11 +16,11 @@ heteroskedastic of an unknown form.
 
 \usage{
 spreg(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, 
-lag.instr = FALSE, initial.value=0.2, abs.tol=1e-20,rel.tol=1e-10,eps=1e-5, 
+lag.instr = FALSE, initial.value=0.2, 
 model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, 
 na.action = na.fail,  HAC = FALSE, 
 distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), 
-bandwidth="variable" , step1.c = FALSE)
+bandwidth="variable" , step1.c = FALSE, control = list())
 }
 
 \arguments{
@@ -35,14 +35,12 @@ bandwidth="variable" , step1.c = FALSE)
   \item{initial.value}{The initial value for \eqn{\rho}. It can be either numeric (default is 0.2) or
   set to \code{'SAR'}, in which case the optimization will start from the estimated coefficient of a regression of the 2SLS 
   residuals over their spatial lag (i.e. a spatial AR model)}
-  \item{abs.tol}{Absolute tolerance. See \link{nlminb} for details.}
-    \item{rel.tol}{Relative tolerance. See \link{nlminb} for details.}
-    \item{eps}{Tolerance level for the approximation. See Details.}
-    \item{model}{one of \code{lag}, \code{error}, \code{sarar}, \code{ivhac}, or \code{ols}.}
+    \item{model}{one of \code{lag}, \code{error}, \code{sarar}, \code{ivhac}, or \code{ols}. 
+    If HAC is TRUE, model should be one of \code{ivhac}, or \code{ols}.}
     \item{het}{default FALSE: if TRUE uses the methods developed for heteroskedasticity}
     \item{verbose}{print optimization details}
  \item{na.action}{a function which indicates what should happen when the data contains missing values. See \link{lm} for details.}
- \item{HAC}{perform the HAC estimator of Kelejian and Prucha, 2007}
+ \item{HAC}{perform the HAC estimator of Kelejian and Prucha, 2007.}
    \item{distance}{an object of class \code{distance} created for example by \link{read.gwt2dist} 
   The object contains the specification of the distance measure 
   to be employed in the estimation of the VC matrix. See Details. }
@@ -50,6 +48,7 @@ bandwidth="variable" , step1.c = FALSE)
   The type of Kernel to be used. See Details. }
     \item{bandwidth}{"variable" (default) - or numeric when a fixed bandwidth is specified by the user.}
     \item{step1.c}{Should step 1.c from Arraiz et al. 2012 be performed?}
+    \item{control}{A list of control arguments. See \link{nlminb}}
 }
 
 \details{
@@ -66,7 +65,16 @@ The initial value for the optimization of step 2b is the optimal parameter of st
 Internally, the object of class \code{listw} is transformed into a \link{Matrix} 
 using the function \link{listw2dgCMatrix}.
 
-For the HAC estimator of the LAG model (Kelejian and Prucha, 2007), the default sets the bandwith for each observation to the maximum distance for that observation (i.e.
+For the HAC estimator (Kelejian and Prucha, 2007),  there are four possibilities:
+
+\itemize{
+\item A model with only Wy
+\item A model with Wy and additional endogenous 
+\item Only additional endogenous (with no Wy)
+\item No additional endogenous variables
+}
+
+Furthermore, the default sets the bandwith for each observation to the maximum distance for that observation (i.e.
 the max of each element of the list of distances). 
 
 Six different kernel functions are implemented:
@@ -96,20 +104,24 @@ A list object of class \code{sphet}
 \item{call}{the call used to create this object}
 \item{model}{the model matrix of data}
 \item{method}{\code{'gs2slshac'}}
-\item{W}{Wald test for both \eqn{\rho} and \eqn{\lambda} are zero}
 }
 
 \seealso{ \code{\link{stslshac}}}
 
 \references{
 
-Arraiz, I. and Drukker, M.D. and Kelejian, H.H. and Prucha, I.R. (2007) 
+Arraiz, I. and Drukker, M.D. and Kelejian, H.H. and Prucha, I.R. (2010) 
 A spatial Cliff-Ord-type Model with Heteroskedastic Innovations: Small and Large Sample Results,
-\emph{Department of Economics, University of Maryland}'
+\emph{Journal of Regional Sciences}, \bold{50}, pages 592--614.
 
-      Kelejian, H.H. and Prucha, I.R. (2007) 
+Drukker, D.M. and Egger, P. and Prucha, I.R. (2013)
+On Two-step Estimation of a Spatial Auto regressive Model with Autoregressive
+Disturbances and Endogenous Regressors, 
+\emph{Econometric Review}, \bold{32}, pages 686--733. 
+
+      Kelejian, H.H. and Prucha, I.R. (2010) 
 Specification and Estimation of Spatial Autoregressive Models with Autoregressive and Heteroskedastic Disturbances,
-    \emph{Journal of Econometrics}, forthcoming.
+    \emph{Journal of Econometrics}, \bold{157}, pages 53--67. 
 
   Kelejian, H.H. and Prucha, I.R. (1999) 
 A Generalized Moments Estimator for the Autoregressive Parameter in a Spatial Model,

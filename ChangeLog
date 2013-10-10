@@ -29,3 +29,14 @@ Changes in Version 1.2-0
 Changes in Version 1.4-0
 
   o Read the instrument and endogenous variable from the data
+  
+Changes in Version 1.4-1
+
+  o fix the residuals for model without intercept. 
+  
+  o put options for minimizations under control = list()
+  
+  o solve a problem with the HAC. In particular there are now four options (see help).  
+  
+  o fix a serious of issues with the instruments. 
+  
