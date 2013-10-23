@@ -128,7 +128,7 @@ if(!is.null(instruments)){
             inst <- match(instruments, names(data))
             instruments <- as.data.frame(data)[, inst]
         }
-            # instruments <- as.matrix(instruments)   
+            instruments <- as.matrix(instruments)   
                    
 if(lag.instr) {
 	         winst <- Ws %*% instruments
