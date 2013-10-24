@@ -40,3 +40,6 @@ Changes in Version 1.4-1
   
   o fix a serious of issues with the instruments. 
   
+  o endog and instruments are now either NULL or a formula type of object
+  
+  

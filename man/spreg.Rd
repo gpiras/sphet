@@ -29,8 +29,10 @@ bandwidth="variable" , step1.c = FALSE, control = list())
   in the model.}
   \item{listw}{an object of class \code{listw}, \code{matrix}, or \code{Matrix}}
    \item{listw2}{an object of class \code{listw}, \code{matrix}, or \code{Matrix} specified only when \code{sarar} is true}
-\item{endog}{additional endogenous variables}
-\item{instruments}{external instruments}
+\item{endog}{additional endogenous variables. Default \code{NULL}. If not \code{NULL} should be specified 
+as a formula with no dependent variable (endog = ~ x1 + x2). Note the ~ before the expression. }
+\item{instruments}{external instruments. Default \code{NULL}. If not \code{NULL} should be specified 
+as a formula with no dependent variable (instruments = ~ x1 + x2). Note the ~ before the expression.  }
 \item{lag.instr}{should the external instruments be spatially lagged?}
   \item{initial.value}{The initial value for \eqn{\rho}. It can be either numeric (default is 0.2) or
   set to \code{'SAR'}, in which case the optimization will start from the estimated coefficient of a regression of the 2SLS 
