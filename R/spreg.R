@@ -26,8 +26,6 @@ if (any(is.na(y)))
 if (any(is.na(x))) 
         stop("NAs in independent variable")
 
-if (model== "error" && !is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the error model")
-
 if(HAC && model %in% c("lag","error","sarar")) stop("Model should be one of 'ivhac', or 'ols' when HAC is true ")
 
 if(HAC){
@@ -106,48 +104,26 @@ if (k > 1) {
 }
 
 
+### Definition of the instruments for all cases: if there is an endogenous variable the instruments have to be specified in all models. 
+if (!is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the model")
 
 if(model %in% c("sarar","lag", "ivhac")){
- 
-if (!is.null(endog)) {
-
-endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
-
-        # if (is.character(endog)) {
-        	# endognames <- endog  
-            # xend <- match(endog, names(data))
-            # endog <- as.data.frame(data)[, xend]
-            # # endog <- matrix(endog) 
-             # # names(endog) <- endognames
-        # }
-        
-# # endog <- as.matrix(endog)             
-# else  endognames <- rep("endogenous", ncol(endog))  
-
-if(!is.null(instruments)){
-
-instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
-
-         # if (is.character(instruments)) {
-            # inst <- match(instruments, names(data))
-            # instruments <- as.data.frame(data)[, inst]
-        # }
-            # instruments <- as.matrix(instruments)   
-                   
-if(lag.instr) {
-	         winst <- Ws %*% instruments
-             wwinst<- Ws %*% winst	
-if(twow){
-	w2i <- Ws2 %*% instruments 
-	 w2wi <- Ws2 %*% winst 
-	 w2wwi <- Ws2 %*% wwinst 	
-	AddH <- cbind(instruments, as.matrix(winst), as.matrix(wwinst), as.matrix(w2i), as.matrix(w2wi),as.matrix(w2wwi))        
-}
-else  AddH <- cbind(instruments, as.matrix(winst), as.matrix(wwinst))        
-}
-
-else  AddH <- instruments        
-
+ 	if (!is.null(endog)) {
+		endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
+			if(!is.null(instruments)){
+					instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
+					if(lag.instr) {
+				         winst <- Ws %*% instruments
+            			 wwinst<- Ws %*% winst	
+								if(twow){
+										w2i <- Ws2 %*% instruments 
+										 w2wi <- Ws2 %*% winst 
+										 w2wwi <- Ws2 %*% wwinst 	
+AddH <- cbind(instruments, as.matrix(winst), as.matrix(wwinst), as.matrix(w2i), as.matrix(w2wi),as.matrix(w2wwi))        
+										}
+								else  AddH <- cbind(instruments, as.matrix(winst), as.matrix(wwinst))        
+									}
+					else  AddH <- instruments        
 if (K==2) {
 	if(twow) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx), AddH)
 	else  Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), AddH)
@@ -156,75 +132,32 @@ else {
 	if(twow) Hmat <- cbind(1,x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx), AddH)
 	else  Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), AddH)
 	}
-
-	}
-
-else{
-if (K==2) {
-	if(twow) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx))
-	else  Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx))
-		}
-else {
-	if(twow) Hmat <- cbind(1,x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx))
-	else  Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx))
-	}	
-	}	
-	
-Zmat<- cbind(x, endog, as.matrix(wy))            
-colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
-
+									}
+		 	# else stop("Instruments should be specified if there is an endogenous variable")
+	Zmat<- cbind(x, endog, as.matrix(wy))            
+	colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
 }
-
- else {
-	
+	else {
 	Zmat<- cbind(x, as.matrix(wy))                    
-
 if (K==2){
 	if(twow) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx))
 	else  Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx)) 
 }
-
 else {
 	if(twow) Hmat <- cbind(1,x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx))
 	else  Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx)) 
-
 	}
-
     }
     }
 
 if(model == "error" ){
-# else{
-if (!is.null(endog)) {
-
-endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
-        # if (is.character(endog)) {
-        	 # endognames <- endog  
-            # xend <- match(endog, names(data))
-            # endog <- as.data.frame(data)[, xend]
-            # # endog <- matrix(endog) 
-            # # names(endog) <- endognames
-        # }
-
-# endog <- as.matrix(endog)                   
-# else if (is.null(colnames(endog)))  endognames <- rep("endogenous", ncol(endog)) 
-# else  endognames <- rep("endogenous", ncol(endog)) 
-
-instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
-	
-	 # if (is.character(instruments)) {
-            # inst <- match(instruments, names(data))
-            # instruments <- as.data.frame(data)[, inst]
-           
-        # }
-        
-
+	if (!is.null(endog)) {
+          endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
+		  instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
 	 if(lag.instr) { 
-        	
 	        winst <- Ws %*% instruments           
 	        AddH<- cbind(instruments, as.matrix(winst))
 }
-
 else AddH<- cbind(instruments)
 
 Zmat<- cbind(x, endog)            
@@ -236,48 +169,23 @@ else Hmat<-cbind(1, x, wx, AddH)
  }
  
 else {
+
 if (K==2) Hmat<-cbind(x,wx)
 else Hmat<-cbind(1, x,wx)	
 	Zmat<- x
 	}
-
 }
 
 if(model == "ols.end" ){
-# else{
-if (!is.null(endog)) {
-
-endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))		
-        # if (is.character(endog)) {
-        	 # endognames <- endog  
-            # xend <- match(endog, names(data))
-            # endog <- as.data.frame(data)[, xend]
-            # # endog <- matrix(endog) 
-            # # names(endog) <- endognames
-        # }
-
-# endog <- as.matrix(endog)                   
-# else if (is.null(colnames(endog)))  endognames <- rep("endogenous", ncol(endog)) 
-# else  endognames <- rep("endogenous", ncol(endog)) 
-
-instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))	
-	
-# # 	 if (is.character(instruments)) {
-            # inst <- match(instruments, names(data))
-            # instruments <- as.data.frame(data)[, inst]
-           
-        # }
-        
+	if (!is.null(endog)) {
+			endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))			
+			instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))	
 AddH<- cbind(instruments)
-
 Zmat<- cbind(x, endog)            
 colnames(Zmat) <- c(colnames(x), colnames(endog)) 
-
 if (K==2) Hmat<-cbind(x, AddH) 
 else Hmat<-cbind(1, x, AddH)
-
  }
- 
 }
 		
 	
