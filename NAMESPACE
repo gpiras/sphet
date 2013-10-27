@@ -2,6 +2,7 @@ importFrom(stats, model.matrix, model.response, aggregate)
 import(nlme)
 import(spdep)
 import(Matrix)
+importFrom(sp, spDists)
 
 export(distance,gstslshet,read.gwt2dist,stslshac,summary.sphet, print.sphet, listw2dgCMatrix,impacts.gstsls,spreg, circular)
 

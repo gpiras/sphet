@@ -264,6 +264,7 @@ options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
    
 <<readdata, results=hide>>=
 library("sphet")
+library(spdep)
 data("boston", package = "spdep")
 @
 

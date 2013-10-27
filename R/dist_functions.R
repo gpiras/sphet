@@ -25,3 +25,8 @@ dist.canberra<-function(X,Y,...){
 	su<-abs(X)+abs(Y) 
 	return<- rowSums(dif /su)
 	}
+dist.gcircle <- function(X, Y, miles=TRUE, R=NULL) {
+    res <- spDists(x=X, y=Y, longlat=TRUE)
+    if (miles) res <- res*(3963.34/6378.388)
+    res
+}

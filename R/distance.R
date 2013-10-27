@@ -18,7 +18,7 @@ distance <- function(coord,region.id=NULL,output=TRUE,type=c("NN","distance","in
 	
 	if (length(unique(id)) != length(id)) 
             stop("non-unique region.id given")
-if(measure[1] == "gcircle") require(fields)            
+#if(measure[1] == "gcircle") require(fields)            
 		
     k<- ifelse(ncol(coord)==3,2,1)
 	 x<- coord[,k]
@@ -47,7 +47,7 @@ Weights<-cbind(0,0,0)
 		dist.fun<-switch(match.arg(measure), euclidean={
 			dist.euclidean
 			}, gcircle={
-				rdist.earth
+				dist.gcircle
 				}, chebyshev= {
 					dist.chebyshev
 					}, braycur={

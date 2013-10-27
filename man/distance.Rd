@@ -25,8 +25,8 @@ firstline=FALSE,file.name=NULL)
   \item{cutoff}{If type is \code{distance} or \code{inverse}. Assumes values 1, 2 or 3. 
   When 1, the cutoff is set to the first quantile of the distribution of distances. When 2 to the median, and when 3 to 
   the third quantile. Only observations with distance less than cutoff distance are neighbors. }
-  \item{miles}{If TRUE (default), distances are in miles, otherwise in Km. (See \code{\link{rdist.earth}} for details) }
-  \item{R}{Radius to use for sphere to find spherical distances.(See \code{\link{rdist.earth}} for details) }
+  \item{miles}{If TRUE (default), distances are in miles, otherwise in Km. (See \code{\link[sp]{spDists}} wcich returns km, and are converted if required) }
+  \item{R}{ deprecated, \code{\link[sp]{spDists}} uses an approximation to the WGS84 spheroid}
   \item{shape.name}{The name of the shape file. See Details}
    \item{region.id.name}{The name of the \code{region.id} variable. See Details}
    \item{firstline}{If \code{TRUE}, a first line is added to the output file. See Details}
