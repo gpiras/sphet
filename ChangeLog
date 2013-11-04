@@ -38,8 +38,22 @@ Changes in Version 1.4-1
   
   o solve a problem with the HAC. In particular there are now four options (see help).  
   
+  
+Changes in Version 1.4-2
+
   o fix a serious of issues with the instruments. 
   
   o endog and instruments are now either NULL or a formula type of object
+
+Changes in Version 1.4-3
+
+  o intImpacts was exported from spdep on revision 530 on R-forge. Therefore, there are no more warning 
+  when trying to access that function. 
+
+  o loading much faster due to changes in spdep 
   
+  o Replaced fields::rdist.earth with sp::spDists, which avoids importing from fields and provide a more accurate computation of the distance. In fact, 
+  rdist.earth used a spheroid and spDists an ellipsoid (WGS84) for Great Circle distances.
+ 
   
+  o loading much faster due to changes in spdep 
