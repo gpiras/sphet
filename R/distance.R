@@ -1,4 +1,5 @@
 distance <- function(coord,region.id=NULL,output=TRUE,type=c("NN","distance","inverse"),measure=c("euclidean","gcircle","chebyshev","braycur","canberra"),nn=6, cutoff=FALSE, miles=TRUE,R=NULL, shape.name=NULL,region.id.name=NULL,firstline=FALSE,file.name=NULL) {
+	
 	if ( !type %in% c("NN","distance","inverse") ) stop("unknown type")
 	if ( !measure[1] %in% c("euclidean","gcircle","chebyshev","braycur","canberra") ) stop("unknown measure")
 	if(!inherits(coord,c("data.frame","matrix"))){
@@ -18,7 +19,7 @@ distance <- function(coord,region.id=NULL,output=TRUE,type=c("NN","distance","in
 	
 	if (length(unique(id)) != length(id)) 
             stop("non-unique region.id given")
-#if(measure[1] == "gcircle") require(fields)            
+
 		
     k<- ifelse(ncol(coord)==3,2,1)
 	 x<- coord[,k]
