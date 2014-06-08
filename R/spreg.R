@@ -109,9 +109,21 @@ if (!is.null(endog) && is.null(instruments)) stop("No instruments specified for 
 
 if(model %in% c("sarar","lag", "ivhac")){
  	if (!is.null(endog)) {
-		endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
-			if(!is.null(instruments)){
-					instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
+# RSB 140608
+            if (length(endog) > 1) stop("only one endogenous variable")
+            ff <- formula(paste(endog, "~", paste(instruments, collapse="+"), "-1"))
+            emt <- terms(ff, data = data)
+            emf <- lm(ff, data, na.action=na.action, method="model.frame")
+            nendog <- endog
+            endog <- as.matrix(model.response(emf, "numeric"))
+            colnames(endog) <- nendog
+            instruments <- as.matrix(model.matrix(emt, emf))
+            
+
+
+#		endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
+#			if(!is.null(instruments)){
+#					instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
 					if(lag.instr) {
 				         winst <- Ws %*% instruments
             			 wwinst<- Ws %*% winst	
@@ -132,7 +144,7 @@ else {
 	if(twow) Hmat <- cbind(1,x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx), AddH)
 	else  Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), AddH)
 	}
-									}
+									#}
 		 	# else stop("Instruments should be specified if there is an endogenous variable")
 	Zmat<- cbind(x, endog, as.matrix(wy))            
 	colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
@@ -152,8 +164,17 @@ else {
 
 if(model == "error" ){
 	if (!is.null(endog)) {
-          endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
-		  instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
+# RSB 140608
+            if (length(endog) > 1) stop("only one endogenous variable")
+            ff <- formula(paste(endog, "~", paste(instruments, collapse="+"), "-1"))
+            emt <- terms(ff, data = data)
+            emf <- lm(ff, data, na.action=na.action, method="model.frame")
+            nendog <- endog
+            endog <- as.matrix(model.response(emf, "numeric"))
+            colnames(endog) <- nendog
+            instruments <- as.matrix(model.matrix(emt, emf))
+#          endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
+#		  instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
 	 if(lag.instr) { 
 	        winst <- Ws %*% instruments           
 	        AddH<- cbind(instruments, as.matrix(winst))
@@ -178,8 +199,17 @@ else Hmat<-cbind(1, x,wx)
 
 if(model == "ols.end" ){
 	if (!is.null(endog)) {
-			endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))			
-			instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))	
+# RSB 140608
+            if (length(endog) > 1) stop("only one endogenous variable")
+            ff <- formula(paste(endog, "~", paste(instruments, collapse="+"), "-1"))
+            emt <- terms(ff, data = data)
+            emf <- lm(ff, data, na.action=na.action, method="model.frame")
+            nendog <- endog
+            endog <- as.matrix(model.response(emf, "numeric"))
+            colnames(endog) <- nendog
+            instruments <- as.matrix(model.matrix(emt, emf))
+#			endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))			
+#			instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))	
 AddH<- cbind(instruments)
 Zmat<- cbind(x, endog)            
 colnames(Zmat) <- c(colnames(x), colnames(endog)) 
