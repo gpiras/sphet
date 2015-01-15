@@ -17,3 +17,21 @@ citEntry(entry = "Article",
         "URL http://www.jstatsoft.org/v35/i01/.")
 )
 
+citEntry(entry = "Article",
+  title        = "Comparing Implementations of Estimation Methods for Spatial Econometrics",
+  author       = personList(as.person("Roger Bivand"),
+                   as.person("Gianfranco Piras")),
+  journal      = "Journal of Statistical Software",
+  year         = "2015",
+  volume       = "63",
+  number       = "18",
+  pages        = "1--36",
+  url          = "http://www.jstatsoft.org/v63/i18/",
+
+  textVersion  =
+  paste("Roger Bivand, Gianfranco Piras (2015).",
+        "Comparing Implementations of Estimation Methods for Spatial Econometrics.",
+        "Journal of Statistical Software, 63(18), 1-36.",
+        "URL http://www.jstatsoft.org/v63/i18/.")
+)
+
