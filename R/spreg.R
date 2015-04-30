@@ -11,7 +11,7 @@ cl<- match.call()
 
 
 #generates x and y 
-	y<-model.extract(mf,"response")
+	y<-c(model.extract(mf,"response"))
 	x<-model.matrix(mt,mf)
 
 #checks on teh dimensions of x and y 	
