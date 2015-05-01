@@ -8,6 +8,7 @@ export(distance,gstslshet,read.gwt2dist,stslshac,summary.sphet, print.sphet, lis
 
 
 
-S3method(print,sphet)
-S3method(print,summary.sphet)
+S3method(print, sphet)
+S3method(summary, sphet)
+S3method(print, summary.sphet)
 S3method(impacts, gstsls)

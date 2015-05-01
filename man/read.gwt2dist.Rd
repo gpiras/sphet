@@ -33,6 +33,11 @@ An object of class \code{distance}.
 \author{ Gianfranco Piras \email{gpiras@mac.com}}
 
 \examples{
-\dontrun{dist<-read.gwt2dist(file='knn10columbus.GWT', region.id=POLYID)}
+\dontrun{
+library(spdep)
+data(columbus)
+dist<-read.gwt2dist(file=system.file('extdata/knn10columbus.GWT',
+ package="sphet"), region.id=columbus$POLYID)
+}
 }
 \keyword{spatial}
