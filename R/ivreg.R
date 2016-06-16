@@ -1,4 +1,4 @@
-spatial.ivreg<-function(y, Zmat, Hmat, het = het, HAC = HAC, distance = distance, type = c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), bandwidth = bandwidth){
+spatial.ivreg<-function(y, Zmat, Hmat, het = het, HAC = HAC, distance = distance, type = c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth = bandwidth){
 	df <- nrow(Zmat) - ncol(Zmat)
 	HH <- crossprod(Hmat,Hmat)
 	Hye <- crossprod(Hmat, Zmat)
@@ -25,7 +25,11 @@ if(HAC){
 							qs
 							}, Parzen = {
 								parzen
-								})
+								},
+								Rectangular = {
+									rectangular
+								}
+								)
 								
 if(is.null(attributes(distance)$GeoDa$dist)){
 	Ker<-lapply(distance$weights,ker.fun, bandwidth=bandwidth)
@@ -73,7 +77,7 @@ else{
 
 
 
-hac.ols<-function(y, x, HAC = HAC, distance = distance, type = c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), bandwidth = bandwidth){
+hac.ols<-function(y, x, HAC = HAC, distance = distance, type = c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth = bandwidth){
 	df <- nrow(x) - ncol(x)
     xpx<-crossprod(x)
     xpxi<-solve(xpx)
@@ -96,6 +100,8 @@ if(ncol(x)==1) e <- e - mean(e) ### rescale the residuals if x has no intercept
 							qs
 							}, Parzen = {
 								parzen
+								}, Rectangular ={
+									rectangular
 								})
 								
 if(is.null(attributes(distance)$GeoDa$dist)){

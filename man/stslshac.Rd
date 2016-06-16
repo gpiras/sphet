@@ -13,7 +13,7 @@ where \eqn{R} is a non-stochastic matrix.
 
 \usage{
 stslshac(formula, data=list(),listw,na.action=na.fail,zero.policy=NULL, HAC=TRUE, 
-distance=NULL,type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), 
+distance=NULL,type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), 
 bandwidth="variable",W2X=TRUE)
 }
 
@@ -43,6 +43,7 @@ the max of each element of the list of distances).
 Six different kernel functions are implemented:
 \itemize{
     \item \code{'Epanechnikov'}: \eqn{K(z) = 1-z^2}
+    \item \code{'Rectangular'}: \eqn{K(z) = 1}
     \item \code{'Triangular'}: \eqn{K(z) = 1-z} 
     \item \code{'Bisquare'}: \eqn{K(z) = (1-z^2)^2}
     \item \code{'Parzen'}: \eqn{K(z) = 1-6z^2+6 |z|^3} if  \eqn{z \leq 0.5} and  

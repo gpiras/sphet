@@ -19,7 +19,7 @@ spreg(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL,
 lag.instr = FALSE, initial.value=0.2, 
 model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, 
 na.action = na.fail,  HAC = FALSE, 
-distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","rectangular"), 
+distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), 
 bandwidth="variable" , step1.c = FALSE, control = list())
 }
 
@@ -46,7 +46,7 @@ as a formula with no dependent variable (instruments = ~ x1 + x2). Note the ~ be
    \item{distance}{an object of class \code{distance} created for example by \link{read.gwt2dist} 
   The object contains the specification of the distance measure 
   to be employed in the estimation of the VC matrix. See Details. }
-    \item{type}{One of \code{c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","rectangular")}. 
+    \item{type}{One of \code{c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular")}. 
   The type of Kernel to be used. See Details. }
     \item{bandwidth}{"variable" (default) - or numeric when a fixed bandwidth is specified by the user.}
     \item{step1.c}{Should step 1.c from Arraiz et al. 2012 be performed?}
@@ -87,7 +87,7 @@ Six different kernel functions are implemented:
     \item \code{'Parzen'}: \eqn{K(z) = 1-6z^2+6 |z|^3} if  \eqn{z \leq 0.5} and  
 \eqn{ K(z) = 2(1-|z|)^3} if \eqn{0.5 < z \leq 1} 
 	\item \code{'TH'} (Tukey - Hanning):  \eqn{ K(z) = \frac{1+ \cos(\pi z)}{2}}
-	\item \code{'rectangular'}:  \eqn{ K(z) = 1}
+	\item \code{'Rectangular'}:  \eqn{ K(z) = 1}
 	\item \code{'QS'} (Quadratic Spectral): \eqn{K(z) = \frac{25}{12\pi^2z^2} 
   (\frac{\sin(6\pi z)/5)}{6\pi z/5} - \cos(6\pi z)/5)}). 
 }

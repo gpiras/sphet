@@ -6,6 +6,7 @@
 \alias{qs}
 \alias{th}
 \alias{triangular}
+\alias{rectangular}
 
 \title{Spatial two stages least square with HAC standard errors}
 
@@ -19,7 +20,7 @@
 Six different kernel functions are implemented:
 \itemize{
     \item \code{'Epanechnikov'}: \eqn{K(z) = 1-z^2}
-    \item \code{'rectangular'}: \eqn{K(z) = 1-z^2}
+    \item \code{'Rectangular'}: \eqn{K(z) = 1-z^2}
     \item \code{'Triangular'}: \eqn{K(z) = 1-z} 
     \item \code{'Bisquare'}: \eqn{K(z) = (1-z^2)^2}
     \item \code{'Parzen'}: \eqn{K(z) = 1-6z^2+6 |z|^3} if  \eqn{z \leq 0.5} and  

@@ -1,4 +1,4 @@
-tsls <- function(y,yend,X,Zinst,end, reg, yor, modified=FALSE, HAC=FALSE, distance=distance,  type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","rectangular"), bandwidth=bandwidth, zero.policy=zero.policy) {
+tsls <- function(y,yend,X,Zinst,end, reg, yor, modified=FALSE, HAC=FALSE, distance=distance,  type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth=bandwidth, zero.policy=zero.policy) {
 ### estimation engine that deals with the various cases
 #silent<-set.VerboseOption(FALSE)
 if(modified){
@@ -59,7 +59,7 @@ if(HAC){
 							}, Parzen = {
 								parzen
 								},
-								rectangular = {
+								Rectangular = {
 									rectangular
 								})
 #					print(bandwith)

@@ -1,4 +1,4 @@
-stslshac<-function(formula, data=list(),listw,na.action=na.fail,zero.policy=NULL,HAC=TRUE, distance=NULL,type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"), bandwidth="variable",W2X=TRUE){
+stslshac<-function(formula, data=list(),listw,na.action=na.fail,zero.policy=NULL,HAC=TRUE, distance=NULL,type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth="variable",W2X=TRUE){
 
 ##functions that need to be sourced
 	#source("twostagels.R")
@@ -28,7 +28,7 @@ if(!inherits(listw,"listw"))
 	
 ##check that an exiting kernel is specified
 if(HAC){
-if(!(type %in% c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH"))) stop("Unknown kernel")
+if(!(type %in% c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"))) stop("Unknown kernel")
 #check that the distance measure is specificed
 if(is.null(distance) ) stop("No distance measure specified")
 

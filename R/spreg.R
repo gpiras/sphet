@@ -1,4 +1,4 @@
-spreg<-function(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, lag.instr = FALSE, initial.value=0.2, model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","rectangular"), bandwidth="variable" ,step1.c = FALSE, control = list()){
+spreg<-function(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, lag.instr = FALSE, initial.value=0.2, model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth="variable" ,step1.c = FALSE, control = list()){
 
          		
 #extract model objects	
@@ -32,7 +32,7 @@ if(HAC){
 	if(!inherits(distance,"distance")) 
 	stop("The distance measure is not a distance object")
 	
-if(!(type %in% c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","rectangular"))) stop("Unknown kernel")
+if(!(type %in% c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"))) stop("Unknown kernel")
 }	
 	
 
