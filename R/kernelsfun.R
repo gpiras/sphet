@@ -6,6 +6,16 @@ triangular<-function(q,bandwidth){
 		k
 		}
 
+rectangular<-function(q,bandwidth){
+			if (is.numeric(bandwidth)) ban<-bandwidth
+		else ban<-max(q)
+		z <-q/ban
+		k <- 1
+		k	
+}
+
+
+
 epan<-function(q,bandwidth){
 			if (is.numeric(bandwidth)) ban<-bandwidth
 		else ban<-max(q)
