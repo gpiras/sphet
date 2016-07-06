@@ -50,9 +50,9 @@ if(!(type %in% c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rec
 if(!(model %in% c("ols", "ols.end"))){
 	
 if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
-if(inherits(listw,"listw"))  Ws<-listw2dgCMatrix(listw)	
-if(inherits(listw,"matrix"))  Ws<-Matrix(listw)	
-
+if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
+if(inherits(listw,"matrix"))  Ws <- Matrix(listw)	
+if(inherits(listw,"Matrix"))  Ws <- listw	
 
 
 #check on the dimensions of x and W	
