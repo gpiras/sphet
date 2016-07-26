@@ -9,8 +9,8 @@ triangular<-function(q,bandwidth){
 rectangular<-function(q,bandwidth){
 			if (is.numeric(bandwidth)) ban<-bandwidth
 		else ban<-max(q)
-		z <-q/ban
-		k <- 1
+		# z <-q/ban
+		k <- rep(1, length(q))
 		k	
 }
 

@@ -84,8 +84,8 @@ if(!inherits(listw2,c("listw", "Matrix", "matrix"))) stop("listw2 format unknown
 if(inherits(listw2,"listw"))  Ws2<-listw2dgCMatrix(listw2)	
 if(inherits(listw2,"matrix"))  Ws2<-Matrix(listw2)	
 
-	# feeedback from user
-if(all.equal(listw, listw2)){ 
+	 # # feeedback from user
+if(identical(listw, listw2)){ 
 	twow <- FALSE		
 	Ws2 <- Ws
 	}
