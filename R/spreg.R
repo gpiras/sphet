@@ -458,8 +458,8 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     n <- length(obj$residuals)
     mu <- c(rho, beta)
     Sigma <- obj$var[c(p2, (1:(p2-1))), c(p2, (1:(p2-1)))]
-    irho <- p2-1
-    drop2beta <- c(p2-1, p2)
+    irho <- 1
+    drop2beta <- 1
     res <- spdep::intImpacts(rho=rho, beta=beta, P=P, n=n, mu=mu,
         Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
         interval=NULL, type="lag", tr=tr, R=R, listw=listw, tol=tol,
