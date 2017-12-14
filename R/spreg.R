@@ -376,7 +376,7 @@ results <-spatial.ivreg(y =y , Zmat = Zmat, Hmat = Hmat, het = het, HAC=HAC, typ
     results$bandwidth <- bandwidth
     results$method <- "s2slshac"
     results$HAC <- HAC
-    class(results) <- c("sphet", "stsls")
+    class(results) <- c("sphet", "stsls_sphet")
  
  	}
  	
@@ -421,6 +421,43 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     n <- length(obj$residuals)
     mu <- c(beta, rho, lambda)
     Sigma <- obj$var
+    irho <- p2-1
+    drop2beta <- c(p2-1, p2)
+    res <- spdep::intImpacts(rho=rho, beta=beta, P=P, n=n, mu=mu,
+        Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
+        interval=NULL, type="lag", tr=tr, R=R, listw=listw, tol=tol,
+        empirical=empirical, Q=Q, icept=icept, iicept=iicept, p=p)
+    attr(res, "iClass") <- class(obj)
+    res
+}
+
+
+
+
+
+
+impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
+    tol=1e-6, empirical=FALSE, Q=NULL) {
+    if (!is.null(obj$listw_style) && obj$listw_style != "W") 
+        stop("Only row-standardised weights supported")
+    coefs <- drop(obj$coefficients)
+    p2 <- length(coefs)
+    rho <- coefs[(p2)]
+    beta <- coefs[1:(p2-1)]
+# rho is lag coef., lambda is error coef (reversed from function use)
+    icept <- grep("(Intercept)", names(beta))
+    iicept <- length(icept) > 0
+    if (iicept) {
+        P <- matrix(beta[-icept], ncol=1)
+        bnames <- names(beta[-icept])
+    } else {
+        P <- matrix(beta, ncol=1)
+        bnames <- names(beta)
+    }
+    p <- length(beta)
+    n <- length(obj$residuals)
+    mu <- c(rho, beta)
+    Sigma <- obj$var[c(p2, (1:(p2-1))), c(p2, (1:(p2-1)))]
     irho <- p2-1
     drop2beta <- c(p2-1, p2)
     res <- spdep::intImpacts(rho=rho, beta=beta, P=P, n=n, mu=mu,
