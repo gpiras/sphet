@@ -406,6 +406,8 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     p2 <- length(coefs)
     rho <- coefs[(p2-1)]
     beta <- coefs[1:(p2-2)]
+    p <- length(beta)
+	p1 <- p + 1
     lambda <- coefs[p2]
 # rho is lag coef., lambda is error coef (reversed from function use)
     icept <- grep("(Intercept)", names(beta))
@@ -417,11 +419,11 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
         P <- matrix(beta, ncol=1)
         bnames <- names(beta)
     }
-    p <- length(beta)
     n <- length(obj$residuals)
-    mu <- c(beta, rho, lambda)
-    Sigma <- obj$var
-    irho <- p2-1
+    mu <- c(beta, rho)
+    Sigmawor <- obj$var[-p2,-p2]
+	Sigma <- Sigmawor[c(p1, (1:(p1-1))), c(p1, (1:(p1-1)))]    
+	irho <- p2-1
     drop2beta <- c(p2-1, p2)
     res <- spdep::intImpacts(rho=rho, beta=beta, P=P, n=n, mu=mu,
         Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
