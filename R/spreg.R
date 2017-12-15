@@ -1,4 +1,4 @@
-spreg<-function(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, lag.instr = FALSE, initial.value=0.2, model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth="variable" ,step1.c = FALSE, control = list()){
+spreg<-function(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, lag.instr = FALSE, initial.value=0.2, model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, distance = NULL, type = c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth="variable" ,step1.c = FALSE, control = list()){
 
          		
 #extract model objects	
@@ -402,7 +402,8 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     tol=1e-6, empirical=FALSE, Q=NULL) {
     if (!is.null(obj$listw_style) && obj$listw_style != "W") 
         stop("Only row-standardised weights supported")
-    coefs <- drop(obj$coefficients)
+coefs <- drop(obj$coefficients)
+
     p2 <- length(coefs)
     rho <- coefs[(p2-1)]
     beta <- coefs[1:(p2-2)]
@@ -420,11 +421,11 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
         bnames <- names(beta)
     }
     n <- length(obj$residuals)
-    mu <- c(beta, rho)
+    mu <- c(rho, beta)
     Sigmawor <- obj$var[-p2,-p2]
 	Sigma <- Sigmawor[c(p1, (1:(p1-1))), c(p1, (1:(p1-1)))]    
-	irho <- p2-1
-    drop2beta <- c(p2-1, p2)
+	irho <- 1
+    drop2beta <- 1
     res <- spdep::intImpacts(rho=rho, beta=beta, P=P, n=n, mu=mu,
         Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
         interval=NULL, type="lag", tr=tr, R=R, listw=listw, tol=tol,
