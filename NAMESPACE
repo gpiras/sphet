@@ -1,10 +1,12 @@
-importFrom(stats, model.matrix, model.response, aggregate)
+importFrom(methods, as, new)
+importFrom(stats, model.matrix, model.response, aggregate,  coef, coefficients, fitted, lm, model.extract, na.fail, nlminb, pchisq, pnorm, printCoefmat, quantile, residuals, terms)
+importFrom(utils, read.table, write.table)
 import(nlme)
 import(spdep)
 import(Matrix)
 importFrom(sp, spDists)
 
-export(distance,gstslshet,read.gwt2dist,stslshac,summary.sphet, print.sphet, listw2dgCMatrix,impacts.gstsls,spreg, circular)
+export(distance,gstslshet,read.gwt2dist,stslshac,summary.sphet, print.sphet, listw2dgCMatrix,impacts.gstsls,spreg, circular, kpjtest)
 
 
 

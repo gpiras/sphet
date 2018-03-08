@@ -62,3 +62,6 @@ Changes in Version 1.6-2
 
   o Change in two W suggested by users
 
+Changes in 1.7-1
+  
+  o Introduction of the J-test for lag models. 
