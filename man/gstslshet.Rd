@@ -20,8 +20,8 @@ heteroskedastic of an unknown form.
 gstslshet(formula, data=list(), listw, na.action=na.fail, 
 zero.policy=NULL,initial.value=0.2, abs.tol=1e-20, 
 rel.tol=1e-10, eps=1e-5, inverse=T,sarar=T)
-\method{impacts}{gstsls}(obj, \dots, tr, R = NULL, listw = NULL,
-tol = 1e-06, empirical = FALSE, Q=NULL)
+\method{impacts}{gstsls}(obj, \dots, tr=NULL, R = NULL, listw = NULL,
+ evalues=NULL, tol = 1e-06, empirical = FALSE, Q=NULL)
 }
 
 \arguments{
@@ -44,6 +44,7 @@ tol = 1e-06, empirical = FALSE, Q=NULL)
   \item{\dots}{Arguments passed through to methods in the \pkg{coda} package}
   \item{tr}{A vector of traces of powers of the spatial weights matrix created using \code{trW}, for approximate impact measures; if not given, \code{listw} must be given for exact measures (for small to moderate spatial weights matrices); the traces must be for the same spatial weights as were used in fitting the spatial regression}
   \item{R}{If given, simulations are used to compute distributions for the impact measures, returned as \code{mcmc} objects}
+  \item{evalues}{vector of eigenvalues of spatial weights matrix for impacts calculations}
   \item{tol}{Argument passed to \code{mvrnorm}: tolerance (relative to largest variance) for numerical lack of positive-definiteness in the coefficient covariance matrix}
   \item{empirical}{Argument passed to \code{mvrnorm} (default FALSE): if true, the coefficients and their covariance matrix specify the empirical not population mean and covariance matrix}
   \item{Q}{default NULL, else an integer number of cumulative power series impacts to calculate if \code{tr} is given}
@@ -124,5 +125,8 @@ data(columbus)
 listw<-nb2listw(col.gal.nb)
 res<-gstslshet(CRIME~HOVAL + INC, data=columbus, listw=listw)
 summary(res)
+impacts(res, listw=listw)
+ev <- eigenw(listw)
+impacts(res, evalues=ev)
 }
 \keyword{models}

@@ -5,7 +5,7 @@ Title: Estimation of Spatial Autoregressive Models with and without Heteroskedas
 Author: Gianfranco Piras <gpiras@mac.com>
 Maintainer: Gianfranco Piras <gpiras@mac.com>
 Depends: R (>= 3.0.1)
-Imports: nlme, spdep (>= 0.5-67), Matrix, sp, methods, stats, utils
+Imports: nlme, spdep (>= 0.7-8), Matrix, sp, methods, stats, utils
 Description: Functions for fitting Cliff-Ord-type spatial autoregressive models with and without heteroskedastic innovations using Generalized Method of Moments estimation are provided. Some support is available for fitting spatial HAC models, and for fitting with non-spatial endogeneous variables using instrumental variables.
 License: GPL-2
 LazyLoad: yes
