@@ -149,7 +149,9 @@ listw<-nb2listw(col.gal.nb)
 res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,   het = TRUE, verbose = FALSE)
 summary(res)
 impacts(res, listw=listw)
-ev <- eigenw(listw)
+if (requireNamespace("spatialreg", quietly=TRUE)) {
+ev <- spatialreg::eigenw(listw)
 summary(impacts(res, evalues=ev, R=399), zstats=TRUE, short=TRUE)
+}
 }
 \keyword{models}

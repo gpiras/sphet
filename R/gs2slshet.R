@@ -264,7 +264,9 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     Sigma <- obj$var
     irho <- p2-1
     drop2beta <- c(p2-1, p2)
-    res <- intImpacts(rho=rho, beta=beta, P=P, n=n, mu=mu,
+    if (!requireNamespace("spatialreg", quietly=TRUE))
+        stop("install spatialreg")
+    res <- spatialreg::intImpacts(rho=rho, beta=beta, P=P, n=n, mu=mu,
         Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
         interval=NULL, type="lag", tr=tr, R=R, listw=listw, evalues=evalues,
         tol=tol, empirical=empirical, Q=Q, icept=icept, iicept=iicept, p=p)

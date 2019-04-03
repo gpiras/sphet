@@ -126,7 +126,9 @@ listw<-nb2listw(col.gal.nb)
 res<-gstslshet(CRIME~HOVAL + INC, data=columbus, listw=listw)
 summary(res)
 impacts(res, listw=listw)
-ev <- eigenw(listw)
+if (requireNamespace("spatialreg", quietly=TRUE)) {
+ev <- spatialreg::eigenw(listw)
 impacts(res, evalues=ev)
+}
 }
 \keyword{models}
