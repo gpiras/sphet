@@ -1,6 +1,6 @@
 Package: sphet
-Version: 1.7-3
-Date: 2019-04-03
+Version: 1.7-5
+Date: 2020-04-09
 Title: Estimation of Spatial Autoregressive Models with and without Heteroskedastic Innovations
 Author: Gianfranco Piras <gpiras@mac.com>
 Maintainer: Gianfranco Piras <gpiras@mac.com>

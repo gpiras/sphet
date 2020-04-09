@@ -1,6 +1,6 @@
 # The assumption is that listw1 and listw2 are different, otherwise there would be no reason to use the spatial J-test
 
-kpjtest <- function(H0model, H1model, data = list(), listw0 = NULL, listw1 = NULL, endogH0 = NULL, endogH1 = NULL, instrumentsH0 = NULL, instrumentsH1 = NULL, lag.instr = FALSE, model = c("lag", "sarar"), het = FALSE, HAC = F, distance = NULL, type = c("Epanechnikov", "Triangular", "Bisquare", "Parzen", "QS", "TH", "Rectangular"), bandwidth = "variable",  na.action = na.fail){
+kpjtest <- function(H0model, H1model, data = list(), listw0 = NULL, listw1 = NULL, endogH0 = NULL, endogH1 = NULL, instrumentsH0 = NULL, instrumentsH1 = NULL, lag.instr = FALSE, model = "lag", het = FALSE, HAC = F, distance = NULL, type = "Epanechnikov", bandwidth = "variable",  na.action = na.fail){
 	 cl <- match.call()
 	if(is.null(listw0)) 
 		stop("listw for the null model was not specified")

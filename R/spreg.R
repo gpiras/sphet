@@ -1,4 +1,4 @@
-spreg<-function(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, lag.instr = FALSE, initial.value=0.2, model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, distance = NULL, type = c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth="variable" ,step1.c = FALSE, control = list()){
+spreg<-function(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, lag.instr = FALSE, initial.value=0.2, model = "sarar", het = FALSE, verbose=FALSE, na.action = na.fail,  HAC = FALSE, distance = NULL, type = "Epanechnikov", bandwidth="variable" ,step1.c = FALSE, control = list()){
 
          		
 #extract model objects	
@@ -403,7 +403,6 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
     if (!is.null(obj$listw_style) && obj$listw_style != "W") 
         stop("Only row-standardised weights supported")
 coefs <- drop(obj$coefficients)
-
     p2 <- length(coefs)
     rho <- coefs[(p2-1)]
     beta <- coefs[1:(p2-2)]

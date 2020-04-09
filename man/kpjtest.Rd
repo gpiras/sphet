@@ -15,7 +15,11 @@ On the other hand, when the \eqn{\sigma^2_i} are all the same (and R is an ident
 }
 
 \usage{
-kpjtest(H0model, H1model, data = list(), listw0 = NULL, listw1 = NULL, endogH0 = NULL, endogH1 = NULL, instrumentsH0 = NULL, instrumentsH1 = NULL, lag.instr = FALSE, model = c("lag", "sarar"), het = FALSE, HAC = F, distance = NULL, type = c("Epanechnikov", "Triangular", "Bisquare", "Parzen", "QS", "TH", "Rectangular"), bandwidth = "variable",  na.action = na.fail)
+kpjtest(H0model, H1model, data = list(), listw0 = NULL, listw1 = NULL, 
+endogH0 = NULL, endogH1 = NULL, instrumentsH0 = NULL, instrumentsH1 = NULL, 
+lag.instr = FALSE, model = "lag", het = FALSE, HAC = F, 
+distance = NULL, type = "Epanechnikov",
+bandwidth = "variable",  na.action = na.fail)
 }
 
 \arguments{

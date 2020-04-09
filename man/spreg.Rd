@@ -15,11 +15,12 @@ heteroskedastic of an unknown form.
 }
 
 \usage{
-spreg(formula, data=list(), listw, listw2=NULL, endog = NULL, instruments= NULL, 
+spreg(formula, data=list(), listw, listw2=NULL, 
+endog = NULL, instruments= NULL, 
 lag.instr = FALSE, initial.value=0.2, 
-model = c("sarar", "lag", "error", "ivhac", "ols"), het = FALSE, verbose=FALSE, 
+model = "sarar", het = FALSE, verbose=FALSE, 
 na.action = na.fail,  HAC = FALSE, 
-distance = NULL, type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), 
+distance = NULL, type = "Epanechnikov", 
 bandwidth="variable" , step1.c = FALSE, control = list())
 }
 
@@ -47,7 +48,7 @@ as a formula with no dependent variable (instruments = ~ x1 + x2). Note the ~ be
   The object contains the specification of the distance measure 
   to be employed in the estimation of the VC matrix. See Details. }
     \item{type}{One of \code{c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular")}. 
-  The type of Kernel to be used. See Details. }
+  The type of Kernel to be used. default = \code{"Epanechnikov"} See Details. }
     \item{bandwidth}{"variable" (default) - or numeric when a fixed bandwidth is specified by the user.}
     \item{step1.c}{Should step 1.c from Arraiz et al. 2012 be performed?}
     \item{control}{A list of control arguments. See \link{nlminb}}
@@ -149,8 +150,12 @@ listw<-nb2listw(col.gal.nb)
 res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,   het = TRUE, verbose = FALSE)
 summary(res)
 impacts(res, listw=listw)
+ev1 <- eigen(listw2dgCMatrix(listw))$values
+set.seed(1234)
+summary(impacts(res, evalues = ev1, R = 399), zstats=TRUE, short=TRUE)
 if (requireNamespace("spatialreg", quietly=TRUE)) {
 ev <- spatialreg::eigenw(listw)
+set.seed(1234)
 summary(impacts(res, evalues=ev, R=399), zstats=TRUE, short=TRUE)
 }
 }

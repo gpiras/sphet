@@ -1,4 +1,4 @@
-stslshac<-function(formula, data=list(),listw,na.action=na.fail,zero.policy=NULL,HAC=TRUE, distance=NULL,type=c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth="variable",W2X=TRUE){
+stslshac<-function(formula, data=list(),listw,na.action=na.fail,zero.policy=NULL,HAC=TRUE, distance=NULL,type="Epanechnikov", bandwidth="variable",W2X=TRUE){
 
 ##functions that need to be sourced
 	#source("twostagels.R")

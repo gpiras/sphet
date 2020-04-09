@@ -65,3 +65,8 @@ Changes in Version 1.6-2
 Changes in 1.7-1
   
   o Introduction of the J-test for lag models. 
+
+Changes in 1.7-5
+  
+  o Added two lines to the help function of spreg
+  o condition in models fixed
