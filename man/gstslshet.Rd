@@ -120,15 +120,11 @@ Model with Autoregressive Disturbances,
 \author{ Gianfranco Piras \email{gpiras@mac.com}}
 
 \examples{
-library(spdep)
-data(columbus)
-listw<-nb2listw(col.gal.nb)
-res<-gstslshet(CRIME~HOVAL + INC, data=columbus, listw=listw)
+data(columbus, package="spdep")
+listw <- spdep::nb2listw(col.gal.nb)
+res <- gstslshet(CRIME~HOVAL + INC, data=columbus, listw=listw)
 summary(res)
-impacts(res, listw=listw)
-if (requireNamespace("spatialreg", quietly=TRUE)) {
-ev <- spatialreg::eigenw(listw)
-impacts(res, evalues=ev)
-}
+spatialreg::impacts(res, listw=listw)
+spatialreg::impacts(res, evalues=spatialreg::eigenw(listw))
 }
 \keyword{models}
