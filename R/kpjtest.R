@@ -1,6 +1,12 @@
 # The assumption is that listw1 and listw2 are different, otherwise there would be no reason to use the spatial J-test
 
-kpjtest <- function(H0model, H1model, data = list(), listw0 = NULL, listw1 = NULL, endogH0 = NULL, endogH1 = NULL, instrumentsH0 = NULL, instrumentsH1 = NULL, lag.instr = FALSE, model = "lag", het = FALSE, HAC = F, distance = NULL, type = "Epanechnikov", bandwidth = "variable",  na.action = na.fail){
+kpjtest <- function(H0model, H1model, data = list(), listw0 = NULL, 
+                    listw1 = NULL, endogH0 = NULL, endogH1 = NULL, 
+                    instrumentsH0 = NULL, instrumentsH1 = NULL, 
+                    lag.instr = FALSE, model = "lag", 
+                    het = FALSE, HAC = F, distance = NULL, 
+                    type = "Epanechnikov", bandwidth = "variable",  
+                    na.action = na.fail){
 	 cl <- match.call()
 	if(is.null(listw0)) 
 		stop("listw for the null model was not specified")
@@ -27,7 +33,15 @@ kpjtest <- function(H0model, H1model, data = list(), listw0 = NULL, listw1 = NUL
 			stop("listw0 and listw1 cannot be the same")		
 	
 	
-if(model == "lag") res <- jtestlag(H0model, H1model, data = data, listw0 = Ws0, listw1 = Ws1, endogH0 = endogH0, endogH1 = endogH1, instrumentsH0 = instrumentsH0, instrumentsH1 = instrumentsH1, lag.instr = lag.instr, model = model,  HAC = HAC, distance = distance, type = type, bandwidth = bandwidth,  na.action = na.fail, het = het, cl = cl)
+if(model == "lag") res <- jtestlag(H0model, H1model, data = data, 
+                                   listw0 = Ws0, listw1 = Ws1, 
+                                   endogH0 = endogH0, endogH1 = endogH1, 
+                                   instrumentsH0 = instrumentsH0, 
+                                   instrumentsH1 = instrumentsH1, 
+                                   lag.instr = lag.instr, model = model,  
+                                   HAC = HAC, distance = distance, 
+                                   type = type, bandwidth = bandwidth,  
+                                   na.action = na.action, het = het, cl = cl)
 
 
 if(model == "sarar") stop ("Method for sarar not yet implemented")
@@ -40,8 +54,9 @@ if(model == "sarar") stop ("Method for sarar not yet implemented")
 
 jtestlag <- function(H0model, H1model, data, listw0, listw1, endogH0, endogH1, instrumentsH0, instrumentsH1, lag.instr, model,  HAC, distance, type, bandwidth,  na.action, het, cl){
 	
-Alt <- spreg(H1model, data = data, listw = listw1, endog = endogH1, instruments = instrumentsH1, lag.instr = lag.instr,
-model = "lag", het = F)	
+Alt <- spreg(H1model, data = data, listw = listw1, 
+             endog = endogH1, instruments = instrumentsH1, 
+             lag.instr = lag.instr, model = "lag", het = F)	
 
 mt <- terms(H1model, data = data)
 mf <- lm(H1model, data, na.action = na.action, method = "model.frame")
