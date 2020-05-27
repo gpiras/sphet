@@ -18,9 +18,11 @@ heteroskedastic of an unknown form.
 spreg(formula, data=list(), listw, listw2=NULL, 
 endog = NULL, instruments= NULL, 
 lag.instr = FALSE, initial.value=0.2, 
-model = "sarar", het = FALSE, verbose=FALSE, 
+model = c("sarar", "lag", "error", "ivhac", "ols"),
+het = FALSE, verbose=FALSE, 
 na.action = na.fail,  HAC = FALSE, 
-distance = NULL, type = "Epanechnikov", 
+distance = NULL, type =  c("Epanechnikov","Triangular",
+"Bisquare", "Parzen","QS","TH","Rectangular"), 
 bandwidth="variable" , step1.c = FALSE, control = list())
 }
 

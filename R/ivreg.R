@@ -1,5 +1,7 @@
-spatial.ivreg<-function(y, Zmat, Hmat, het = het, HAC = HAC, distance = distance, type = c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth = bandwidth){
-	df <- nrow(Zmat) - ncol(Zmat)
+spatial.ivreg<-function(y, Zmat, Hmat, het, HAC = FALSE, distance, 
+                        type =  c("Epanechnikov","Triangular","Bisquare","Parzen", 
+                                  "QS","TH","Rectangular"), bandwidth){
+ 	df <- nrow(Zmat) - ncol(Zmat)
 	HH <- crossprod(Hmat,Hmat)
 	Hye <- crossprod(Hmat, Zmat)
 	bz <- solve(HH,Hye)
@@ -13,7 +15,7 @@ spatial.ivreg<-function(y, Zmat, Hmat, het = het, HAC = HAC, distance = distance
 if(HAC){
 	n<-nrow(Zmat)
 		Ker<-vector(mode='list',length=n)
-		ker.fun<-switch(match.arg(type), Triangular={
+		ker.fun <-switch(match.arg(type), Triangular={
 			triangular
 			}, Epanechnikov={
 				epan
@@ -30,7 +32,7 @@ if(HAC){
 									rectangular
 								}
 								)
-								
+
 if(is.null(attributes(distance)$GeoDa$dist)){
 	Ker<-lapply(distance$weights,ker.fun, bandwidth=bandwidth)
 	Kern<-nb2listw(distance$neighbours,style="B", glist=Ker)
@@ -77,7 +79,7 @@ else{
 
 
 
-hac.ols<-function(y, x, HAC = HAC, distance = distance, type = c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth = bandwidth){
+hac.ols <- function(y, x, HAC = FALSE, distance, type, bandwidth){
 	df <- nrow(x) - ncol(x)
     xpx<-crossprod(x)
     xpxi<-solve(xpx)
