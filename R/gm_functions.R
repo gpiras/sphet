@@ -1,51 +1,45 @@
-optimfunct <- function (rhopar,v,verbose=FALSE){
+optimfunct <- function (rhopar, v, verbose = FALSE){
 	 vv <- v$bigG %*% c(rhopar[1], rhopar[1]^2) - v$litg
     value <- sum(vv^2)
     if (verbose) cat("function:", value, "lambda:", rhopar[1], "\n")
     value
 }
 
-optimfunct_eff <- function (rhopar,v, vcmat, verbose=FALSE){
+optimfunct_eff <- function (rhopar, v, vcmat, verbose = FALSE){
 	 vv <- v$bigG %*% c(rhopar[1], rhopar[1]^2) - v$litg
     value <- t(vv) %*% vcmat %*% vv
     if (verbose) cat("function:", value, "lambda:", rhopar[1], "\n")
     value
 }
 
-gg_het<-function(Ws, u, n) {
-     ub<- Ws %*% u
-     ubb<-Ws %*% ub
+gg_het <- function(Ws, u, n) {
+     ub <- Ws %*% u
+     ubb <-Ws %*% ub
      diag1 <- ub * u
-     diag2<-ub^2
-     Wst<-t(Ws)
-     # Diag1<-as(Diagonal(,as.vector(diag1)),"sparseMatrix")
-     Diag1<- Diagonal(n, as.vector(diag1))
-     #diag(Diag1)<-diag1
-	  tra <- sum(diag(Ws%*%Diag1%*%Wst))
-	  ubbub <- crossprod(ubb,ub)
- 	  first<- (ubbub - tra)
- 	  # Diag2<-as(Diagonal(,as.vector(diag2)),"sparseMatrix")
- 	  Diag2 <- Diagonal(n, as.vector(diag2))
-     #diag(Diag2) <- diag2
-	  tttt <- sum(diag(Ws%*%Diag2%*%Wst))
-	  ubbubb <- crossprod(ubb,ubb)
+     diag2 <-ub^2
+     Wst <- t(Ws)
+     Diag1 <- Diagonal(n, as.vector(diag1))
+	   tra <- sum(diag(Ws %*% Diag1 %*% Wst))
+	   ubbub <- crossprod(ubb,ub)
+ 	   first <- (ubbub - tra)
+ 	   Diag2 <- Diagonal(n, as.vector(diag2))
+	   tttt <- sum(diag(Ws %*% Diag2 %*% Wst))
+	   ubbubb <- crossprod(ubb, ubb)
      second <- (ubbubb - tttt)
-     uubb <- crossprod(u,ubb)
-     ubub <- crossprod(ub,ub)
+     uubb <- crossprod(u, ubb)
+     ubub <- crossprod(ub, ub)
      third <- uubb + ubub  
-     ububb <- crossprod(ub,ubb)
+     ububb <- crossprod(ub, ubb)
      bigG <- matrix(0, 2, 2)
      bigG[, 1] <- c(2*as.numeric(first), as.numeric(third))/n
      bigG[, 2] <- -c(as.numeric(second), as.numeric(ububb))/n
      diag3 <- u^2 
- 	  # Diag3<-as(Diagonal(,as.vector(diag3)),"sparseMatrix")
-     Diag3 <- Diagonal(n, as.vector(diag3))
-     #diag(Diag3) <- diag3
-	  aa <- sum(diag(Ws%*%Diag3%*%Wst))
-	  gamma1 <- (ubub - aa)
-	  uub <- crossprod(u,ub)
-	  litg <- c(as.numeric(gamma1), as.numeric(uub))/n
-     list(bigG = bigG, litg = litg)
+ 	   Diag3 <- Diagonal(n, as.vector(diag3))
+     aa <- sum(diag(Ws%*%Diag3%*%Wst))
+	   gamma1 <- (ubub - aa)
+	   uub <- crossprod(u,ub)
+	   litg <- c(as.numeric(gamma1), as.numeric(uub))/n
+      list(bigG = bigG, litg = litg)
 }
 
 gg_hom<-function (Ws, u, n) {
