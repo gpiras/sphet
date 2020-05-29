@@ -1,4 +1,4 @@
-circular<-function(nrow,ncol, ab){
+circular <- function(nrow, ncol, ab){
     nrow <- as.integer(nrow)
     if (nrow < 1) 
         stop("nrow nonpositive")
