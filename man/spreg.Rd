@@ -23,7 +23,8 @@ het = FALSE, verbose=FALSE,
 na.action = na.fail,  HAC = FALSE, 
 distance = NULL, type =  c("Epanechnikov","Triangular",
 "Bisquare", "Parzen","QS","TH","Rectangular"), 
-bandwidth="variable" , step1.c = FALSE, control = list())
+bandwidth="variable" , step1.c = FALSE, 
+control = list(), Durbin = NULL)
 }
 
 \arguments{
@@ -54,6 +55,7 @@ as a formula with no dependent variable (instruments = ~ x1 + x2). Note the ~ be
     \item{bandwidth}{"variable" (default) - or numeric when a fixed bandwidth is specified by the user.}
     \item{step1.c}{Should step 1.c from Arraiz et al. 2012 be performed?}
     \item{control}{A list of control arguments. See \link{nlminb}}
+    \item{Durbin}{Default NULL}
 }
 
 \details{
