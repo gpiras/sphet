@@ -7,27 +7,27 @@ spreg<-function(formula, data=list(), listw, listw2=NULL,
                 type =  c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth="variable", 
                 step1.c = FALSE, control = list()){
  
-  
+  cl = match.call()
 switch(match.arg(model),
        sarar = sarargmm(formula = formula, data = data, listw = listw, listw2 = listw2, endog = endog, 
                       instruments = instruments, lag.instr = lag.instr, initial.value = initial.value, 
                       het = het, verbose = verbose, na.action = na.action,
-                      step1.c = step1.c, control = control, HAC = HAC),
+                      step1.c = step1.c, control = control, HAC = HAC, cl = cl),
        lag = laggmm(formula = formula, data = data, listw = listw, listw2 = listw2, endog = endog, 
                     instruments = instruments, lag.instr = lag.instr, 
-                     het = het, verbose = verbose, na.action = na.action, HAC = HAC),
+                     het = het, verbose = verbose, na.action = na.action, HAC = HAC, cl = cl),
         error = errorgmm(formula = formula, data = data, listw = listw, listw2 = listw2, endog = endog, 
                         instruments = instruments, lag.instr = lag.instr, initial.value = initial.value, 
                         het = het, verbose = verbose, na.action = na.action,
-                        step1.c = step1.c, control = control, HAC = HAC),
+                        step1.c = step1.c, control = control, HAC = HAC, cl = cl),
         ivhac = laghac(formula = formula, data = data, listw = listw, listw2 = listw2, endog = endog, 
                        instruments = instruments, lag.instr = lag.instr,  verbose = verbose, 
                        na.action = na.action, het = het, HAC = HAC, distance = distance, 
-                       type = type, bandwidth = bandwidth),
+                       type = type, bandwidth = bandwidth, cl = cl),
         ols = olshac(formula = formula, data = data, endog = endog, 
                      instruments= instruments,  
                      na.action = na.action, het = het, HAC = HAC, distance = distance, 
-                     type = type, bandwidth = bandwidth),
+                     type = type, bandwidth = bandwidth, cl = cl),
         stop("Argument model incorrectly specified")
   )
 

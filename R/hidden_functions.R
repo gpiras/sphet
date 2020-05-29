@@ -1,50 +1,36 @@
 sarargmm <- function(formula, data, listw, listw2, endog, 
                    instruments, lag.instr, initial.value, 
                    het, verbose, na.action,
-                   step1.c, control, HAC){
+                   step1.c, control, HAC, cl){
   
-  #extract model objects	
   mt <- terms(formula,data = data)
   mf <- lm(formula, data, na.action = na.action, method = "model.frame")
   na.act <- attr(mf, 'na.action')
-  
-  # record call
-  cl <- match.call()
-  
-  
-  #generates x and y 
+
   y <- c(model.extract(mf, "response"))
   x <- model.matrix(mt, mf)
   
-  #checks on the dimensions of x and y 	
   if (length(y) != nrow(x)) 
     stop("x and y have different length")
   
-  #check that X and y does not have missing values	
   if (any(is.na(y))) 
     stop("NAs in dependent variable")
   if (any(is.na(x))) 
     stop("NAs in independent variable")
   
-  #fix the dimensions of the problem
   n <- nrow(x)
   k <- ncol(x)	
   xcolnames <- colnames(x)
   
   K <- ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1] == 1), 2, 1)
   
-  
-  #if(!(model %in% c("ols", "ols.end"))){
-    
-    if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
-    if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
-    if(inherits(listw,"matrix"))  Ws <- Matrix(listw)	
-    if(inherits(listw,"Matrix"))  Ws <- listw	
+  if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
+  if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
+  if(inherits(listw,"matrix"))  Ws <- Matrix(listw)	
+  if(inherits(listw,"Matrix"))  Ws <- listw	
     
     
-    #check on the dimensions of x and W	
-    if (nrow(x) != nrow(Ws))
-      stop("Input data and weights have different dimension")
+  if (nrow(x) != nrow(Ws)) stop("Input data and weights have different dimension")
     
     if (k > 1) {
       wx <- matrix(nrow = n, ncol = (k  - (K - 1)))
@@ -55,19 +41,16 @@ sarargmm <- function(formula, data, listw, listw2, endog,
       wwx <- Ws %*% wx                    					         
     }
     
-    
-    #if(!is.null(listw2) && model != "sarar") stop("listw2 can be specified only with sarar")
-    
     if(is.null(listw2)) {
       twow <- FALSE		
       Ws2 <- Ws
-    } else{ 
+    } 
+  else{ 
       twow <- TRUE	
       if(!inherits(listw2,c("listw", "Matrix", "matrix"))) stop("listw2 format unknown")
       if(inherits(listw2,"listw"))  Ws2<-listw2dgCMatrix(listw2)	
       if(inherits(listw2,"matrix"))  Ws2<-Matrix(listw2)	
       
-      # # feeedback from user
       if(identical(listw, listw2)){ 
         twow <- FALSE		
         Ws2 <- Ws
@@ -89,13 +72,8 @@ sarargmm <- function(formula, data, listw, listw2, endog,
     wy <- Ws %*% y	
     colnames(wy) <- "lambda"
     
-  
-  
-  
-  ### Definition of the instruments for all cases: if there is an endogenous variable the instruments have to be specified in all models. 
   if (!is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the model")
   
-  #if(model %in% c("sarar","lag", "ivhac")){
     if (!is.null(endog)) {
       endog <- as.matrix(lm(endog, data, na.action = na.action, method = "model.frame"))
       if(!is.null(instruments)){
@@ -124,7 +102,8 @@ sarargmm <- function(formula, data, listw, listw2, endog,
       # else stop("Instruments should be specified if there is an endogenous variable")
       Zmat<- cbind(x, endog, as.matrix(wy))            
       colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
-    } else {
+    } 
+    else {
       Zmat<- cbind(x, as.matrix(wy))                    
       if (K==2){
         if(twow) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx))
@@ -136,22 +115,15 @@ sarargmm <- function(formula, data, listw, listw2, endog,
       }
     }
  
-  # print(head(y))
-  # print(head(Zmat))
-  # print(head(Hmat))
-  # print(het)
-  #   
-    
     firststep<-spatial.ivreg(y = y , Zmat = Zmat, Hmat = Hmat, het = het, HAC = HAC)
     ubase<-residuals(firststep)
     
+    if (initial.value=="SAR"){
+      Wubase<- Ws %*% ubase
+      pars<-coefficients(lm(as.numeric(ubase) ~ as.numeric(Wubase)-1))
+    }
+    else pars<-initial.value
     
-    if (initial.value !="SAR") pars <- initial.value 
-    else{
-      Wubase<-Ws2 %*% ubase 
-      pars<-coefficients(lm(ubase~Wubase-1))
-      }
-
     
     
     if(het){
@@ -223,7 +195,6 @@ sarargmm <- function(formula, data, listw, listw2, endog,
       vcmat <- Omega_het(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2, gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, Ggmat$bigG, gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar, Ws2, step1.c = FALSE)
       # vcmat <- Omega_het_mod(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2, gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, Ggmat$bigG, gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar, Ws2, step1.c = FALSE)
     }
-    
     else{
       
       Ggmat<-gg_hom(Ws2, utildeb, n)
@@ -251,10 +222,9 @@ sarargmm <- function(formula, data, listw, listw2, endog,
     rownames(coeff)<-c(colnames(Zmat), 'rho')
     s2<-crossprod(utildeb)/(n-k)
     
-    
     model.data<-data.frame(cbind(y,x[,-1]))
     
-    method<-"gm spatial"
+    method<-"gmm spatial"
     
     k<-nrow(coeff)
     R<-matrix(0,1,k)
@@ -271,70 +241,41 @@ sarargmm <- function(formula, data, listw, listw2, endog,
     else  results<-list(coefficients=coeff,var=vcmat$Omega, s2=s2, call=cl, residuals=as.numeric(utildeb), model=model.data,method=method,W=W, firststep=firststep$coefficients, init.rho = rhotilde)
     
     
-    class(results)<-c("sphet", "gstsls")
+    class(results)<-c("sphet", "gstsls") #remember to change to sarar when impacts will be developed
     return(results)
 }
 
 laggmm <- function(formula, data, listw, listw2, endog, 
                            instruments, lag.instr, 
-                           het, verbose, na.action, HAC){
+                           het, verbose, na.action, HAC, cl){
   
-  #extract model objects	
   mt <- terms(formula,data = data)
   mf <- lm(formula, data, na.action = na.action, method = "model.frame")
   na.act <- attr(mf, 'na.action')
-  
-  # record call
-  cl<- match.call()
-  
-  
-  #generates x and y 
+
   y <- c(model.extract(mf, "response"))
   x <- model.matrix(mt,mf)
   
-  #checks on teh dimensions of x and y 	
   if (length(y)!=nrow(x)) 
     stop("x and y have different length")
   
-  #check that X and y does not have missing values	
   if (any(is.na(y))) 
     stop("NAs in dependent variable")
   if (any(is.na(x))) 
     stop("NAs in independent variable")
-  
-#  if(HAC && model %in% c("lag","error","sarar")) stop("Model should be one of 'ivhac', or 'ols' when HAC is true ")
-  
-  # if(HAC){
-  #   if(model != "ivhac" && !is.null(endog)) model <- 'ols.end'	
-  #   if(is.null(distance)) stop("No distance measure specified")
-  #   if(!inherits(distance,"distance")) 
-  #     stop("The distance measure is not a distance object")
-  #   
-  #   if(!(type %in% c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"))) stop("Unknown kernel")
-  # }	
-  # 
-  
-  
-  #fix the dimensions of the problem
+
   n <- nrow(x)
   k <- ncol(x)	
   xcolnames <- colnames(x)
   
   K<-ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
   
-  
-  #check that W is an object of class listw or a Matrix 
-  
- 
-    
     if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
     if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
     if(inherits(listw,"matrix"))  Ws <- Matrix(listw)	
     if(inherits(listw,"Matrix"))  Ws <- listw	
     
-    
-    #check on the dimensions of x and W	
-    if (nrow(x) != nrow(Ws))
+      if (nrow(x) != nrow(Ws))
       stop("Input data and weights have different dimension")
     
     if (k > 1) {
@@ -345,21 +286,13 @@ laggmm <- function(formula, data, listw, listw2, endog,
       }
       wwx <- Ws %*% wx                    					         
     }
-    
-
-
+  
     wy<-Ws %*% y	
     colnames(wy)<-"lambda"
-    
-  
-  
-  
-  ### Definition of the instruments for all cases: if there is an endogenous variable the instruments have to be specified in all models. 
   if (!is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the model")
   
     if (!is.null(endog)) {
       endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
-      #if(!is.null(instruments)){
         instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
         if(lag.instr) {
           winst <- Ws %*% instruments
@@ -369,8 +302,6 @@ laggmm <- function(formula, data, listw, listw2, endog,
         else  AddH <- instruments        
         if (K==2) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), AddH)
         else Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), AddH)
-       #       }
-      # else stop("Instruments should be specified if there is an endogenous variable")
       Zmat<- cbind(x, endog, as.matrix(wy))            
       colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
     }
@@ -378,10 +309,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
       Zmat<- cbind(x, as.matrix(wy))                    
       if (K==2) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx)) 
       else Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx)) 
-      
     }
-  
-  
 
     results <-spatial.ivreg(y, Zmat, Hmat, het, HAC)	
     model.data <- data.frame(cbind(y, x[, -1]))
@@ -389,9 +317,9 @@ laggmm <- function(formula, data, listw, listw2, endog,
     results$model <- model.data
     results$type <- NULL
     results$bandwidth <- NULL
-    results$method <- "s2slshac"
+    results$method <- "gmm spatial"
     results$HAC <- FALSE
-    class(results) <- c("sphet", "stsls_sphet")
+    class(results) <- c("sphet", "stsls_sphet") #change to lag gmm
     
     return(results)
 
@@ -400,62 +328,34 @@ laggmm <- function(formula, data, listw, listw2, endog,
 errorgmm <- function(formula, data, listw, listw2, endog, 
                      instruments, lag.instr, initial.value, 
                      het, verbose, na.action,
-                     step1.c, control, HAC){
+                     step1.c, control, HAC, cl){
 
-    #extract model objects	
   mt <- terms(formula,data=data)
   mf <- lm(formula, data, na.action = na.action, method = "model.frame")
   na.act <- attr(mf,'na.action')
   
-  # record call
-  cl <- match.call()
-  
-  
-  #generates x and y 
   y <- c(model.extract(mf,"response"))
   x <- model.matrix(mt,mf)
   
-  #checks on teh dimensions of x and y 	
   if (length(y)!=nrow(x)) 
     stop("x and y have different length")
   
-  #check that X and y does not have missing values	
   if (any(is.na(y))) 
     stop("NAs in dependent variable")
   if (any(is.na(x))) 
     stop("NAs in independent variable")
   
-#  if(HAC && model %in% c("lag","error","sarar")) stop("Model should be one of 'ivhac', or 'ols' when HAC is true ")
-  
-  # if(HAC){
-  #   if(model != "ivhac" && !is.null(endog)) model <- 'ols.end'	
-  #   if(is.null(distance)) stop("No distance measure specified")
-  #   if(!inherits(distance,"distance")) 
-  #     stop("The distance measure is not a distance object")
-  #   
-  #   if(!(type %in% c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"))) stop("Unknown kernel")
-  # }	
-  
-  
-  
-  #fix the dimensions of the problem
   n <- nrow(x)
   k <- ncol(x)	
   xcolnames <- colnames(x)
   
   K <- ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
   
-  
-  #check that W is an object of class listw or a Matrix 
-  
-    
     if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
     if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
     if(inherits(listw,"matrix"))  Ws <- Matrix(listw)	
     if(inherits(listw,"Matrix"))  Ws <- listw	
     
-    
-    #check on the dimensions of x and W	
     if (nrow(x) != nrow(Ws))
       stop("Input data and weights have different dimension")
     
@@ -468,8 +368,6 @@ errorgmm <- function(formula, data, listw, listw2, endog,
       wwx <- Ws %*% wx                    					         
     }
     
-    
-    ### Definition of the instruments for all cases: if there is an endogenous variable the instruments have to be specified in all models. 
   if (!is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the model")
   
       if (!is.null(endog)) {
@@ -488,25 +386,19 @@ errorgmm <- function(formula, data, listw, listw2, endog,
       else Hmat<-cbind(1, x, wx, AddH)
       
     }
-    
-    else {
+      else {
       
       if (K==2) Hmat<-cbind(x,wx)
       else Hmat<-cbind(1, x,wx)	
       Zmat<- x
     }
   
-  
-  
-  
-  
     firststep<-spatial.ivreg(y = y , Zmat = Zmat, Hmat = Hmat, HAC = HAC, het = het)
     ubase<-residuals(firststep)
-    
-    
-    if (initial.value=="SAR"){
+
+        if (initial.value=="SAR"){
       Wubase<-Ws %*% ubase
-      pars<-coefficients(lm(ubase~Wubase-1))
+      pars<-coefficients(lm(as.numeric(ubase) ~ as.numeric(Wubase)-1))
     }
     else pars<-initial.value
     
@@ -576,7 +468,6 @@ errorgmm <- function(formula, data, listw, listw2, endog,
       
       
     }
-    
     else{
       
       Ggmat<-gg_hom(Ws, ubase, n)
@@ -586,25 +477,15 @@ errorgmm <- function(formula, data, listw, listw2, endog,
       rhotilde<-optres$par
       # print(rhotilde)	
     }
-    
-    
-    
-    
-    
+
     yt  <- y - rhotilde * Ws %*% y
     wZmat <- Ws %*% Zmat
     Zt <- Zmat - rhotilde * wZmat
     
-    # if(!sarar && is.matrix(endog)) Hmat <- cbind(x, wx, instruments)	
-    # else Hmat<- cbind(x,wx)	
-    
-    
-    # print(Hmat)
     secondstep<-spatial.ivreg(y =yt , Zmat = Zt, Hmat = Hmat, het = het, HAC = HAC)
     delta <- coefficients(secondstep)
     utildeb <- y - Zmat %*% delta
-    # print(delta)
-    
+
     if(het){
       
       
@@ -632,7 +513,6 @@ errorgmm <- function(formula, data, listw, listw2, endog,
                          gmm.weghts$epsilon, gmm.weghts$Zstar, Ws, step1.c = FALSE)
       # vcmat <- Omega_het_mod(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2, gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, Ggmat$bigG, gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar, Ws2, step1.c = FALSE)
     }
-    
     else{
       
       Ggmat<-gg_hom(Ws, utildeb, n)
@@ -660,10 +540,6 @@ errorgmm <- function(formula, data, listw, listw2, endog,
       
     }
     
-    
-    
-    
-    
     coeff <- as.matrix(c(as.numeric(delta), rhofin))
     rownames(coeff)<-c(colnames(Zmat), 'rho')
     s2<-crossprod(utildeb)/(n-k)
@@ -671,7 +547,7 @@ errorgmm <- function(formula, data, listw, listw2, endog,
     
     model.data<-data.frame(cbind(y,x[,-1]))
     
-    method<-"gm spatial"
+    method<-"gmm spatial"
     
     k<-nrow(coeff)
     R<-matrix(0,1,k)
@@ -696,7 +572,7 @@ errorgmm <- function(formula, data, listw, listw2, endog,
                         init.rho = rhotilde)
     
     
-    class(results)<-c("sphet", "gstsls")
+    class(results)<-c("sphet", "gstsls")# gmm error
     
     return(results)
   
@@ -706,31 +582,22 @@ errorgmm <- function(formula, data, listw, listw2, endog,
 laghac <- function(formula, data, listw, listw2, endog, 
                   instruments, lag.instr,  verbose, 
                    na.action,  het, HAC, distance, 
-                type, bandwidth){
-  #extract model objects	
+                type, bandwidth, cl){
+  
   mt <- terms(formula, data = data)
   mf <- lm(formula, data, na.action = na.action, method="model.frame")
   na.act <- attr(mf,'na.action')
-  #print(type)
-  # record call
-  cl <- match.call()
   
-  
-  #generates x and y 
   y <- c(model.extract(mf,"response"))
   x <- model.matrix(mt,mf)
-  
-  #checks on teh dimensions of x and y 	
+
   if (length(y)!=nrow(x)) 
     stop("x and y have different length")
   
-  #check that X and y does not have missing values	
   if (any(is.na(y))) 
     stop("NAs in dependent variable")
   if (any(is.na(x))) 
     stop("NAs in independent variable")
-  
-  #if(HAC && model %in% c("lag","error","sarar")) stop("Model should be one of 'ivhac', or 'ols' when HAC is true ")
   
   if(HAC){ 
     if(is.null(distance)) stop("No distance measure specified")
@@ -739,24 +606,17 @@ laghac <- function(formula, data, listw, listw2, endog,
     if(!(type %in% c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"))) stop("Unknown kernel")
   }	
   
-  
-  
-  #fix the dimensions of the problem
   n <- nrow(x)
   k <- ncol(x)	
   xcolnames <- colnames(x)
   
   K <- ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
-  
-  
-  #check that W is an object of class listw or a Matrix 
+
     if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
     if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
     if(inherits(listw,"matrix"))  Ws <- Matrix(listw)	
     if(inherits(listw,"Matrix"))  Ws <- listw	
     
-    
-    #check on the dimensions of x and W	
     if (nrow(x) != nrow(Ws))
       stop("Input data and weights have different dimension")
     
@@ -774,15 +634,11 @@ laghac <- function(formula, data, listw, listw2, endog,
     colnames(wy)<-"lambda"
     
   
-  
-  
-  ### Definition of the instruments for all cases: if there is an endogenous variable the instruments have to be specified in all models. 
   if (!is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the model")
   
 
     if (!is.null(endog)) {
       endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
-      #if(!is.null(instruments)){
         instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
         if(lag.instr) {
           winst <- Ws %*% instruments
@@ -793,9 +649,7 @@ laghac <- function(formula, data, listw, listw2, endog,
         
         if (K==2) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), AddH)
         else  Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), AddH)
-        
-      #}
-      # else stop("Instruments should be specified if there is an endogenous variable")
+      
       Zmat<- cbind(x, endog, as.matrix(wy))            
       colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
     }
@@ -812,25 +666,21 @@ laghac <- function(formula, data, listw, listw2, endog,
     results$model <- model.data
     results$type <- type
     results$bandwidth <- bandwidth
-    results$method <- "s2slshac"
+    results$method <- "gmm spatial"
     results$HAC <- HAC
-    class(results) <- c("sphet", "stsls_sphet")
+    class(results) <- c("sphet", "stsls_sphet")#change to lag hac
 
     return(results)
   
 }
 
 olshac <- function(formula, data, endog, instruments,  
-                  na.action, het, HAC, distance, type, bandwidth){
+                  na.action, het, HAC, distance, type, bandwidth, cl){
   
   #extract model objects	
   mt<-terms(formula,data=data)
   mf<-lm(formula, data, na.action=na.action, method="model.frame")
   na.act<-attr(mf,'na.action')
-  
-  # record call
-  cl<- match.call()
-  
   
   #generates x and y 
   y<-c(model.extract(mf,"response"))
