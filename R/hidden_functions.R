@@ -43,6 +43,7 @@ sarargmm <- function(formula, data, listw, listw2, endog,
   
   if(!is.null(Durbin)){
     x.dur <- as.matrix(lm(Durbin, data, na.action = na.action, method = "model.frame"))
+if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))== 0) stop("Explanatory variables to be lagged cannot be specified in the main formula")    
     wx.dur <- Ws %*% x.dur
     wwx.dur <- Ws %*% wx.dur
     wwwx.dur <- Ws %*% wwx.dur
@@ -303,10 +304,126 @@ sarargmm <- function(formula, data, listw, listw2, endog,
   class(results)<-c("sphet", "gstsls") #remember to change to sarar when impacts will be developed
   return(results)
 }
+laggmm <- function(formula, data, listw, listw2, endog, 
+                   instruments, lag.instr, 
+                   het, verbose, na.action, HAC, cl, Durbin){
+  
+  mt <- terms(formula,data = data)
+  mf <- lm(formula, data, na.action = na.action, method = "model.frame")
+  na.act <- attr(mf, 'na.action')
+  
+  y <- c(model.extract(mf, "response"))
+  x <- model.matrix(mt,mf)
+  
+  if (length(y)!=nrow(x)) 
+    stop("x and y have different length")
+  
+  if (any(is.na(y))) 
+    stop("NAs in dependent variable")
+  if (any(is.na(x))) 
+    stop("NAs in independent variable")
+  
+  n <- nrow(x)
+  k <- ncol(x)	
+  xcolnames <- colnames(x)
+  
+  K<-ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
+  
+  if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
+  if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
+  if(inherits(listw,"matrix"))  Ws <- Matrix(listw)	
+  if(inherits(listw,"Matrix"))  Ws <- listw	
+  
+  if (nrow(x) != nrow(Ws))
+    stop("Input data and weights have different dimension")
+  
+  if (k > 1) {
+    wx <- matrix(nrow = n, ncol = (k  - (K - 1)))
+    for (i in K:k) {
+      Wx <- Ws %*% x[, i]
+      wx[, (i - (K - 1))] <- as.matrix(Wx)
+    }
+    wwx <- Ws %*% wx                    					         
+  }
+  
+  if(!is.null(Durbin)){
+    x.dur <- as.matrix(lm(Durbin, data, na.action = na.action, method = "model.frame"))
+    if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))== 0) stop("Explanatory variables to be lagged cannot be specified in the main formula")    
+    wx.dur <- Ws %*% x.dur
+    wwx.dur <- Ws %*% wx.dur
+    wwwx.dur <- Ws %*% wwx.dur
+    addx <- cbind(x.dur, wx.dur)
+    x.lag.names <- c(colnames(x.dur), paste("lag_", colnames(x.dur), sep=""))
+    Inx.dur <- cbind(as.numeric(wwx.dur),as.numeric(wwwx.dur))
+  }
+  
+  
+  wy<-Ws %*% y	
+  colnames(wy)<-"lambda"
+  if (!is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the model")
+  
+  if (!is.null(endog)) {
+    endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
+    instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
+    if(lag.instr) {
+      winst <- Ws %*% instruments
+      wwinst<- Ws %*% winst	
+      AddH <- cbind(instruments, as.matrix(winst), as.matrix(wwinst))        
+    }
+    else  AddH <- instruments        
+    if (K==2){
+      if (is.null(Durbin)) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), AddH)
+      else Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), addx, Inx.dur, AddH)
+      
+    } 
+    else {
+      if (is.null(Durbin)) Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), AddH)
+      else Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), addx, Inx.dur, AddH)
+    }
+    if (is.null(Durbin)){  
+      Zmat<- cbind(x, endog, as.matrix(wy))            
+      colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
+    }
+    else{
+      Zmat<- cbind(x, addx, endog, as.matrix(wy))            
+      colnames(Zmat) <- c(colnames(x), x.lag.names, colnames(endog), colnames(wy))
+    }
+  }
+  else {
+    if(is.null((Durbin)))  Zmat<- cbind(x, as.matrix(wy))                    
+    else Zmat<- cbind(x, addx, as.matrix(wy))
+    
+    if (K==2) {
+      if(is.null((Durbin))) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx)) 
+      else Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), addx, Inx.dur)
+    }
+    else {
+      if(is.null((Durbin)))  Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx)) 
+      else Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), addx, Inx.dur)
+    }
+  }
+  
+  results <-spatial.ivreg(y, Zmat, Hmat, het, HAC)	
+  model.data <- data.frame(cbind(y, x[, -1]))
+  results$call <- cl
+  results$model <- model.data
+  results$type <- NULL
+  results$bandwidth <- NULL
+  results$method <- "gmm spatial"
+  results$HAC <- FALSE
+  class(results) <- c("sphet", "stsls_sphet") #change to lag gmm
+  
+  return(results)
+  
+}
 
-#this has been updated to accomodate a Durbin model:
+
+#This has been updated to accomodate a Durbin model:
 # - there are, however,  a couple of restrictions:
-# 1) Not all of the explanatory variables can be lagged because of serious problems in the instruments
+# 1) Not all of the explanatory variables can be lagged because of 
+#    serious problems in the instruments. The way in which the function 
+#    deals with lagged regressors is adding more lags for the instruments 
+#    of the regressor. 
 # 2) If the variable is endogenous, that variable cannot be lagged. 
 #    In future releases we can think of relaxing this assumption 
 
@@ -558,85 +675,85 @@ sarargmm <- function(formula, data, listw, listw2, endog,
 #     return(results)
 # }
 
-laggmm <- function(formula, data, listw, listw2, endog, 
-                           instruments, lag.instr, 
-                           het, verbose, na.action, HAC, cl, Durbin){
-  
-  mt <- terms(formula,data = data)
-  mf <- lm(formula, data, na.action = na.action, method = "model.frame")
-  na.act <- attr(mf, 'na.action')
-
-  y <- c(model.extract(mf, "response"))
-  x <- model.matrix(mt,mf)
-  
-  if (length(y)!=nrow(x)) 
-    stop("x and y have different length")
-  
-  if (any(is.na(y))) 
-    stop("NAs in dependent variable")
-  if (any(is.na(x))) 
-    stop("NAs in independent variable")
-
-  n <- nrow(x)
-  k <- ncol(x)	
-  xcolnames <- colnames(x)
-  
-  K<-ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
-  
-    if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
-    if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
-    if(inherits(listw,"matrix"))  Ws <- Matrix(listw)	
-    if(inherits(listw,"Matrix"))  Ws <- listw	
-    
-      if (nrow(x) != nrow(Ws))
-      stop("Input data and weights have different dimension")
-    
-    if (k > 1) {
-      wx <- matrix(nrow = n, ncol = (k  - (K - 1)))
-      for (i in K:k) {
-        Wx <- Ws %*% x[, i]
-        wx[, (i - (K - 1))] <- as.matrix(Wx)
-      }
-      wwx <- Ws %*% wx                    					         
-    }
-  
-    wy<-Ws %*% y	
-    colnames(wy)<-"lambda"
-  if (!is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the model")
-  
-    if (!is.null(endog)) {
-      endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
-        instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
-        if(lag.instr) {
-          winst <- Ws %*% instruments
-          wwinst<- Ws %*% winst	
-          AddH <- cbind(instruments, as.matrix(winst), as.matrix(wwinst))        
-        }
-        else  AddH <- instruments        
-        if (K==2) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), AddH)
-        else Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), AddH)
-      Zmat<- cbind(x, endog, as.matrix(wy))            
-      colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
-    }
-    else {
-      Zmat<- cbind(x, as.matrix(wy))                    
-      if (K==2) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx)) 
-      else Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx)) 
-    }
-
-    results <-spatial.ivreg(y, Zmat, Hmat, het, HAC)	
-    model.data <- data.frame(cbind(y, x[, -1]))
-    results$call <- cl
-    results$model <- model.data
-    results$type <- NULL
-    results$bandwidth <- NULL
-    results$method <- "gmm spatial"
-    results$HAC <- FALSE
-    class(results) <- c("sphet", "stsls_sphet") #change to lag gmm
-    
-    return(results)
-
-}
+# laggmm <- function(formula, data, listw, listw2, endog, 
+#                            instruments, lag.instr, 
+#                            het, verbose, na.action, HAC, cl, Durbin){
+#   
+#   mt <- terms(formula,data = data)
+#   mf <- lm(formula, data, na.action = na.action, method = "model.frame")
+#   na.act <- attr(mf, 'na.action')
+# 
+#   y <- c(model.extract(mf, "response"))
+#   x <- model.matrix(mt,mf)
+#   
+#   if (length(y)!=nrow(x)) 
+#     stop("x and y have different length")
+#   
+#   if (any(is.na(y))) 
+#     stop("NAs in dependent variable")
+#   if (any(is.na(x))) 
+#     stop("NAs in independent variable")
+# 
+#   n <- nrow(x)
+#   k <- ncol(x)	
+#   xcolnames <- colnames(x)
+#   
+#   K<-ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
+#   
+#     if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
+#     if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
+#     if(inherits(listw,"matrix"))  Ws <- Matrix(listw)	
+#     if(inherits(listw,"Matrix"))  Ws <- listw	
+#     
+#       if (nrow(x) != nrow(Ws))
+#       stop("Input data and weights have different dimension")
+#     
+#     if (k > 1) {
+#       wx <- matrix(nrow = n, ncol = (k  - (K - 1)))
+#       for (i in K:k) {
+#         Wx <- Ws %*% x[, i]
+#         wx[, (i - (K - 1))] <- as.matrix(Wx)
+#       }
+#       wwx <- Ws %*% wx                    					         
+#     }
+#   
+#     wy<-Ws %*% y	
+#     colnames(wy)<-"lambda"
+#   if (!is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the model")
+#   
+#     if (!is.null(endog)) {
+#       endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
+#         instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
+#         if(lag.instr) {
+#           winst <- Ws %*% instruments
+#           wwinst<- Ws %*% winst	
+#           AddH <- cbind(instruments, as.matrix(winst), as.matrix(wwinst))        
+#         }
+#         else  AddH <- instruments        
+#         if (K==2) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), AddH)
+#         else Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), AddH)
+#       Zmat<- cbind(x, endog, as.matrix(wy))            
+#       colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
+#     }
+#     else {
+#       Zmat<- cbind(x, as.matrix(wy))                    
+#       if (K==2) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx)) 
+#       else Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx)) 
+#     }
+# 
+#     results <-spatial.ivreg(y, Zmat, Hmat, het, HAC)	
+#     model.data <- data.frame(cbind(y, x[, -1]))
+#     results$call <- cl
+#     results$model <- model.data
+#     results$type <- NULL
+#     results$bandwidth <- NULL
+#     results$method <- "gmm spatial"
+#     results$HAC <- FALSE
+#     class(results) <- c("sphet", "stsls_sphet") #change to lag gmm
+#     
+#     return(results)
+# 
+# }
 
 errorgmm <- function(formula, data, listw, listw2, endog, 
                      instruments, lag.instr, initial.value, 
