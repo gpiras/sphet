@@ -15,15 +15,15 @@ heteroskedastic of an unknown form.
 }
 
 \usage{
-spreg(formula, data=list(), listw, listw2=NULL, 
-endog = NULL, instruments= NULL, 
-lag.instr = FALSE, initial.value=0.2, 
+spreg(formula, data = list(), listw, listw2 = NULL, 
+endog = NULL, instruments = NULL, 
+lag.instr = FALSE, initial.value = 0.2, 
 model = c("sarar", "lag", "error", "ivhac", "ols"),
-het = FALSE, verbose=FALSE, 
+het = FALSE, verbose = FALSE, 
 na.action = na.fail,  HAC = FALSE, 
 distance = NULL, type =  c("Epanechnikov","Triangular",
-"Bisquare", "Parzen","QS","TH","Rectangular"), 
-bandwidth="variable" , step1.c = FALSE, 
+"Bisquare", "Parzen", "QS", "TH","Rectangular"), 
+bandwidth = "variable" , step1.c = FALSE, 
 control = list(), Durbin = NULL)
 }
 
@@ -55,7 +55,8 @@ as a formula with no dependent variable (instruments = ~ x1 + x2). Note the ~ be
     \item{bandwidth}{"variable" (default) - or numeric when a fixed bandwidth is specified by the user.}
     \item{step1.c}{Should step 1.c from Arraiz et al. 2012 be performed?}
     \item{control}{A list of control arguments. See \link{nlminb}}
-    \item{Durbin}{Default NULL}
+    \item{Durbin}{Should (some of) the regressors be lagged? Default NULL. If not \code{NULL} should be specified 
+as a formula with no dependent variable (Durbin = ~ x1 + x2). Note the ~ before the expression.  The regressors should be specified either here (and then they will be lagged) or in the general model \code{formula}.}
 }
 
 \details{
@@ -97,8 +98,7 @@ Six different kernel functions are implemented:
   (\frac{\sin(6\pi z)/5)}{6\pi z/5} - \cos(6\pi z)/5)}). 
 }
 
-If the kernel type is not one of the six implemented, the function will terminate with an error message. 
-The spatial two stage least square estimator is based on the matrix of instruments \eqn{H=[X,WX,W^2X^2]}.
+If the kernel type is not one of the six implemented, the function will terminate with an error message.}.
 }
 
 
