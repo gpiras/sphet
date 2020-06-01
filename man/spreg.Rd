@@ -97,8 +97,7 @@ Six different kernel functions are implemented:
 	\item \code{'QS'} (Quadratic Spectral): \eqn{K(z) = \frac{25}{12\pi^2z^2} 
   (\frac{\sin(6\pi z)/5)}{6\pi z/5} - \cos(6\pi z)/5)}). 
 }
-
-If the kernel type is not one of the six implemented, the function will terminate with an error message.}.
+If the kernel type is not one of the six implemented, the function will terminate with an error message.
 }
 
 
