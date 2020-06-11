@@ -103,7 +103,7 @@ if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))!= 0) stop("Lagged explana
   
   if (!is.null(endog)) {
     endog <- as.matrix(lm(endog, data, na.action = na.action, method = "model.frame"))
-    if(!is.null(Durbin) && (sum(match(colnames(x.dur), colnames(endog), nomatch = 0))== 0)) stop("Lagged explanatory variables cannot be endogenous")
+    if(!is.null(Durbin) && (sum(match(colnames(x.dur), colnames(endog), nomatch = 0))!= 0)) stop("Lagged explanatory variables cannot be endogenous")
     instruments <- as.matrix(lm(instruments, data, na.action = na.action, method = "model.frame"))
     if(lag.instr) {
       winst <- Ws %*% instruments
@@ -350,7 +350,11 @@ laggmm <- function(formula, data, listw, listw2, endog,
   }
   
   if(!is.null(Durbin)){
+   # print(Durbin)
     x.dur <- as.matrix(lm(Durbin, data, na.action = na.action, method = "model.frame"))
+    #print(colnames(x.dur))
+    #print(xcolnames)
+    #print(match(colnames(x.dur), xcolnamprint(sum(match(colnames(x.dur), xcolnames, nomatch = 0)))
     if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))!= 0) stop("Explanatory variables to be lagged cannot be specified in the main formula")    
     wx.dur <- Ws %*% x.dur
     wwx.dur <- Ws %*% wx.dur
@@ -367,7 +371,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
   
   if (!is.null(endog)) {
     endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
-    if(!is.null(Durbin) && (sum(match(colnames(x.dur), colnames(endog), nomatch = 0))== 0)) stop("Lagged explanatory variables cannot be endogenous")
+if(!is.null(Durbin) && (sum(match(colnames(x.dur), colnames(endog), nomatch = 0))!= 0)) stop("Lagged explanatory variables cannot be endogenous")
     instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
     if(lag.instr) {
       winst <- Ws %*% instruments
@@ -407,7 +411,9 @@ laggmm <- function(formula, data, listw, listw2, endog,
     }
   }
   
-  results <-spatial.ivreg(y, Zmat, Hmat, het, HAC)	
+  results <-spatial.ivreg(y, Zmat, Hmat, het, HAC)
+  #print(results$coefficients)
+  #print(results$var)
   model.data <- data.frame(cbind(y, x[, -1]))
   results$call <- cl
   results$model <- model.data
@@ -480,7 +486,7 @@ errorgmm <- function(formula, data, listw, listw2, endog,
   
   if (!is.null(endog)) {
     endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
-if(!is.null(Durbin) && (sum(match(colnames(x.dur), colnames(endog), nomatch = 0))== 0)) stop("Lagged explanatory variables cannot be endogenous")
+if(!is.null(Durbin) && (sum(match(colnames(x.dur), colnames(endog), nomatch = 0))!= 0)) stop("Lagged explanatory variables cannot be endogenous")
     instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
     if(lag.instr) { 
       winst <- Ws %*% instruments           
@@ -775,7 +781,7 @@ laghac <- function(formula, data, listw, listw2, endog,
   
   if (!is.null(endog)) {
     endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))
-    if(!is.null(Durbin) && (sum(match(colnames(x.dur), colnames(endog), nomatch = 0))== 0)) stop("Lagged explanatory variables cannot be endogenous") 
+    if(!is.null(Durbin) && (sum(match(colnames(x.dur), colnames(endog), nomatch = 0))!= 0)) stop("Lagged explanatory variables cannot be endogenous") 
        instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))
     if(lag.instr) {
       winst <- Ws %*% instruments
@@ -898,7 +904,7 @@ if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))!= 0) stop("Explanatory va
   
   if(model == "ols.end" ){
     endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))	
- if(!is.null(Durbin) && (sum(match(colnames(x.dur), colnames(endog), nomatch = 0))== 0)) stop("Lagged explanatory variables cannot be endogenous")        
+ if(!is.null(Durbin) && (sum(match(colnames(x.dur), colnames(endog), nomatch = 0))!= 0)) stop("Lagged explanatory variables cannot be endogenous")        
     instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))	
     AddH<- cbind(instruments)
     

@@ -16,7 +16,8 @@ summary.sphet<-function(object, width=getOption("width"),digits=getOption("digit
 	coeff<-object$coefficients
 	vcmat<-object$var
 	se<-sqrt(diag(vcmat))
-   t<-coeff/se
+   t <- as.numeric(coeff/se)
+  # print(t)
    pval<-pnorm(abs(t),lower.tail=FALSE) * 2
    CoefTable <- cbind(coeff,se,t,pval)
 if(object$method=="s2slshac")  { 
