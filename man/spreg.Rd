@@ -24,7 +24,7 @@ na.action = na.fail,  HAC = FALSE,
 distance = NULL, type =  c("Epanechnikov","Triangular",
 "Bisquare", "Parzen", "QS", "TH","Rectangular"), 
 bandwidth = "variable" , step1.c = FALSE, 
-control = list(), Durbin = NULL)
+control = list(), Durbin = FALSE)
 }
 
 \arguments{
@@ -55,8 +55,8 @@ as a formula with no dependent variable (instruments = ~ x1 + x2). Note the ~ be
     \item{bandwidth}{"variable" (default) - or numeric when a fixed bandwidth is specified by the user.}
     \item{step1.c}{Should step 1.c from Arraiz et al. 2012 be performed?}
     \item{control}{A list of control arguments. See \link{nlminb}}
-    \item{Durbin}{Should (some of) the regressors be lagged? Default NULL. If not \code{NULL} should be specified 
-as a formula with no dependent variable (Durbin = ~ x1 + x2). Note the ~ before the expression.  The regressors should be specified either here (and then they will be lagged) or in the general model \code{formula}.}
+    \item{Durbin}{Should (some of) the regressors be lagged? Default FALSE. If not \code{FALSE} should be specified 
+as a formula with no dependent variable (Durbin = ~ x1 + x2) or set to \code{TRUE}. See details. }
 }
 
 \details{
@@ -149,7 +149,8 @@ Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation M
 \examples{
 data(columbus, package="spdep")
 listw <- spdep::nb2listw(col.gal.nb)
-res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,   het = TRUE, verbose = FALSE)
+res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,
+het = TRUE, verbose = FALSE, model = "lag")
 summary(res)
 spatialreg::impacts(res, listw=listw)
 ev1 <- eigen(listw2dgCMatrix(listw))$values

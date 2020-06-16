@@ -5,7 +5,7 @@ spreg<-function(formula, data=list(), listw, listw2=NULL,
                 het = FALSE, verbose=FALSE, na.action = na.fail,  
                 HAC = FALSE, distance = NULL, 
                 type =  c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth="variable", 
-                step1.c = FALSE, control = list(), Durbin = NULL){
+                step1.c = FALSE, control = list(), Durbin = FALSE){
  
   cl = match.call()
 switch(match.arg(model),

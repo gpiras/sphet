@@ -56,7 +56,7 @@ jtestlag <- function(H0model, H1model, data, listw0, listw1, endogH0, endogH1, i
 	
 Alt <- spreg(H1model, data = data, listw = listw1, 
              endog = endogH1, instruments = instrumentsH1, 
-             lag.instr = lag.instr, model = "lag", het = F)	
+             lag.instr = lag.instr, model = "lag", het = F, Durbin = FALSE)	
 
 mt <- terms(H1model, data = data)
 mf <- lm(H1model, data, na.action = na.action, method = "model.frame")
