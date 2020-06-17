@@ -1,7 +1,7 @@
 sarargmm <- function(formula, data, listw, listw2, endog, 
-                       instruments, lag.instr, initial.value, 
-                       het, verbose, na.action,
-                       step1.c, control, HAC, cl, Durbin = NULL){
+                     instruments, lag.instr, initial.value, 
+                     het, verbose, na.action,
+                     step1.c, control, HAC, cl, Durbin = NULL){
   
   mt <- terms(formula, data = data)
   mf <- lm(formula, data, na.action = na.action, method = "model.frame")
@@ -32,68 +32,284 @@ sarargmm <- function(formula, data, listw, listw2, endog,
   
   if (nrow(x) != nrow(Ws)) stop("Input data and weights have different dimension")
   
-  if (k > 1) {
-    wx <- matrix(nrow = n, ncol = (k  - (K - 1)))
-    for (i in K:k) {
-      Wx <- Ws %*% x[, i]
-      wx[, (i - (K - 1))] <- as.matrix(Wx)
-    }
-    wwx <- Ws %*% wx                    					         
-  }
-  
-  if(!is.null(Durbin)){
-    x.dur <- as.matrix(lm(Durbin, data, na.action = na.action, method = "model.frame"))
-   # print(colnames(x.dur))
-    # print(match(colnames(x.dur), xcolnames, nomatch = 0))
-if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))!= 0) stop("Lagged explanatory variables cannot be endogenous")    
-    wx.dur <- Ws %*% x.dur
-    wwx.dur <- Ws %*% wx.dur
-    wwwx.dur <- Ws %*% wwx.dur
-    addx <- cbind(x.dur, wx.dur)
-    x.lag.names <- c(colnames(x.dur), paste("lag_", colnames(x.dur), sep=""))
-    Inx.dur <- cbind(as.numeric(wwx.dur),as.numeric(wwwx.dur))
-  }
-  
-  
-  if(is.null(listw2)) {
-    twow <- FALSE		
-    Ws2 <- Ws
-  } 
-  else{ 
-    twow <- TRUE	
+  if(!is.null(listw2)) {
+     
     if(!inherits(listw2,c("listw", "Matrix", "matrix"))) stop("listw2 format unknown")
     if(inherits(listw2,"listw"))  Ws2<-listw2dgCMatrix(listw2)	
     if(inherits(listw2,"matrix"))  Ws2<-Matrix(listw2)	
     
-    if(identical(listw, listw2)){ 
-      twow <- FALSE		
-      Ws2 <- Ws
+    if(identical(listw, listw2)) Ws2 <- Ws
+    twow <- TRUE    
+  }
+  
+  else {
+    Ws2 <- Ws
+    twow <- FALSE
+  }
+  
+  
+  if(Durbin == TRUE | class(Durbin) == "formula"  ){
+    if(class(Durbin) == "formula"){
+      ## For each value of K (i.e, 1 or 2) there are four cases:
+      # 1) formula = y ~ x1 + x2 + x3, Durbin = ~ x2 + x3 (only a subset of the x's are lagged and all of them are also in the formula)
+      # 2) formula = y ~ x1 + x2 + x3, Durbin = ~ x1 + x2 + x3  (same as Durbin = TRUE)
+      # 3) formula = y ~ x1 + x2 + x3, Durbin = ~ x4 (only variables that show up only lagged)
+      # 4) formula = y ~ x1 + x2 + x3, Durbin = ~ x3 + x4 (one variable is in formula and one not)
+      xdur <- as.matrix(lm(Durbin, data, na.action=na.action, method="model.frame"))
+      if(sum(match(xcolnames, colnames(xdur), nomatch = 0))==0  && K != 2 && k != 1){
+        
+        wxdur <- as.matrix(Ws %*% xdur)
+        wwxdur <- as.matrix(Ws %*% wxdur)
+        wwwxdur <- as.matrix(Ws %*% wwxdur)
+        
+        if (k > 1 || (k == 1 && K == 1)) {
+          
+          wx <- matrix(nrow = n, ncol = (k  - (K - 1)))
+          for (i in K:k) {
+            Wx <- Ws %*% x[, i]
+            wx[, (i - (K - 1))] <- as.matrix(Wx)
+            
+          }
+          wwx <- as.matrix(Ws %*% wx)  
+        } 
+        
+        if(K==2){
+          Hin <- cbind(x, wx, wwx, wxdur, wwxdur, wwwxdur)
+          x <- cbind(x, wxdur)  
+          colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
+          
+        } 
+        else {
+          Hin <- cbind(1, x, wx, wwx, wxdur, wwxdur, wwwxdur)
+          x <- cbind(x, wxdur)
+          colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
+          
+        }
+        
+        if(!is.null(listw2)) {
+          w2H <- as.matrix(Ws2 %*% H[,-1])            
+          Hin <- cbind(Hin, w2H)
+        }
+        
+        # print(head(x))
+        # print(head(Hin))
+      }  
+      else{
+        #no intercept
+        if(K==1){
+          pos.xdur <- which(colnames(xdur) %in% xcolnames)
+          pos.x <- which(xcolnames %in% colnames(xdur))
+          
+          if(all(is.na(match(colnames(xdur), xcolnames)))) onx <- as.matrix(x)
+          else onx <- as.matrix(x[,-pos.x])
+          
+          if(dim(onx)[2]!=0){
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(onx) <- nmonx <-  xcolnames
+            else names(onx) <- nmonx <-  xcolnames[-pos.x] 
+          } 
+          else nmonx <- NULL
+          
+          if(all(is.na(match(colnames(xdur), xcolnames)))) onxl <- as.matrix(xdur)
+          else onxl <- as.matrix(xdur[, -pos.xdur])
+          
+          if(dim(onxl)[2]!=0){
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(onxl) <- nmonxl <- colnames(xdur)
+            else names(onxl) <- nmonxl <- colnames(xdur)[-pos.xdur]  
+          } 
+          else nmonxl <- NULL
+          
+          onboth <- as.matrix(xdur[,pos.xdur])
+          if(dim(onboth)[2] != 0){
+            if(all(is.na(match(colnames(xdur), xcolnames))))  names(onboth) <- nmonb <- colnames(xdur)
+            else  names(onboth) <- nmonb <- colnames(xdur)[pos.xdur] 
+          }
+          else nmonb <- NULL
+          
+          wonx <- as.matrix(Ws %*% onx)
+          wwonx <- as.matrix(Ws %*% wonx)
+          
+          wonxl <- as.matrix(Ws %*% onxl)
+          if(dim(wonxl)[2]!=0){
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
+            else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+          } 
+          else nmwonxl <- NULL
+          wwonxl <- as.matrix(Ws %*% wonxl)
+          wwwonxl <- as.matrix(Ws %*% wwonxl)
+          
+          wonboth <- as.matrix(Ws %*% onboth)
+          if(dim(wonboth)[2]!=0) {
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
+            else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+          }
+          else nmwonb <- NULL
+          wwonboth <- as.matrix(Ws %*% wonboth)
+          wwwonboth <- as.matrix(Ws %*% wwonboth)
+          
+          
+          x <- cbind(onx, onboth, wonboth, wonxl)
+          colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
+          Hin <- cbind(1, x, wonx, wwonx, wwonboth, wwwonboth,wwonxl,wwwonxl )
+          
+          
+          if(!is.null(listw2)){ 
+            
+            w2H <- Ws2 %*% Hin[,-1]          
+            Hin <- cbind(Hin, w2H)                  	          
+            
+          }
+          
+          # print(head(x))
+          # print(head(Hin)) 
+        }
+        
+        else{
+          
+          if(k !=1){
+            pos.xdur <- which(colnames(xdur) %in% xcolnames)
+            pos.x <- which(xcolnames %in% colnames(xdur))
+            
+            if(all(is.na(match(colnames(xdur), xcolnames)))) onx <- as.matrix(x)
+            else onx <- as.matrix(x[,-pos.x]) 
+            if(dim(onx)[2]!=0){
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(onx) <- nmonx <-  xcolnames
+              else names(onx) <- nmonx <-  xcolnames[-pos.x]
+            }  
+            else nmonx <- NULL
+            
+            
+            if(all(is.na(match(colnames(xdur), xcolnames)))) onxl <- as.matrix(xdur)
+            else  onxl <- as.matrix(xdur[, -pos.xdur])
+            if(dim(onxl)[2]!=0){
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(onxl) <- nmonxl <- colnames(xdur)
+              else names(onxl) <- nmonxl <- colnames(xdur)[-pos.xdur]
+            }   
+            else nmonxl <- NULL
+            
+            onboth <- as.matrix(xdur[,pos.xdur])
+            if(dim(onboth)[2] != 0) {
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(onboth) <- nmonb <- colnames(xdur)
+              else names(onboth) <- nmonb <- colnames(xdur)[pos.xdur] 
+            } 
+            else nmonb <- NULL
+            wonx <- as.matrix(Ws %*% onx[,-1])
+            wwonx <- as.matrix(Ws %*% wonx)
+            
+            wonxl <- as.matrix(Ws %*% onxl)
+            if(dim(wonxl)[2]!=0){
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
+              else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+            } 
+            else nmwonxl <- NULL
+            wwonxl <- as.matrix(Ws %*% wonxl)
+            wwwonxl <- as.matrix(Ws %*% wwonxl)
+            
+            wonboth <- as.matrix(Ws %*% onboth)
+            if(dim(wonboth)[2]!=0){
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
+              else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+            } 
+            else nmwonb <- NULL
+            wwonboth <- as.matrix(Ws %*% wonboth)
+            wwwonboth <- as.matrix(Ws %*% wwonboth)
+            
+            
+            x <- cbind(onx, onboth, wonboth, wonxl)
+            colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
+            Hin <- cbind(x, wonx, wwonx, wwonboth, wwwonboth,wwonxl,wwwonxl)
+            
+            if(!is.null(listw2)){ 
+              
+              w2H <- Ws2 %*% Hin[,-1]          
+              Hin <- cbind(Hin, w2H)                  	          
+              
+            }
+            # print(head(x))
+            # print(head(Hin))
+            # 
+            
+          }
+          else{
+            
+            wxdur <-  as.matrix(Ws %*% xdur)
+            wwxdur <- as.matrix(Ws %*% wxdur)
+            wwwxdur <- as.matrix(Ws %*% wwxdur)
+            x <- cbind(x, wxdur)
+            colnames(x) <- c(xcolnames, paste("lag.",colnames(xdur),sep =""))
+            Hin <- cbind(x, wwxdur, wwwxdur)
+            
+            if(!is.null(listw2)){ 
+              
+              w2H <- Ws2 %*% Hin[,-1]          
+              Hin <- cbind(Hin, w2H)                  	          
+              
+            }
+            # print(head(x))
+            # print(head(Hin))
+          }
+        }
+      }
     }
     
-    
-    if (k > 1) {
-      w2x <- matrix(nrow = n, ncol = (k  - (K - 1)))
-      for (i in K:k) {
-        W2x <- Ws2 %*% x[, i]          
-        w2x[, (i - (K - 1))] <- as.matrix(W2x)
+    else{
+      
+      if (k > 1 || (k == 1 && K == 1)) {
+        
+        wx <- matrix(nrow = n, ncol = (k  - (K - 1)))
+        for (i in K:k) {
+          Wx <- Ws %*% x[, i]
+          wx[, (i - (K - 1))] <- as.matrix(Wx)
+        }
+        wwx <- as.matrix(Ws %*% wx)  
+        wwwx <- as.matrix(Ws  %*%  wwx)
+      } 
+      
+      if(K==2){
+        
+        Hin <- cbind(x,wx,wwx,wwwx)
+        x <- cbind(x, wx)  
+        colnames(x) <-  c(xcolnames, paste("lag_", xcolnames[-1], sep=""))
+        
+      } 
+      else {
+        Hin <- cbind(1,x,wx,wwx,wwwx)
+        x <- cbind(x, wx)  
+        colnames(x) <-  c(xcolnames, paste("lag_", xcolnames, sep=""))
+        
       }
-      w2wx <- Ws2 %*% wx                   	
-      w2wwx <- Ws2 %*% wwx                    	          
+      
+      if(!is.null(listw2)) {
+        
+        w2H <- as.matrix(Ws2 %*% H[,-1])
+        Hin <- cbind(Hin, w2H)
+      }
+      # print(head(x))
+      # print(head(Hin))
+    }
+  }
+  else{  
+    
+    if (k > 1 || (k == 1 && K == 1)) {
+      wx <- matrix(nrow = n, ncol = (k  - (K - 1)))
+      for (i in K:k) {
+        Wx <- Ws %*% x[, i]
+        wx[, (i - (K - 1))] <- as.matrix(Wx)
+      }
+      wwx <- Ws %*% wx                    					         
+    }
+    
+    if(K==2)    Hin <- cbind(x, wx, wwx)
+    else        Hin <- cbind(1, x, wx, wwx)
+    x <- x
+    
+    if(!is.null(listw2)) {
+      
+      w2H <- as.matrix(Ws2 %*% Hin[,-1])
+      Hin <- cbind(Hin, w2H)
       
     }
     
-    if(!is.null(Durbin)){
-      w2x.dur <- Ws2 %*% x.dur
-      print(x.dur)
-      print(w2x.dur)
-      w2wx.dur <- Ws2 %*% wx.dur
-      w2wwx.dur <- Ws2 %*% wwx.dur
-      w2wwwx.dur <- Ws2 %*% wwwx.dur
-      Inw2x.dur <- cbind(as.numeric(w2x.dur), as.numeric(w2wx.dur), as.numeric(w2wwx.dur), as.numeric(w2wwwx.dur))
-    }
-    
   }
-  
   
   
   wy <- Ws %*% y	
@@ -103,8 +319,8 @@ if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))!= 0) stop("Lagged explana
   
   if (!is.null(endog)) {
     endog <- as.matrix(lm(endog, data, na.action = na.action, method = "model.frame"))
-    if(!is.null(Durbin) && (sum(match(colnames(x.dur), colnames(endog), nomatch = 0))!= 0)) stop("Lagged explanatory variables cannot be endogenous")
     instruments <- as.matrix(lm(instruments, data, na.action = na.action, method = "model.frame"))
+    
     if(lag.instr) {
       winst <- Ws %*% instruments
       wwinst <- Ws %*% winst	
@@ -117,65 +333,15 @@ if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))!= 0) stop("Lagged explana
       else  AddH <- cbind(instruments, as.matrix(winst), as.matrix(wwinst))        
     }
     else  AddH <- instruments        
-    if (K==2) {
-      if(twow){ 
-        if(is.null(Durbin)) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx), AddH)
-        else Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx), addx, Inx.dur, Inw2x.dur ,AddH)
-      }
-      else{
-        if(is.null(Durbin))  Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx),  AddH)
-        else  Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), addx, Inx.dur, AddH)
-      } 
-    }
-    else {
-      if(twow){
-        if (is.null(Durbin)) Hmat <- cbind(1,x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx), AddH)
-        else Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx), addx, Inx.dur, Inw2x.dur ,AddH)
-      } 
-      else {
-        if (is.null(Durbin)) Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), AddH)
-        else Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), addx, Inx.dur, AddH)
-      } 
-    }
     
-    if (is.null(Durbin)){
-      Zmat<- cbind(x, endog, as.matrix(wy))            
-      colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
-    }
-    else {
-      Zmat<- cbind(x, addx, endog, as.matrix(wy))
-      colnames(Zmat) <- c(colnames(x), x.lag.names , colnames(endog), colnames(wy))
-    }
+    Hmat <- cbind(Hin, AddH)
+    Zmat<- cbind(x, endog, as.matrix(wy))            
+    colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
   } 
   else {
-    if (is.null(Durbin)){
-      Zmat<- cbind(x, as.matrix(wy))
-      colnames(Zmat) <- c(colnames(x), colnames(wy))
-    }
-    else {
-      Zmat<- cbind(x, addx, as.matrix(wy))
-      colnames(Zmat) <- c(colnames(x), x.lag.names, colnames(wy))
-    }
-    if (K==2){
-      if(twow) {
-        if(is.null(Durbin)) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx))
-        else Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx), addx, Inx.dur, Inw2x.dur)
-      }
-      else {
-        if(is.null(Durbin)) Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx)) 
-        else Hmat <- cbind(x, as.matrix(wx), as.matrix(wwx), addx, Inx.dur) 
-      } 
-    }
-    else {
-      if(twow) {
-        if(is.null(Durbin))  Hmat <- cbind(1,x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx))
-        else Hmat <- cbind(1,x, as.matrix(wx), as.matrix(wwx), as.matrix(w2x), as.matrix(w2wx), as.matrix(w2wwx), addx, Inx.dur, Inw2x.dur)
-      }
-      else  {
-        if(is.null(Durbin))   Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx)) 
-        else Hmat <- cbind(1, x, as.matrix(wx), as.matrix(wwx), addx, Inx.dur) 
-      }
-    }
+    Zmat<- cbind(x, as.matrix(wy))
+    colnames(Zmat) <- c(colnames(x), colnames(wy))
+    Hmat <- Hin 
   }
   
   firststep<-spatial.ivreg(y = y , Zmat = Zmat, Hmat = Hmat, het = het, HAC = HAC)
@@ -308,6 +474,8 @@ if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))!= 0) stop("Lagged explana
   return(results)
 }
 
+
+
 laggmm <- function(formula, data, listw, listw2, endog, 
                    instruments, lag.instr, 
                    het, verbose, na.action, HAC, cl, Durbin = NULL){
@@ -319,11 +487,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
   
   y <- c(model.extract(mf, "response"))
   x <- model.matrix(mt,mf)
- # print(head(x))
-  # if((Durbin == TRUE  | class(Durbin) == "formula" ) && !is.null(endog)) 
-  #   stop("Lagged explanatory variables cannot be endogenous")
-  # 
-  
+
   if (length(y)!=nrow(x)) 
     stop("x and y have different length")
   
@@ -335,11 +499,8 @@ laggmm <- function(formula, data, listw, listw2, endog,
   n <- nrow(x)
   k <- ncol(x)	
   xcolnames <- colnames(x)
- #print(k)
-  #K=1 no intercept
-  #K=2 model intercept
   K <- ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
-  #print(K)
+
   if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
   if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
   if(inherits(listw,"matrix"))  Ws <- Matrix(listw)	
@@ -356,9 +517,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
       # 3) formula = y ~ x1 + x2 + x3, Durbin = ~ x4 (only variables that show up only lagged)
       # 4) formula = y ~ x1 + x2 + x3, Durbin = ~ x3 + x4 (one variable is in formula and one not)
       xdur <- as.matrix(lm(Durbin, data, na.action=na.action, method="model.frame"))
-      #print(xcolnames)
-      #print(colnames(xdur))
-      #print(match(xcolnames, colnames(xdur), nomatch = 0))
+      
       if(sum(match(xcolnames, colnames(xdur), nomatch = 0))==0  && K != 2 && k != 1){
        
         wxdur <- as.matrix(Ws %*% xdur)
@@ -380,40 +539,26 @@ laggmm <- function(formula, data, listw, listw2, endog,
           Hin <- cbind(x, wx, wwx, wxdur, wwxdur, wwwxdur)
           x <- cbind(x, wxdur)  
           colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
-          print(head(x))
-          print(head(Hin))
+          # print(head(x))
+          # print(head(Hin))
         } 
         else {
-          # print("cazzo")
-          # print(head(x))
-          # print(head(wx))
-          # print(head(wwx))
-          # print(head(wwxdur))
-          # print(head(wwwxdur))
+          
           Hin <- cbind(1, x, wx, wwx, wxdur, wwxdur, wwwxdur)
-          #print(head(Hin))
           x <- cbind(x, wxdur)  
-          #print(head(x))
           colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
-          print(head(x))
-          print(head(Hin))
+          # print(head(x))
+          # print(head(Hin))
         }
       }  
-       #1)
+       
       else{
-        #no intercept
        
         if(K==1 ){
-          
-         #print("I am here!")
+       
            pos.xdur <- which(colnames(xdur) %in% xcolnames)
            pos.x <- which(xcolnames %in% colnames(xdur))
-         #print(pos.xdur)
-         #print(length(pos.xdur))
-         #print(pos.x)
-         #print(length(pos.x))
-            # print(head(x))
-      
+        
            if(all(is.na(match(colnames(xdur), xcolnames)))) onx <- as.matrix(x)
            else onx <- as.matrix(x[,-pos.x])
           
@@ -422,7 +567,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
                else names(onx) <- nmonx <-  xcolnames[-pos.x] 
            } 
            else nmonx <- NULL
-           #print(nmonx) 
+           
          if(all(is.na(match(colnames(xdur), xcolnames)))) onxl <- as.matrix(xdur)
            else onxl <- as.matrix(xdur[, -pos.xdur])
            
@@ -438,10 +583,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
                 else  names(onboth) <- nmonb <- colnames(xdur)[pos.xdur] 
            }
            else nmonb <- NULL
-            #print(head(onx))
-             #print(head(onxl))
-            #print(head(onboth))
-           # 
+            
            wonx <- as.matrix(Ws %*% onx)
            wwonx <- as.matrix(Ws %*% wonx)
            
@@ -455,7 +597,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
            wwwonxl <- as.matrix(Ws %*% wwonxl)
            
            wonboth <- as.matrix(Ws %*% onboth)
-           #print(dim(wonboth))
+           
            if(dim(wonboth)[2]!=0) {
              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
                else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
@@ -468,32 +610,24 @@ laggmm <- function(formula, data, listw, listw2, endog,
          x <- cbind(onx, onboth, wonboth, wonxl)
          colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
          Hin <- cbind(1, x, wonx, wwonx, wwonboth, wwwonboth,wwonxl,wwwonxl )
-         print(head(x))
-         print(head(Hin))
-         
-       
+         # print(head(x))
+         # print(head(Hin))
         } 
         else{
           
           if(k !=1){
-            #print(which(colnames(xdur) %in% xcolnames[-1]))
-           # print(which(colnames(xdur) %in% xcolnames))
             
-            ##Do I need to consider the Intercept or not???
             pos.xdur <- which(colnames(xdur) %in% xcolnames)
             pos.x <- which(xcolnames %in% colnames(xdur))
             
             if(all(is.na(match(colnames(xdur), xcolnames)))) onx <- as.matrix(x)
             else onx <- as.matrix(x[,-pos.x]) 
-          # print(head(onx))
-          # print(xcolnames)
-          # print(pos.x)
+          
             if(dim(onx)[2]!=0){
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(onx) <- nmonx <-  xcolnames
               else names(onx) <- nmonx <-  xcolnames[-pos.x]
             }  
             else nmonx <- NULL
-         # print(nmonx) 
           
             if(all(is.na(match(colnames(xdur), xcolnames)))) onxl <- as.matrix(xdur)
             else  onxl <- as.matrix(xdur[, -pos.xdur])
@@ -503,20 +637,14 @@ laggmm <- function(formula, data, listw, listw2, endog,
               else names(onxl) <- nmonxl <- colnames(xdur)[-pos.xdur]
             }   
             else nmonxl <- NULL
-          # print(nmonxl)
-          #   print(head(onxl))
-          #   
-            onboth <- as.matrix(xdur[,pos.xdur])
+          
+              onboth <- as.matrix(xdur[,pos.xdur])
             if(dim(onboth)[2] != 0) {
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(onboth) <- nmonb <- colnames(xdur)
                 else names(onboth) <- nmonb <- colnames(xdur)[pos.xdur] 
             } 
             else nmonb <- NULL
-            # print(nmonb)
-            #   print(head(onx))
-            #   print(head(onxl))
-            #  print(head(onboth))
-            # # 
+           
             wonx <- as.matrix(Ws %*% onx[,-1])
             wwonx <- as.matrix(Ws %*% wonx)
             
@@ -530,7 +658,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
             wwwonxl <- as.matrix(Ws %*% wwonxl)
             
             wonboth <- as.matrix(Ws %*% onboth)
-            #print(dim(wonboth))
+            
             if(dim(wonboth)[2]!=0){
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
                 else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
@@ -543,27 +671,23 @@ laggmm <- function(formula, data, listw, listw2, endog,
             x <- cbind(onx, onboth, wonboth, wonxl)
             colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
             Hin <- cbind(x, wonx, wwonx, wwonboth, wwwonboth,wwonxl,wwwonxl )
-            print(head(x))
-            print(head(Hin))
+            # print(head(x))
+            # print(head(Hin))
                       }
         else{
-         # print("cazzo")
+      
           wxdur <-  as.matrix(Ws %*% xdur)
           wwxdur <- as.matrix(Ws %*% wxdur)
           wwwxdur <- as.matrix(Ws %*% wwxdur)
           x <- cbind(x, wxdur)
           colnames(x) <- c(xcolnames, paste("lag.",colnames(xdur),sep =""))
           Hin <- cbind(x, wwxdur, wwwxdur )
-          print(head(x))
-          print(head(Hin))
+          # print(head(x))
+          # print(head(Hin))
         }
         }
       }
-      
-      
-
-      
-     # stop("Something went wrong with the model specification")
+    
     }
     
     else{
@@ -583,15 +707,15 @@ laggmm <- function(formula, data, listw, listw2, endog,
         Hin <- cbind(x,wx,wwx,wwwx)
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames[-1], sep=""))
-        print(head(x))
-        print(head(Hin))
+        # print(head(x))
+        # print(head(Hin))
       } 
       else {
         Hin <- cbind(1,x,wx,wwx,wwwx)
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames, sep=""))
-        print(head(x))
-        print(head(Hin))
+        # print(head(x))
+        # print(head(Hin))
       }
     }
   }
@@ -609,27 +733,10 @@ laggmm <- function(formula, data, listw, listw2, endog,
     if(K==2)    Hin <- cbind(x, wx, wwx)
     else        Hin <- cbind(1, x, wx, wwx)
     x <- x
-    print(head(x))
-    print(head(Hin))
+    # print(head(x))
+    # print(head(Hin))
   }
   
-  
- # print(wx)
-  # if(!is.null(Durbin)){
-  #   # print(Durbin)
-  #   x.dur <- as.matrix(lm(Durbin, data, na.action = na.action, method = "model.frame"))
-  #   #print(colnames(x.dur))
-  #   #print(xcolnames)
-  #   #print(match(colnames(x.dur), xcolnamprint(sum(match(colnames(x.dur), xcolnames, nomatch = 0)))
-  #   if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))!= 0) stop("Explanatory variables to be lagged cannot be specified in the main formula")    
-  #   wx.dur <- Ws %*% x.dur
-  #   wwx.dur <- Ws %*% wx.dur
-  #   wwwx.dur <- Ws %*% wwx.dur
-  #   addx <- cbind(x.dur, wx.dur)
-  #   x.lag.names <- c(colnames(x.dur), paste("lag_", colnames(x.dur), sep=""))
-  #   Inx.dur <- cbind(as.numeric(wwx.dur),as.numeric(wwwx.dur))
-  # }
-  # 
   
   wy<-Ws %*% y	
   colnames(wy)<-"lambda"
@@ -695,9 +802,9 @@ errorgmm <- function(formula, data, listw, listw2, endog,
   n <- nrow(x)
   k <- ncol(x)	
   xcolnames <- colnames(x)
-  #print(k)
+  
   K <- ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
-  #print(K)
+  
   if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
   if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
   if(inherits(listw,"matrix"))  Ws <- Matrix(listw)	
@@ -714,13 +821,11 @@ errorgmm <- function(formula, data, listw, listw2, endog,
       # 3) formula = y ~ x1 + x2 + x3, Durbin = ~ x4 (only variables that show up only lagged)
       # 4) formula = y ~ x1 + x2 + x3, Durbin = ~ x3 + x4 (one variable is in formula and one not)
       xdur <- as.matrix(lm(Durbin, data, na.action=na.action, method="model.frame"))
-      #print(xcolnames)
-      #print(colnames(xdur))
-      #print(match(xcolnames, colnames(xdur), nomatch = 0))
-      if(sum(match(xcolnames, colnames(xdur), nomatch = 0))==0  && K != 2 && k != 1){
-        #print("I am here")
-        wxdur <- as.matrix(Ws %*% xdur)
-        wwxdur <- as.matrix(Ws %*% wxdur)
+
+            if(sum(match(xcolnames, colnames(xdur), nomatch = 0))==0  && K != 2 && k != 1){
+      
+                wxdur <- as.matrix(Ws %*% xdur)
+                wwxdur <- as.matrix(Ws %*% wxdur)
         
         if (k > 1 || (k == 1 && K == 1)) {
           
@@ -736,39 +841,24 @@ errorgmm <- function(formula, data, listw, listw2, endog,
           Hin <- cbind(x, wx, wxdur, wwxdur)
           x <- cbind(x, wxdur)  
           colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
-          print(head(x))
-          print(head(Hin))
+          # print(head(x))
+          # print(head(Hin))
         } 
         else {
-          # print("cazzo")
-          # print(head(x))
-          # print(head(wx))
-          # print(head(wwx))
-          # print(head(wwxdur))
-          # print(head(wwwxdur))
           Hin <- cbind(1, x, wx, wxdur, wwxdur)
-          #print(head(Hin))
           x <- cbind(x, wxdur)  
-          #print(head(x))
           colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
-          print(head(x))
-          print(head(Hin))
+          # print(head(x))
+          # print(head(Hin))
         }
       }  
-      #1)
+      
       else{
-        #no intercept
         
         if(K==1 ){
           
-          #print("I am here!")
           pos.xdur <- which(colnames(xdur) %in% xcolnames)
           pos.x <- which(xcolnames %in% colnames(xdur))
-          #print(pos.xdur)
-          #print(length(pos.xdur))
-          #print(pos.x)
-          #print(length(pos.x))
-          # print(head(x))
           
           if(all(is.na(match(colnames(xdur), xcolnames)))) onx <- as.matrix(x)
           else onx <- as.matrix(x[,-pos.x])
@@ -778,7 +868,7 @@ errorgmm <- function(formula, data, listw, listw2, endog,
             else names(onx) <- nmonx <-  xcolnames[-pos.x] 
           } 
           else nmonx <- NULL
-          #print(nmonx) 
+         
           if(all(is.na(match(colnames(xdur), xcolnames)))) onxl <- as.matrix(xdur)
           else onxl <- as.matrix(xdur[, -pos.xdur])
           
@@ -794,12 +884,8 @@ errorgmm <- function(formula, data, listw, listw2, endog,
             else  names(onboth) <- nmonb <- colnames(xdur)[pos.xdur] 
           }
           else nmonb <- NULL
-          #print(head(onx))
-          #print(head(onxl))
-          #print(head(onboth))
-          # 
+         
           wonx <- as.matrix(Ws %*% onx)
-          # wwonx <- as.matrix(Ws %*% wonx)
           
           wonxl <- as.matrix(Ws %*% onxl)
           if(dim(wonxl)[2]!=0){
@@ -808,48 +894,40 @@ errorgmm <- function(formula, data, listw, listw2, endog,
           } 
           else nmwonxl <- NULL
           wwonxl <- as.matrix(Ws %*% wonxl)
-          #wwwonxl <- as.matrix(Ws %*% wwonxl)
           
           wonboth <- as.matrix(Ws %*% onboth)
-          #print(dim(wonboth))
+        
           if(dim(wonboth)[2]!=0) {
             if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
             else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
           }
           else nmwonb <- NULL
           wwonboth <- as.matrix(Ws %*% wonboth)
-          #wwwonboth <- as.matrix(Ws %*% wwonboth)
           
           
           x <- cbind(onx, onboth, wonboth, wonxl)
           colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
           Hin <- cbind(1, x, wonx, wwonboth, wwonxl )
-          print(head(x))
-          print(head(Hin))
-          
+          # print(head(x))
+          # print(head(Hin))
+          # 
           
         } 
         else{
-         # print("I AM HERE")
-          if(k !=1){
-            #print(which(colnames(xdur) %in% xcolnames[-1]))
-            # print(which(colnames(xdur) %in% xcolnames))
+         
+           if(k !=1){
             
-            ##Do I need to consider the Intercept or not???
             pos.xdur <- which(colnames(xdur) %in% xcolnames)
             pos.x <- which(xcolnames %in% colnames(xdur))
             
             if(all(is.na(match(colnames(xdur), xcolnames)))) onx <- as.matrix(x)
             else onx <- as.matrix(x[,-pos.x]) 
-            # print(head(onx))
-            # print(xcolnames)
-            # print(pos.x)
+            
             if(dim(onx)[2]!=0){
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(onx) <- nmonx <-  xcolnames
               else names(onx) <- nmonx <-  xcolnames[-pos.x]
             }  
             else nmonx <- NULL
-            # print(nmonx) 
             
             if(all(is.na(match(colnames(xdur), xcolnames)))) onxl <- as.matrix(xdur)
             else  onxl <- as.matrix(xdur[, -pos.xdur])
@@ -859,22 +937,15 @@ errorgmm <- function(formula, data, listw, listw2, endog,
               else names(onxl) <- nmonxl <- colnames(xdur)[-pos.xdur]
             }   
             else nmonxl <- NULL
-            # print(nmonxl)
-            #   print(head(onxl))
-            #   
-            onboth <- as.matrix(xdur[,pos.xdur])
+           
+             onboth <- as.matrix(xdur[,pos.xdur])
             if(dim(onboth)[2] != 0) {
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(onboth) <- nmonb <- colnames(xdur)
               else names(onboth) <- nmonb <- colnames(xdur)[pos.xdur] 
             } 
             else nmonb <- NULL
-            # print(nmonb)
-            #   print(head(onx))
-            #   print(head(onxl))
-            #  print(head(onboth))
-            # # 
+             
             wonx <- as.matrix(Ws %*% onx[,-1])
-            #wwonx <- as.matrix(Ws %*% wonx)
             
             wonxl <- as.matrix(Ws %*% onxl)
             if(dim(wonxl)[2]!=0){
@@ -883,43 +954,37 @@ errorgmm <- function(formula, data, listw, listw2, endog,
             } 
             else nmwonxl <- NULL
             wwonxl <- as.matrix(Ws %*% wonxl)
-            #wwwonxl <- as.matrix(Ws %*% wwonxl)
             
             wonboth <- as.matrix(Ws %*% onboth)
-            #print(dim(wonboth))
+           
             if(dim(wonboth)[2]!=0){
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
               else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
             } 
             else nmwonb <- NULL
             wwonboth <- as.matrix(Ws %*% wonboth)
-            #wwwonboth <- as.matrix(Ws %*% wwonboth)
             
             
             x <- cbind(onx, onboth, wonboth, wonxl)
             colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
             Hin <- cbind(x, wonx, wwonboth, wwonxl )
-            print(head(x))
-            print(head(Hin))
+            # print(head(x))
+            # print(head(Hin))
           }
           else{
-            # print("cazzo")
+           
             wxdur <-  as.matrix(Ws %*% xdur)
             wwxdur <- as.matrix(Ws %*% wxdur)
-            #wwwxdur <- as.matrix(Ws %*% wwxdur)
+           
             x <- cbind(x, wxdur)
             colnames(x) <- c(xcolnames, paste("lag.",colnames(xdur),sep =""))
             Hin <- cbind(x, wwxdur)
-            print(head(x))
-            print(head(Hin))
+            # print(head(x))
+            # print(head(Hin))
           }
         }
       }
       
-      
-      
-      
-      # stop("Something went wrong with the model specification")
     }
     
     else{
@@ -932,22 +997,22 @@ errorgmm <- function(formula, data, listw, listw2, endog,
           wx[, (i - (K - 1))] <- as.matrix(Wx)
         }
         wwx <- as.matrix(Ws %*% wx)  
-        # wwwx <- as.matrix(Ws  %*%  wwx)
+        
       } 
       
       if(K==2){
         Hin <- cbind(x,wx,wwx)
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames[-1], sep=""))
-        print(head(x))
-        print(head(Hin))
+        # print(head(x))
+        # print(head(Hin))
       } 
       else {
         Hin <- cbind(1,x,wx,wwx)
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames, sep=""))
-        print(head(x))
-        print(head(Hin))
+        # print(head(x))
+        # print(head(Hin))
       }
     }
   }
@@ -959,36 +1024,15 @@ errorgmm <- function(formula, data, listw, listw2, endog,
         Wx <- Ws %*% x[, i]
         wx[, (i - (K - 1))] <- as.matrix(Wx)
       }
-      # wwx <- Ws %*% wx                    					         
+     
     }
     
     if(K==2)    Hin <- cbind(x, wx)
     else        Hin <- cbind(1, x, wx)
     x <- x
-    print(head(x))
-    print(head(Hin))
+    # print(head(x))
+    # print(head(Hin))
   }
-  
-  
-  # if (k > 1) {
-  #   wx <- matrix(nrow = n, ncol = (k  - (K - 1)))
-  #   for (i in K:k) {
-  #     Wx <- Ws %*% x[, i]
-  #     wx[, (i - (K - 1))] <- as.matrix(Wx)
-  #   }
-  #   wwx <- Ws %*% wx                    					         
-  # }
-  # 
-  # if(!is.null(Durbin)){
-  #   x.dur <- as.matrix(lm(Durbin, data, na.action = na.action, method = "model.frame"))
-  #   if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))!= 0) stop("Explanatory variables to be lagged cannot be specified in the main formula")    
-  #   wx.dur <- Ws %*% x.dur
-  #   wwx.dur <- Ws %*% wx.dur
-  #   # wwwx.dur <- Ws %*% wwx.dur
-  #   addx <- cbind(x.dur, wx.dur)
-  #   x.lag.names <- c(colnames(x.dur), paste("lag_", colnames(x.dur), sep=""))
-  #   Inx.dur <- as.numeric(wwx.dur)
-  # }
   
   
   if (!is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the model")
@@ -1252,9 +1296,7 @@ laghac <- function(formula, data, listw, listw2, endog,
       # 3) formula = y ~ x1 + x2 + x3, Durbin = ~ x4 (only variables that show up only lagged)
       # 4) formula = y ~ x1 + x2 + x3, Durbin = ~ x3 + x4 (one variable is in formula and one not)
       xdur <- as.matrix(lm(Durbin, data, na.action=na.action, method="model.frame"))
-      #print(xcolnames)
-      #print(colnames(xdur))
-      #print(match(xcolnames, colnames(xdur), nomatch = 0))
+      
       if(sum(match(xcolnames, colnames(xdur), nomatch = 0))==0  && K != 2 && k != 1){
         
         wxdur <- as.matrix(Ws %*% xdur)
@@ -1276,39 +1318,24 @@ laghac <- function(formula, data, listw, listw2, endog,
           Hin <- cbind(x, wx, wwx, wxdur, wwxdur, wwwxdur)
           x <- cbind(x, wxdur)  
           colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
-          print(head(x))
-          print(head(Hin))
-        } 
+        #   print(head(x))
+        #   print(head(Hin))
+         } 
         else {
-          # print("cazzo")
-          # print(head(x))
-          # print(head(wx))
-          # print(head(wwx))
-          # print(head(wwxdur))
-          # print(head(wwwxdur))
           Hin <- cbind(1, x, wx, wwx, wxdur, wwxdur, wwwxdur)
-          #print(head(Hin))
           x <- cbind(x, wxdur)  
-          #print(head(x))
           colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
-          print(head(x))
-          print(head(Hin))
+          # print(head(x))
+          # print(head(Hin))
         }
       }  
-      #1)
+      
       else{
-        #no intercept
         
         if(K==1 ){
           
-          #print("I am here!")
           pos.xdur <- which(colnames(xdur) %in% xcolnames)
           pos.x <- which(xcolnames %in% colnames(xdur))
-          #print(pos.xdur)
-          #print(length(pos.xdur))
-          #print(pos.x)
-          #print(length(pos.x))
-          # print(head(x))
           
           if(all(is.na(match(colnames(xdur), xcolnames)))) onx <- as.matrix(x)
           else onx <- as.matrix(x[,-pos.x])
@@ -1318,7 +1345,7 @@ laghac <- function(formula, data, listw, listw2, endog,
             else names(onx) <- nmonx <-  xcolnames[-pos.x] 
           } 
           else nmonx <- NULL
-          #print(nmonx) 
+          
           if(all(is.na(match(colnames(xdur), xcolnames)))) onxl <- as.matrix(xdur)
           else onxl <- as.matrix(xdur[, -pos.xdur])
           
@@ -1334,10 +1361,7 @@ laghac <- function(formula, data, listw, listw2, endog,
             else  names(onboth) <- nmonb <- colnames(xdur)[pos.xdur] 
           }
           else nmonb <- NULL
-          #print(head(onx))
-          #print(head(onxl))
-          #print(head(onboth))
-          # 
+         
           wonx <- as.matrix(Ws %*% onx)
           wwonx <- as.matrix(Ws %*% wonx)
           
@@ -1351,7 +1375,7 @@ laghac <- function(formula, data, listw, listw2, endog,
           wwwonxl <- as.matrix(Ws %*% wwonxl)
           
           wonboth <- as.matrix(Ws %*% onboth)
-          #print(dim(wonboth))
+          
           if(dim(wonboth)[2]!=0) {
             if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
             else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
@@ -1364,32 +1388,26 @@ laghac <- function(formula, data, listw, listw2, endog,
           x <- cbind(onx, onboth, wonboth, wonxl)
           colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
           Hin <- cbind(1, x, wonx, wwonx, wwonboth, wwwonboth,wwonxl,wwwonxl )
-          print(head(x))
-          print(head(Hin))
-          
+          # print(head(x))
+          # print(head(Hin))
+          # 
           
         } 
         else{
           
           if(k !=1){
-            #print(which(colnames(xdur) %in% xcolnames[-1]))
-            # print(which(colnames(xdur) %in% xcolnames))
             
-            ##Do I need to consider the Intercept or not???
             pos.xdur <- which(colnames(xdur) %in% xcolnames)
             pos.x <- which(xcolnames %in% colnames(xdur))
             
             if(all(is.na(match(colnames(xdur), xcolnames)))) onx <- as.matrix(x)
             else onx <- as.matrix(x[,-pos.x]) 
-            # print(head(onx))
-            # print(xcolnames)
-            # print(pos.x)
+            
             if(dim(onx)[2]!=0){
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(onx) <- nmonx <-  xcolnames
               else names(onx) <- nmonx <-  xcolnames[-pos.x]
             }  
             else nmonx <- NULL
-            # print(nmonx) 
             
             if(all(is.na(match(colnames(xdur), xcolnames)))) onxl <- as.matrix(xdur)
             else  onxl <- as.matrix(xdur[, -pos.xdur])
@@ -1399,20 +1417,14 @@ laghac <- function(formula, data, listw, listw2, endog,
               else names(onxl) <- nmonxl <- colnames(xdur)[-pos.xdur]
             }   
             else nmonxl <- NULL
-            # print(nmonxl)
-            #   print(head(onxl))
-            #   
+             
             onboth <- as.matrix(xdur[,pos.xdur])
             if(dim(onboth)[2] != 0) {
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(onboth) <- nmonb <- colnames(xdur)
               else names(onboth) <- nmonb <- colnames(xdur)[pos.xdur] 
             } 
             else nmonb <- NULL
-            # print(nmonb)
-            #   print(head(onx))
-            #   print(head(onxl))
-            #  print(head(onboth))
-            # # 
+            
             wonx <- as.matrix(Ws %*% onx[,-1])
             wwonx <- as.matrix(Ws %*% wonx)
             
@@ -1426,7 +1438,7 @@ laghac <- function(formula, data, listw, listw2, endog,
             wwwonxl <- as.matrix(Ws %*% wwonxl)
             
             wonboth <- as.matrix(Ws %*% onboth)
-            #print(dim(wonboth))
+            
             if(dim(wonboth)[2]!=0){
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
               else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
@@ -1439,27 +1451,23 @@ laghac <- function(formula, data, listw, listw2, endog,
             x <- cbind(onx, onboth, wonboth, wonxl)
             colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
             Hin <- cbind(x, wonx, wwonx, wwonboth, wwwonboth,wwonxl,wwwonxl )
-            print(head(x))
-            print(head(Hin))
+            # print(head(x))
+            # print(head(Hin))
           }
           else{
-            # print("cazzo")
+            
             wxdur <-  as.matrix(Ws %*% xdur)
             wwxdur <- as.matrix(Ws %*% wxdur)
             wwwxdur <- as.matrix(Ws %*% wwxdur)
             x <- cbind(x, wxdur)
             colnames(x) <- c(xcolnames, paste("lag.",colnames(xdur),sep =""))
             Hin <- cbind(x, wwxdur, wwwxdur )
-            print(head(x))
-            print(head(Hin))
+            # print(head(x))
+            # print(head(Hin))
           }
         }
       }
-      
-      
-      
-      
-      # stop("Something went wrong with the model specification")
+    
     }
     
     else{
@@ -1479,15 +1487,15 @@ laghac <- function(formula, data, listw, listw2, endog,
         Hin <- cbind(x,wx,wwx,wwwx)
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames[-1], sep=""))
-        print(head(x))
-        print(head(Hin))
+        # print(head(x))
+        # print(head(Hin))
       } 
       else {
         Hin <- cbind(1,x,wx,wwx,wwwx)
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames, sep=""))
-        print(head(x))
-        print(head(Hin))
+        # print(head(x))
+        # print(head(Hin))
       }
     }
   }
@@ -1505,8 +1513,8 @@ laghac <- function(formula, data, listw, listw2, endog,
     if(K==2)    Hin <- cbind(x, wx, wwx)
     else        Hin <- cbind(1, x, wx, wwx)
     x <- x
-    print(head(x))
-    print(head(Hin))
+    # print(head(x))
+    # print(head(Hin))
   }
   
   wy<-Ws %*% y	
@@ -1607,11 +1615,9 @@ olshac <- function(formula, data, endog, instruments, listw,
       # 3) formula = y ~ x1 + x2 + x3, Durbin = ~ x4 (only variables that show up only lagged)
       # 4) formula = y ~ x1 + x2 + x3, Durbin = ~ x3 + x4 (one variable is in formula and one not)
       xdur <- as.matrix(lm(Durbin, data, na.action=na.action, method="model.frame"))
-      #print(xcolnames)
-      #print(colnames(xdur))
-      #print(match(xcolnames, colnames(xdur), nomatch = 0))
+      
       if(sum(match(xcolnames, colnames(xdur), nomatch = 0))==0  && K != 2 && k != 1){
-        #print("I am here")
+      
         wxdur <- as.matrix(Ws %*% xdur)
         wwxdur <- as.matrix(Ws %*% wxdur)
         
@@ -1629,39 +1635,27 @@ olshac <- function(formula, data, endog, instruments, listw,
           Hin <- cbind(x, wx, wxdur, wwxdur)
           x <- cbind(x, wxdur)  
           colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
-          print(head(x))
-          print(head(Hin))
+          # print(head(x))
+          # print(head(Hin))
         } 
         else {
-          # print("cazzo")
-          # print(head(x))
-          # print(head(wx))
-          # print(head(wwx))
-          # print(head(wwxdur))
-          # print(head(wwwxdur))
+          
           Hin <- cbind(1, x, wx, wxdur, wwxdur)
-          #print(head(Hin))
           x <- cbind(x, wxdur)  
-          #print(head(x))
+          
           colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
-          print(head(x))
-          print(head(Hin))
+          # print(head(x))
+          # print(head(Hin))
         }
       }  
-      #1)
+      
       else{
-        #no intercept
         
         if(K==1 ){
-          
-          #print("I am here!")
+      
           pos.xdur <- which(colnames(xdur) %in% xcolnames)
           pos.x <- which(xcolnames %in% colnames(xdur))
-          #print(pos.xdur)
-          #print(length(pos.xdur))
-          #print(pos.x)
-          #print(length(pos.x))
-          # print(head(x))
+          
           
           if(all(is.na(match(colnames(xdur), xcolnames)))) onx <- as.matrix(x)
           else onx <- as.matrix(x[,-pos.x])
@@ -1671,7 +1665,7 @@ olshac <- function(formula, data, endog, instruments, listw,
             else names(onx) <- nmonx <-  xcolnames[-pos.x] 
           } 
           else nmonx <- NULL
-          #print(nmonx) 
+          
           if(all(is.na(match(colnames(xdur), xcolnames)))) onxl <- as.matrix(xdur)
           else onxl <- as.matrix(xdur[, -pos.xdur])
           
@@ -1687,12 +1681,9 @@ olshac <- function(formula, data, endog, instruments, listw,
             else  names(onboth) <- nmonb <- colnames(xdur)[pos.xdur] 
           }
           else nmonb <- NULL
-          #print(head(onx))
-          #print(head(onxl))
-          #print(head(onboth))
-          # 
+          
           wonx <- as.matrix(Ws %*% onx)
-          # wwonx <- as.matrix(Ws %*% wonx)
+  
           
           wonxl <- as.matrix(Ws %*% onxl)
           if(dim(wonxl)[2]!=0){
@@ -1701,48 +1692,40 @@ olshac <- function(formula, data, endog, instruments, listw,
           } 
           else nmwonxl <- NULL
           wwonxl <- as.matrix(Ws %*% wonxl)
-          #wwwonxl <- as.matrix(Ws %*% wwonxl)
           
           wonboth <- as.matrix(Ws %*% onboth)
-          #print(dim(wonboth))
+         
           if(dim(wonboth)[2]!=0) {
             if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
             else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
           }
           else nmwonb <- NULL
           wwonboth <- as.matrix(Ws %*% wonboth)
-          #wwwonboth <- as.matrix(Ws %*% wwonboth)
           
           
           x <- cbind(onx, onboth, wonboth, wonxl)
           colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
           Hin <- cbind(1, x, wonx, wwonboth, wwonxl )
-          print(head(x))
-          print(head(Hin))
-          
+          # print(head(x))
+          # print(head(Hin))
+          # 
           
         } 
         else{
-          # print("I AM HERE")
+          
           if(k !=1){
-            #print(which(colnames(xdur) %in% xcolnames[-1]))
-            # print(which(colnames(xdur) %in% xcolnames))
-            
-            ##Do I need to consider the Intercept or not???
+          
             pos.xdur <- which(colnames(xdur) %in% xcolnames)
             pos.x <- which(xcolnames %in% colnames(xdur))
             
             if(all(is.na(match(colnames(xdur), xcolnames)))) onx <- as.matrix(x)
             else onx <- as.matrix(x[,-pos.x]) 
-            # print(head(onx))
-            # print(xcolnames)
-            # print(pos.x)
+          
             if(dim(onx)[2]!=0){
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(onx) <- nmonx <-  xcolnames
               else names(onx) <- nmonx <-  xcolnames[-pos.x]
             }  
             else nmonx <- NULL
-            # print(nmonx) 
             
             if(all(is.na(match(colnames(xdur), xcolnames)))) onxl <- as.matrix(xdur)
             else  onxl <- as.matrix(xdur[, -pos.xdur])
@@ -1752,23 +1735,15 @@ olshac <- function(formula, data, endog, instruments, listw,
               else names(onxl) <- nmonxl <- colnames(xdur)[-pos.xdur]
             }   
             else nmonxl <- NULL
-            # print(nmonxl)
-            #   print(head(onxl))
-            #   
+               
             onboth <- as.matrix(xdur[,pos.xdur])
             if(dim(onboth)[2] != 0) {
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(onboth) <- nmonb <- colnames(xdur)
               else names(onboth) <- nmonb <- colnames(xdur)[pos.xdur] 
             } 
             else nmonb <- NULL
-            # print(nmonb)
-            #   print(head(onx))
-            #   print(head(onxl))
-            #  print(head(onboth))
-            # # 
+             
             wonx <- as.matrix(Ws %*% onx[,-1])
-            #wwonx <- as.matrix(Ws %*% wonx)
-            
             wonxl <- as.matrix(Ws %*% onxl)
             if(dim(wonxl)[2]!=0){
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
@@ -1776,43 +1751,36 @@ olshac <- function(formula, data, endog, instruments, listw,
             } 
             else nmwonxl <- NULL
             wwonxl <- as.matrix(Ws %*% wonxl)
-            #wwwonxl <- as.matrix(Ws %*% wwonxl)
             
             wonboth <- as.matrix(Ws %*% onboth)
-            #print(dim(wonboth))
             if(dim(wonboth)[2]!=0){
               if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
               else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
             } 
             else nmwonb <- NULL
             wwonboth <- as.matrix(Ws %*% wonboth)
-            #wwwonboth <- as.matrix(Ws %*% wwonboth)
             
             
             x <- cbind(onx, onboth, wonboth, wonxl)
             colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
             Hin <- cbind(x, wonx, wwonboth, wwonxl )
-            print(head(x))
-            print(head(Hin))
+            # print(head(x))
+            # print(head(Hin))
           }
           else{
-            # print("cazzo")
+            
             wxdur <-  as.matrix(Ws %*% xdur)
             wwxdur <- as.matrix(Ws %*% wxdur)
-            #wwwxdur <- as.matrix(Ws %*% wwxdur)
+            
             x <- cbind(x, wxdur)
             colnames(x) <- c(xcolnames, paste("lag.",colnames(xdur),sep =""))
             Hin <- cbind(x, wwxdur)
-            print(head(x))
-            print(head(Hin))
+            # print(head(x))
+            # print(head(Hin))
           }
         }
       }
-      
-      
-      
-      
-      # stop("Something went wrong with the model specification")
+
     }
     
     else{
@@ -1825,22 +1793,22 @@ olshac <- function(formula, data, endog, instruments, listw,
           wx[, (i - (K - 1))] <- as.matrix(Wx)
         }
         wwx <- as.matrix(Ws %*% wx)  
-        # wwwx <- as.matrix(Ws  %*%  wwx)
+        
       } 
       
       if(K==2){
         Hin <- cbind(x,wx,wwx)
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames[-1], sep=""))
-        print(head(x))
-        print(head(Hin))
+        # print(head(x))
+        # print(head(Hin))
       } 
       else {
         Hin <- cbind(1,x,wx,wwx)
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames, sep=""))
-        print(head(x))
-        print(head(Hin))
+        # print(head(x))
+        # print(head(Hin))
       }
     }
   }
@@ -1852,30 +1820,17 @@ olshac <- function(formula, data, endog, instruments, listw,
         Wx <- Ws %*% x[, i]
         wx[, (i - (K - 1))] <- as.matrix(Wx)
       }
-      # wwx <- Ws %*% wx                    					         
+     
     }
     
     if(K==2)    Hin <- cbind(x, wx)
     else        Hin <- cbind(1, x, wx)
     x <- x
-    print(head(x))
-    print(head(Hin))
+    # print(head(x))
+    # print(head(Hin))
   }
   
-  #checkthat W is an object of class listw or a Matrix 
-  
-#   if(!is.null(Durbin)){
-#     x.dur <- as.matrix(lm(Durbin, data, na.action = na.action, method = "model.frame"))
-# if(sum(match(colnames(x.dur), xcolnames, nomatch = 0))!= 0) stop("Explanatory variables to be lagged cannot be specified in the main formula")    
-#     wx.dur <- Ws %*% x.dur
-#     wwx.dur <- Ws %*% wx.dur
-#     # wwwx.dur <- Ws %*% wwx.dur
-#     addx <- cbind(x.dur, wx.dur)
-#     x.lag.names <- c(colnames(x.dur), paste("lag_", colnames(x.dur), sep=""))
-#     Inx.dur <- as.numeric(wwx.dur)
-#   }
-#   
-  
+
   if(model == "ols.end" ){
     endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))	
     instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))	
