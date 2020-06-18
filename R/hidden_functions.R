@@ -87,7 +87,7 @@ sarargmm <- function(formula, data, listw, listw2, endog,
         }
         
         if(!is.null(listw2)) {
-          w2H <- as.matrix(Ws2 %*% H[,-1])            
+          w2H <- as.matrix(Ws2 %*% Hin[,-1])            
           Hin <- cbind(Hin, w2H)
         }
         
@@ -280,7 +280,7 @@ sarargmm <- function(formula, data, listw, listw2, endog,
       
       if(!is.null(listw2)) {
         
-        w2H <- as.matrix(Ws2 %*% H[,-1])
+        w2H <- as.matrix(Ws2 %*% Hin[,-1])
         Hin <- cbind(Hin, w2H)
       }
       # print(head(x))
