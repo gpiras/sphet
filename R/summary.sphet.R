@@ -1,4 +1,4 @@
-summary.sphet<-function(object, width=getOption("width"),digits=getOption("digits"),obsinfo=FALSE,...){
+summary.sphet <- function(object, width=getOption("width"),digits=getOption("digits"),obsinfo=FALSE,...){
 
 	if(inherits(object,"distance")){
 		weights<-	attributes(object)$GeoDa$dist
@@ -51,12 +51,11 @@ if (obsinfo){
 			
 			else{
 				
-if (x$method=="s2slshac") {
-if (x$HAC) cat("\n Stsls with Spatial HAC standard errors\n")
-else cat("\n Stsls \n")
-}
-else cat("\n Generalized stsls\n")		  				
-		  cat("\nCall:\n")
+if (x$method=="s2slshac" ) cat("\n Stsls with Spatial HAC standard errors\n")
+			  if ( x$method=="olsshac" ) cat("\n Linear Model with Spatial HAC standard errors\n")
+if (x$method %in% c("gmm error", "gmm lag", "gmm sarar")) cat("\n Generalized stsls\n")		  				
+			  
+	cat("\nCall:\n")
   print(x$call)
 
   cat("\nResiduals:\n")
@@ -68,7 +67,7 @@ else cat("\n Generalized stsls\n")
 		  cat("\nCoefficients:\n")
   printCoefmat(x$CoefTable,digits=digits)
 
-if(x$method=="gs2slshac") {
+if(x$method=="gmm sarar") {
 	
 	if(!is.null(x$W)){
 		  cat("\nWald test that rho and lambda are both zero:\n")

@@ -9,7 +9,7 @@ Method used to print objects of class \code{'summary.sphet'} and \code{'sphet'}
 }
 
 \usage{
-\method{summary}{sphet}(object,width=getOption("width"), digits=getOption("digits"),obsinfo=FALSE,...)
+\method{summary}{sphet}(object, width=getOption("width"), digits=getOption("digits"),obsinfo=FALSE,...)
 }
 
 \arguments{
@@ -36,8 +36,8 @@ organized in a coefficient matrix.
 \examples{
 library(spdep)
 data(columbus)
-listw<-nb2listw(col.gal.nb)
-res<-gstslshet(CRIME~HOVAL + INC, data=columbus, listw=listw)
+listw <- nb2listw(col.gal.nb)
+res <- spreg(CRIME~HOVAL + INC, data=columbus, listw=listw, model ="sarar")
 summary(res)
 
 }

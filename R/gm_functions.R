@@ -45,8 +45,7 @@ gg_het <- function(Ws, u, n) {
 gg_hom<-function (Ws, u, n) {
     wu <- Ws %*% u
     wwu<- Ws %*% wu
-
-    trwpw <- sum(Ws^2) 
+    trwpw <- sum(Ws^2)
     v.vec <- 1/ (1 + (trwpw/n)^2)
     d <- (1/n)* trwpw
     du <- d*u
@@ -70,9 +69,9 @@ gg_hom<-function (Ws, u, n) {
     bigG <- matrix(0, 2, 2)
         bigG[, 1] <- c(as.numeric(upA1A1wu), as.numeric(upA2A2wu))/n
         bigG[, 2] <- -c(as.numeric(wuA1wu), as.numeric(wuA2wu))/n
-
+#print(bigG)
     litg <- c(as.numeric(uA1u), as.numeric(uA2u))/n
-    
+  #  print(litg)
 list(bigG = bigG, litg = litg, trwpw = trwpw, wu = wu, wwu = wwu, d = d, v.vec = v.vec)
 }
 
@@ -90,11 +89,16 @@ psirhorho_hom <- function(rho, residuals, Hmat, Zmat, Ws, d, v.vec){
 	sec.part <- t(Qhz) %*% Qhhi %*% Qhz
 	Pmat <- Qhhi %*% Qhz %*% solve(sec.part)
 	Tmat <- Hmat %*% Pmat	
-	
+
     trA2A2 <- sum(Ws^2) 
     trA2A2I <- Diagonal(n) * (trA2A2/n)
+  
+    
+      
+      
 	A1 <- v.vec * (crossprod(Ws) - trA2A2I)
 	A2 <- Ws
+	
 	
 	
 	A1pluA1 <- A1 + t(A1)	
