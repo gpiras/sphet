@@ -1,19 +1,21 @@
 importFrom(methods, as, new)
-importFrom(stats, model.matrix, model.response, aggregate,  coef, coefficients, fitted, lm, model.extract, na.fail, nlminb, pchisq, pnorm, printCoefmat, quantile, residuals, terms)
+importFrom(stats, model.matrix, model.response, aggregate,  coef, coefficients, fitted, lm, sd, model.extract, na.fail, nlminb, pchisq, pnorm, printCoefmat, quantile, residuals, terms)
 importFrom(utils, read.table, write.table)
 import(nlme)
 importFrom(spdep, card, lag.listw, nb2listw, sym.attr.nb, vi2mrc)
 import(spatialreg)
 import(Matrix)
+import(mvtnorm)
 importFrom(sp, spDists)
 
-export(distance, gstslshet, read.gwt2dist, stslshac, summary.sphet,
- print.sphet, listw2dgCMatrix, impacts.gstsls, spreg, circular, kpjtest)
+
+export(distance, gstslshet, read.gwt2dist, stslshac, listw2dgCMatrix, impacts,
+       spreg, circular, kpjtest)
 
 
 
 S3method(print, sphet)
 S3method(summary, sphet)
 S3method(print, summary.sphet)
-S3method(impacts, gstsls)
-S3method(impacts, stsls_sphet)
+S3method(impacts, sphet)
+S3method(summary, impacts_sphet)

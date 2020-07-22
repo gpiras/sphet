@@ -150,13 +150,8 @@ Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation M
 data(columbus, package="spdep")
 listw <- spdep::nb2listw(col.gal.nb)
 res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,
-het = TRUE, verbose = FALSE, model = "lag")
+het = TRUE, verbose = FALSE, model = "sarar")
 summary(res)
-spatialreg::impacts(res, listw=listw)
-ev1 <- eigen(listw2dgCMatrix(listw))$values
-set.seed(1234)
-summary(spatialreg::impacts(res, evalues = ev1, R = 399), zstats=TRUE, short=TRUE)
-set.seed(1234)
-summary(spatialreg::impacts(res, evalues=spatialreg::eigenw(listw), R=399), zstats=TRUE, short=TRUE)
+Effects <- impacts(res, n_mvn = 3000)
 }
 \keyword{models}

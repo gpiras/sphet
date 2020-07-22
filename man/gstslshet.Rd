@@ -124,7 +124,5 @@ data(columbus, package="spdep")
 listw <- spdep::nb2listw(col.gal.nb)
 res <- gstslshet(CRIME~HOVAL + INC, data=columbus, listw=listw)
 summary(res)
-spatialreg::impacts(res, listw=listw)
-spatialreg::impacts(res, evalues=spatialreg::eigenw(listw))
 }
 \keyword{models}

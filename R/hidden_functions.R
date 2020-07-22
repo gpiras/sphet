@@ -41,7 +41,6 @@ sarargmm <- function(formula, data, listw, listw2, endog,
     if(identical(listw, listw2)) Ws2 <- Ws
     twow <- TRUE    
   }
-  
   else {
     Ws2 <- Ws
     twow <- FALSE
@@ -91,8 +90,6 @@ sarargmm <- function(formula, data, listw, listw2, endog,
           Hin <- cbind(Hin, w2H)
         }
         
-        # print(head(x))
-        # print(head(Hin))
       }  
       else{
         #no intercept
@@ -148,7 +145,7 @@ sarargmm <- function(formula, data, listw, listw2, endog,
           
           
           x <- cbind(onx, onboth, wonboth, wonxl)
-          colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
+          colnames(x) <- c(nmonx, nmonb, nmwonb, nmwonxl)
           Hin <- cbind(1, x, wonx, wwonx, wwonboth, wwwonboth,wwonxl,wwwonxl )
           
           
@@ -159,8 +156,6 @@ sarargmm <- function(formula, data, listw, listw2, endog,
             
           }
           
-          # print(head(x))
-          # print(head(Hin)) 
         }
         
         else{
@@ -224,10 +219,7 @@ sarargmm <- function(formula, data, listw, listw2, endog,
               Hin <- cbind(Hin, w2H)                  	          
               
             }
-            # print(head(x))
-            # print(head(Hin))
-            # 
-            
+
           }
           else{
             
@@ -244,8 +236,6 @@ sarargmm <- function(formula, data, listw, listw2, endog,
               Hin <- cbind(Hin, w2H)                  	          
               
             }
-            # print(head(x))
-            # print(head(Hin))
           }
         }
       }
@@ -266,13 +256,13 @@ sarargmm <- function(formula, data, listw, listw2, endog,
       
       if(K==2){
         
-        Hin <- cbind(x,wx,wwx,wwwx)
+        Hin <- cbind(x, wx, wwx, wwwx)
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames[-1], sep=""))
         
       } 
       else {
-        Hin <- cbind(1,x,wx,wwx,wwwx)
+        Hin <- cbind(1, x, wx, wwx, wwwx)
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames, sep=""))
         
@@ -283,8 +273,7 @@ sarargmm <- function(formula, data, listw, listw2, endog,
         w2H <- as.matrix(Ws2 %*% Hin[,-1])
         Hin <- cbind(Hin, w2H)
       }
-      # print(head(x))
-      # print(head(Hin))
+    
     }
   }
   else{  
@@ -335,146 +324,153 @@ sarargmm <- function(formula, data, listw, listw2, endog,
     else  AddH <- instruments        
     
     Hmat <- cbind(Hin, AddH)
-    Zmat<- cbind(x, endog, as.matrix(wy))            
+    Zmat <- cbind(x, endog, as.matrix(wy))            
     colnames(Zmat) <- c(colnames(x), colnames(endog), colnames(wy))               
   } 
   else {
-    Zmat<- cbind(x, as.matrix(wy))
+    Zmat <- cbind(x, as.matrix(wy))
     colnames(Zmat) <- c(colnames(x), colnames(wy))
     Hmat <- Hin 
   }
   
-  firststep<-spatial.ivreg(y = y , Zmat = Zmat, Hmat = Hmat, het = het, HAC = HAC)
-  ubase<-residuals(firststep)
+  firststep <- spatial.ivreg(y = y , Zmat = Zmat, Hmat = Hmat, het = het, HAC = HAC)
+  ubase <- residuals(firststep)
   
-  if (initial.value=="SAR"){
-    Wubase<- Ws %*% ubase
-    pars<-coefficients(lm(as.numeric(ubase) ~ as.numeric(Wubase)-1))
+  if (initial.value == "SAR"){
+    Wubase <- Ws %*% ubase
+    pars <- coefficients(lm(as.numeric(ubase) ~ as.numeric(Wubase)-1))
   }
-  else pars<-initial.value
+  else pars <-initial.value
   
   
   
   if(het){
     Ggmat <- gg_het(Ws2, ubase, n)
-    optres <-nlminb(pars, optimfunct, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps, control= control, v = Ggmat, verbose = verbose)
+    optres <- nlminb(pars, optimfunct, lower = -0.9 + .Machine$double.eps , 
+                     upper = 0.9 -  .Machine$double.eps, control = control, 
+                     v = Ggmat, verbose = verbose)
     rhotilde <- optres$par
-    
     
     if(step1.c){
       gmm.weghts1.c <- psirhorho_het(rhotilde, ubase, Hmat, Zmat, Ws2, step1.c = TRUE)
-      optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat= gmm.weghts1.c$Phiinv, verbose = verbose, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps, control = control)	
+      optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, 
+                       vcmat = gmm.weghts1.c$Phiinv, verbose = verbose, 
+                       lower= -0.9 + .Machine$double.eps , 
+                       upper= 0.9 -  .Machine$double.eps, control = control)	
       
-      rhotilde<-optres$par
-      gmm.weghts1.c<-psirhorho_het(rhotilde, ubase, Hmat, Zmat, Ws2, step1.c = TRUE)
-      vcmat_2sls <- Omega_het(rhotilde, gmm.weghts1.c$Pmat, gmm.weghts1.c$A1, gmm.weghts1.c$A2, gmm.weghts1.c$a.vec1, gmm.weghts1.c$a.vec2, Hmat, Ggmat$bigG, gmm.weghts1.c$Phiinv, gmm.weghts1.c$epsilon, gmm.weghts1.c$Zstar, Ws2, step1.c = TRUE)
+      rhotilde <- optres$par
+      gmm.weghts1.c <- psirhorho_het(rhotilde, ubase, Hmat, Zmat, Ws2, step1.c = TRUE)
+      vcmat_2sls <- Omega_het(rhotilde, gmm.weghts1.c$Pmat, gmm.weghts1.c$A1, 
+                              gmm.weghts1.c$A2, gmm.weghts1.c$a.vec1, 
+                              gmm.weghts1.c$a.vec2, Hmat, Ggmat$bigG, 
+                              gmm.weghts1.c$Phiinv, gmm.weghts1.c$epsilon, 
+                              gmm.weghts1.c$Zstar, Ws2, step1.c = TRUE)
       coeff_2sls <- as.matrix(c(coefficients(firststep), rhotilde))
-      rownames(coeff_2sls)<-c(colnames(Zmat), 'rho')
-      s2_2sls<-crossprod(ubase)/(n-k)
-      model.data<-data.frame(cbind(y,x[,-1]))
-      method<-"gm sarar spatial"
+      rownames(coeff_2sls) <- c(colnames(Zmat), 'rho')
+      s2_2sls <- crossprod(ubase)/(n-k)
+      model.data <- data.frame(cbind(y,x[,-1]))
+      method <- "gm sarar spatial"
       
-      k<-nrow(coeff_2sls)
-      R<-matrix(0,1,k)
-      R[,((k-1):k)]<-1
-      Rbeta<-R%*%coeff_2sls
-      Rvar<-R%*% vcmat_2sls$Omega %*%t(R)
-      stat<-as.numeric(t(Rbeta)%*% Rbeta/Rvar)
-      pval <- pchisq(stat,df=1,lower.tail=FALSE)
-      W<-list(stat=stat,pval=pval)
-      results_2sls <- list(coefficients=coeff_2sls,var=vcmat_2sls$Omega, s2=s2_2sls, call=cl, residuals=as.numeric(ubase), model=model.data,method=method,W=W, firststep=firststep$coefficients, init.rho = rhotilde)
-      class(results_2sls)<-c("sphet", "gstsls")
+      k <- nrow(coeff_2sls)
+      R <- matrix(0,1,k)
+      R[,((k-1):k)] <- 1
+      Rbeta <- R %*% coeff_2sls
+      Rvar <- R %*% vcmat_2sls$Omega %*% t(R)
+      stat <- as.numeric(t(Rbeta) %*% Rbeta/Rvar)
+      pval <- pchisq(stat, df = 1, lower.tail = FALSE)
+      W <- list(stat = stat, pval = pval)
+      results_2sls <- list(coefficients = coeff_2sls, var = vcmat_2sls$Omega, s2 = s2_2sls, 
+                           call = cl, residuals = as.numeric(ubase), model = model.data, 
+                           method = method, W = W, firststep = firststep$coefficients, 
+                           init.rho = rhotilde)
+      class(results_2sls) <- c("sphet", "sarar")
     }
-    
     
   }
   else{
     
-    Ggmat<-gg_hom(Ws2, ubase, n)
-    optres <- nlminb(pars, optimfunct, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps,control = control, v = Ggmat, verbose = verbose)
-    rhotilde<-optres$par
-    # print(rhotilde)	
+    Ggmat <- gg_hom(Ws2, ubase, n)
+    optres <- nlminb(pars, optimfunct, lower= -0.9 + .Machine$double.eps , 
+                     upper= 0.9 -  .Machine$double.eps, control = control, 
+                     v = Ggmat, verbose = verbose)
+    rhotilde <- optres$par
+    
   }
   
   yt  <- y - rhotilde * Ws2 %*% y
   wZmat <- Ws2 %*% Zmat
   Zt <- Zmat - rhotilde * wZmat
   
-  secondstep<-spatial.ivreg(y =yt , Zmat = Zt, Hmat = Hmat, het = het, HAC = HAC)
+  secondstep <- spatial.ivreg(y =yt , Zmat = Zt, Hmat = Hmat, het = het, HAC = HAC)
   delta <- coefficients(secondstep)
   utildeb <- y - Zmat %*% delta
   
   if(het){
     
-    
-    Ggmat<-gg_het(Ws2, utildeb, n)
-    
-    gmm.weghts<-psirhorho_het(rhotilde, utildeb, Hmat, Zmat, Ws2, step1.c = FALSE)
-    
-    # gmm.weghts<-psirhorho_het_mod(rhotilde, utildeb, Hmat, Zmat, Ws2, step1.c = FALSE)
-    
-    # print(gmm.weghts$Phiinv)
-    optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat= gmm.weghts$Phiinv, verbose = verbose, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps, control = control)	
-    
+    Ggmat <- gg_het(Ws2, utildeb, n)
+    gmm.weghts <- psirhorho_het(rhotilde, utildeb, Hmat, Zmat, Ws2, step1.c = FALSE)
+    optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat= gmm.weghts$Phiinv, 
+                     verbose = verbose, lower= -0.9 + .Machine$double.eps , 
+                     upper= 0.9 -  .Machine$double.eps, control = control)	
     rhofin<-optres$par
-    gmm.weghts<-psirhorho_het(rhofin, utildeb, Hmat, Zmat, Ws2, step1.c = FALSE)
+    gmm.weghts <- psirhorho_het(rhofin, utildeb, Hmat, Zmat, Ws2, step1.c = FALSE)
     
-    # gmm.weghts<-psirhorho_het_mod(rhofin, utildeb, Hmat, Zmat, Ws2, step1.c = FALSE)
+    vcmat <- Omega_het(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2, 
+                       gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, 
+                       Ggmat$bigG, gmm.weghts$Phiinv, gmm.weghts$epsilon, 
+                       gmm.weghts$Zstar, Ws2, step1.c = FALSE)
     
-    vcmat <- Omega_het(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2, gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, Ggmat$bigG, gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar, Ws2, step1.c = FALSE)
-    # vcmat <- Omega_het_mod(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2, gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, Ggmat$bigG, gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar, Ws2, step1.c = FALSE)
   }
   else{
     
     Ggmat<-gg_hom(Ws2, utildeb, n)
     
-    gmm.weghts<-psirhorho_hom(rhotilde, utildeb, Hmat, Zmat, Ws2, Ggmat$d, Ggmat$v.vec )
+    gmm.weghts <- psirhorho_hom(rhotilde, utildeb, Hmat, Zmat, Ws2, Ggmat$d, Ggmat$v.vec )
+    optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat = gmm.weghts$Phiinv, 
+                     verbose = verbose, lower= -0.9 + .Machine$double.eps , 
+                     upper= 0.9 -  .Machine$double.eps, control = control)	
     
-    # gmm.weghts<-psirhorho_hom_mod(rhotilde, utildeb, Hmat, Zmat, Ws2, Ggmat$d, Ggmat$v.vec )
-    
-    
-    optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat= gmm.weghts$Phiinv, verbose = verbose, lower= -0.9 + .Machine$double.eps , upper= 0.9 -  .Machine$double.eps, control = control )	
-    
-    rhofin<-optres$par
-    # print(rhofin)
-    gmm.weghts<-psirhorho_hom(rhofin, utildeb, Hmat, Zmat, Ws2, Ggmat$d, Ggmat$v.vec )
-    # gmm.weghts<-psirhorho_hom_mod(rhofin, utildeb, Hmat, Zmat, Ws2, Ggmat$d, Ggmat$v.vec )
-    
-    vcmat <- Omega_hom(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2, gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, Ggmat$bigG, gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar)
-    
-    # vcmat <- Omega_hom_mod(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2,gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, Ggmat$bigG, gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar)
-    
+    rhofin <- optres$par
+    gmm.weghts <- psirhorho_hom(rhofin, utildeb, Hmat, Zmat, Ws2, Ggmat$d, Ggmat$v.vec )
+  
+    vcmat <- Omega_hom(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2, 
+                       gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, Ggmat$bigG, 
+                       gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar)
   }
   
   
   coeff <- as.matrix(c(as.numeric(delta), rhofin))
-  rownames(coeff)<-c(colnames(Zmat), 'rho')
-  s2<-crossprod(utildeb)/(n-k)
+  rownames(coeff) <- c(colnames(Zmat), 'rho')
+  s2 <- crossprod(utildeb)/(n-k)
   
   model.data<-data.frame(cbind(y,x[,-1]))
   
-  method<-"gmm spatial"
+  method<-"gmm sarar"
   
-  k<-nrow(coeff)
-  R<-matrix(0,1,k)
-  R[,((k-1):k)]<-1
-  Rbeta<-R%*%coeff
-  Rvar<-R%*% vcmat$Omega %*%t(R)
-  stat<-as.numeric(t(Rbeta)%*% Rbeta/Rvar)
-  pval <- pchisq(stat,df=1,lower.tail=FALSE)
-  W<-list(stat=stat,pval=pval)
-  
-  
-  
-  if(het && step1.c) results<-list(coefficients=coeff,var=vcmat$Omega, s2=s2, call=cl, residuals=as.numeric(utildeb), model=model.data,method=method,W=W, firststep=firststep$coefficients, init.rho = rhotilde,  twosls = results_2sls)
-  else  results<-list(coefficients=coeff,var=vcmat$Omega, s2=s2, call=cl, residuals=as.numeric(utildeb), model=model.data,method=method,W=W, firststep=firststep$coefficients, init.rho = rhotilde)
+  k <- nrow(coeff)
+  R <- matrix(0,1,k)
+  R[,((k-1):k)] <- 1
+  Rbeta <- R %*% coeff
+  Rvar <- R %*% vcmat$Omega %*% t(R)
+  stat <- as.numeric(t(Rbeta) %*% Rbeta/Rvar)
+  pval <- pchisq(stat, df = 1, lower.tail = FALSE)
+  W <- list(stat = stat, pval = pval)
   
   
-  class(results)<-c("sphet", "gstsls") #remember to change to sarar when impacts will be developed
+  
+  if(het && step1.c) results <- list(coefficients = coeff, var = vcmat$Omega, 
+                                     s2 = s2, call = cl, residuals = as.numeric(utildeb), 
+                                     model = model.data, method = method, W = W, firststep = firststep$coefficients, 
+                                     init.rho = rhotilde,  twosls = results_2sls, Durbin = Durbin, endog = endog)
+  else  results <- list(coefficients = coeff, var = vcmat$Omega, s2 = s2, call = cl, 
+                        residuals = as.numeric(utildeb), model = model.data, method = method, W = W, 
+                        firststep = firststep$coefficients, init.rho = rhotilde, Durbin = Durbin, endog = endog)
+  
+  results$listw <- Ws
+  
+  class(results)<-c("sphet", "sarar_gmm") #remember to change to sarar when impacts will be developed
   return(results)
 }
-
-
 
 laggmm <- function(formula, data, listw, listw2, endog, 
                    instruments, lag.instr, 
@@ -534,8 +530,9 @@ laggmm <- function(formula, data, listw, listw2, endog,
           }
           wwx <- as.matrix(Ws %*% wx)  
         } 
-        
+      
         if(K==2){
+         # Hin <- cbind(x, wx, wwx, wwwx, wxdur, wwxdur, wwwxdur)
           Hin <- cbind(x, wx, wwx, wxdur, wwxdur, wwwxdur)
           x <- cbind(x, wxdur)  
           colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
@@ -543,7 +540,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
           # print(head(Hin))
         } 
         else {
-          
+          #Hin <- cbind(1, x, wx, wwx, wwwx, wxdur, wwxdur, wwwxdur)
           Hin <- cbind(1, x, wx, wwx, wxdur, wwxdur, wwwxdur)
           x <- cbind(x, wxdur)  
           colnames(x) <-  c(xcolnames, paste("lag_", colnames(xdur), sep=""))
@@ -551,7 +548,6 @@ laggmm <- function(formula, data, listw, listw2, endog,
           # print(head(Hin))
         }
       }  
-       
       else{
        
         if(K==1 ){
@@ -681,7 +677,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
           wwwxdur <- as.matrix(Ws %*% wwxdur)
           x <- cbind(x, wxdur)
           colnames(x) <- c(xcolnames, paste("lag.",colnames(xdur),sep =""))
-          Hin <- cbind(x, wwxdur, wwwxdur )
+          Hin <- cbind(x, wwxdur, wwwxdur)
           # print(head(x))
           # print(head(Hin))
         }
@@ -701,6 +697,8 @@ laggmm <- function(formula, data, listw, listw2, endog,
         }
         wwx <- as.matrix(Ws %*% wx)  
         wwwx <- as.matrix(Ws  %*%  wwx)
+        #wwwwx <- as.matrix
+         
       } 
       
       if(K==2){
@@ -708,14 +706,14 @@ laggmm <- function(formula, data, listw, listw2, endog,
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames[-1], sep=""))
         # print(head(x))
-        # print(head(Hin))
+         #print(head(Hin))
       } 
       else {
         Hin <- cbind(1,x,wx,wwx,wwwx)
         x <- cbind(x, wx)  
         colnames(x) <-  c(xcolnames, paste("lag_", xcolnames, sep=""))
         # print(head(x))
-        # print(head(Hin))
+         #print(head(Hin))
       }
     }
   }
@@ -768,12 +766,15 @@ laggmm <- function(formula, data, listw, listw2, endog,
   #print(results$var)
   model.data <- data.frame(cbind(y, x[, -1]))
   results$call <- cl
+  results$listw <- Ws
   results$model <- model.data
   results$type <- NULL
   results$bandwidth <- NULL
-  results$method <- "gmm spatial"
+  results$method <- "gmm lag"
   results$HAC <- FALSE
-  class(results) <- c("sphet", "stsls_sphet") #change to lag gmm
+  results$Durbin <- Durbin
+  results$endog <- endog
+  class(results) <- c("sphet", "lag_gmm") #change to lag gmm
   
   return(results)
   
@@ -1059,43 +1060,35 @@ errorgmm <- function(formula, data, listw, listw2, endog,
     
   }
   
-  firststep<-spatial.ivreg(y = y , Zmat = Zmat, Hmat = Hmat, HAC = HAC, het = het)
-  ubase<-residuals(firststep)
+  firststep <- spatial.ivreg(y = y , Zmat = Zmat, Hmat = Hmat, HAC = HAC, het = het)
+  ubase <- residuals(firststep)
   
   if (initial.value=="SAR"){
     Wubase<-Ws %*% ubase
     pars<-coefficients(lm(as.numeric(ubase) ~ as.numeric(Wubase)-1))
   }
-  else pars<-initial.value
+  else pars <- initial.value
   
+ 
   
   if(het){
+    Ggmat <- gg_het(Ws, ubase, n)
+  
     
-    Ggmat<-gg_het(Ws, ubase, n)
-    
-    optres <-nlminb(pars, optimfunct, lower= -0.9 + .Machine$double.eps , 
+    optres <- nlminb(pars, optimfunct, lower= -0.9 + .Machine$double.eps , 
                     upper= 0.9 -  .Machine$double.eps, control= control, 
                     v = Ggmat, verbose = verbose)
-    
-    #list(abs.tol = abs.tol, rel.tol = rel.tol)
-    
     rhotilde<-optres$par
-    # print(rhotilde)
+    
     
     if(step1.c){
       gmm.weghts1.c<-psirhorho_het(rhotilde, ubase, Hmat, Zmat, Ws, step1.c = TRUE)
-      # print(gmm.weghts1.c$Phiinv)
-      # gmm.weghts1.c<-psirhorho_het_mod(rhotilde, ubase, Hmat, Zmat, Ws2, step1.c = TRUE)
-      
-      optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat= gmm.weghts1.c$Phiinv, 
-                       verbose = verbose, lower= -0.9 + .Machine$double.eps, 
-                       upper= 0.9 -  .Machine$double.eps, control = control)	
-      
-      rhotilde<-optres$par
-      gmm.weghts1.c<-psirhorho_het(rhotilde, ubase, Hmat, Zmat, Ws, step1.c = TRUE)
-      
-      # gmm.weghts1.c<-psirhorho_het_mod(rhotilde, ubase, Hmat, Zmat, Ws2, step1.c = TRUE)
-      
+    
+      optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, vcmat = gmm.weghts1.c$Phiinv, 
+                       verbose = verbose, lower = -0.9 + .Machine$double.eps, 
+                       upper = 0.9 -  .Machine$double.eps, control = control)	
+      rhotilde <- optres$par
+      gmm.weghts1.c <- psirhorho_het(rhotilde, ubase, Hmat, Zmat, Ws, step1.c = TRUE)
       vcmat_2sls <- Omega_het(rhotilde, gmm.weghts1.c$Pmat, gmm.weghts1.c$A1, 
                               gmm.weghts1.c$A2, gmm.weghts1.c$a.vec1, 
                               gmm.weghts1.c$a.vec2, Hmat, Ggmat$bigG, 
@@ -1112,23 +1105,24 @@ errorgmm <- function(formula, data, listw, listw2, endog,
       
       method<-"gm spatial"
       
-      k<-nrow(coeff_2sls)
-      R<-matrix(0,1,k)
-      R[,((k-1):k)]<-1
-      Rbeta<-R%*%coeff_2sls
-      Rvar<-R%*% vcmat_2sls$Omega %*%t(R)
-      stat<-as.numeric(t(Rbeta)%*% Rbeta/Rvar)
+      k <- nrow(coeff_2sls)
+      R <- matrix(0,1,k)
+      R[,((k-1):k)] <- 1
+      Rbeta <- R%*%coeff_2sls
+      Rvar <- R %*% vcmat_2sls$Omega %*% t(R)
+      stat <- as.numeric(t(Rbeta) %*% Rbeta/Rvar)
       pval <- pchisq(stat,df=1,lower.tail=FALSE)
-      W<-list(stat=stat,pval=pval)
+      W <- list(stat = stat, pval = pval)
       
       
       
-      results_2sls <- list(coefficients=coeff_2sls,var=vcmat_2sls$Omega, 
-                           s2=s2_2sls, call=cl, residuals=as.numeric(ubase), 
-                           model=model.data,method=method, W=W, 
-                           firststep=firststep$coefficients, init.rho = rhotilde)
+      results_2sls <- list(coefficients = coeff_2sls, var = vcmat_2sls$Omega, 
+                           s2 = s2_2sls, call = cl, residuals = as.numeric(ubase), 
+                           model = model.data, method = method, W = W, 
+                           firststep = firststep$coefficients, init.rho = rhotilde, 
+                           Durbin = Durbin)
       
-      class(results_2sls)<-c("sphet", "gstsls")
+      class(results_2sls)<-c("sphet", "error gmm")
       
     }
     
@@ -1137,114 +1131,102 @@ errorgmm <- function(formula, data, listw, listw2, endog,
   else{
     
     Ggmat<-gg_hom(Ws, ubase, n)
-    optres <- nlminb(pars, optimfunct, lower= -0.9 + .Machine$double.eps , 
-                     upper= 0.9 -  .Machine$double.eps,control = control, 
+    optres <- nlminb(pars, optimfunct, control = control, 
                      v = Ggmat, verbose = verbose)
-    rhotilde<-optres$par
-    # print(rhotilde)	
+                     
+                    # lower = -0.9 + .Machine$double.eps , 
+                    # upper = 0.9 -  .Machine$double.eps, 
+    rhotilde <- optres$par
+     
   }
   
   yt  <- y - rhotilde * Ws %*% y
   wZmat <- Ws %*% Zmat
   Zt <- Zmat - rhotilde * wZmat
   
-  secondstep<-spatial.ivreg(y =yt , Zmat = Zt, Hmat = Hmat, het = het, HAC = HAC)
+  secondstep <- spatial.ivreg(y = yt , Zmat = Zt, Hmat = Hmat, het = het, HAC = HAC)
   delta <- coefficients(secondstep)
   utildeb <- y - Zmat %*% delta
-  
+ 
   if(het){
     
     
-    Ggmat<-gg_het(Ws, utildeb, n)
+    Ggmat <- gg_het(Ws, utildeb, n)
+    gmm.weghts <- psirhorho_het(rhotilde, utildeb, Hmat, Zmat, Ws, step1.c = FALSE)
     
-    gmm.weghts<-psirhorho_het(rhotilde, utildeb, Hmat, Zmat, Ws, step1.c = FALSE)
-    
-    # gmm.weghts<-psirhorho_het_mod(rhotilde, utildeb, Hmat, Zmat, Ws2, step1.c = FALSE)
-    
-    # print(gmm.weghts$Phiinv)
     optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, 
-                     vcmat= gmm.weghts$Phiinv, verbose = verbose, 
-                     lower= -0.9 + .Machine$double.eps , 
-                     upper= 0.9 -  .Machine$double.eps, control = control)	
+                     vcmat = gmm.weghts$Phiinv, verbose = verbose, 
+                     lower = -0.9 + .Machine$double.eps , 
+                     upper = 0.9 -  .Machine$double.eps, control = control)	
     
-    rhofin<-optres$par
-    gmm.weghts<-psirhorho_het(rhofin, utildeb, Hmat, Zmat, Ws, step1.c = FALSE)
-    
-    # gmm.weghts<-psirhorho_het_mod(rhofin, utildeb, Hmat, Zmat, Ws2, step1.c = FALSE)
+    rhofin <- optres$par
+    gmm.weghts <- psirhorho_het(rhofin, utildeb, Hmat, Zmat, Ws, step1.c = FALSE)
     
     vcmat <- Omega_het(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, 
                        gmm.weghts$A2, gmm.weghts$a.vec1, 
                        gmm.weghts$a.vec2, Hmat, 
                        Ggmat$bigG, gmm.weghts$Phiinv, 
                        gmm.weghts$epsilon, gmm.weghts$Zstar, Ws, step1.c = FALSE)
-    # vcmat <- Omega_het_mod(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2, gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, Ggmat$bigG, gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar, Ws2, step1.c = FALSE)
   }
   else{
     
-    Ggmat<-gg_hom(Ws, utildeb, n)
-    
-    gmm.weghts<-psirhorho_hom(rhotilde, utildeb, Hmat, Zmat, Ws, Ggmat$d, Ggmat$v.vec )
-    
-    # gmm.weghts<-psirhorho_hom_mod(rhotilde, utildeb, Hmat, Zmat, Ws2, Ggmat$d, Ggmat$v.vec )
-    
-    
+    Ggmat <- gg_hom(Ws, utildeb, n)
+    gmm.weghts <- psirhorho_hom(rhotilde, utildeb, Hmat, Zmat, Ws, Ggmat$d, Ggmat$v.vec )
     optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, 
-                     vcmat= gmm.weghts$Phiinv, verbose = verbose, 
-                     lower= -0.9 + .Machine$double.eps , 
-                     upper= 0.9 -  .Machine$double.eps, control = control )	
+                     vcmat = gmm.weghts$Phiinv, verbose = verbose, 
+                      control = control)
+                     #lower = -1 + .Machine$double.eps , 
+                     #upper = 1 -  .Machine$double.eps, control = control)	
     
-    rhofin<-optres$par
-    # print(rhofin)
-    gmm.weghts<-psirhorho_hom(rhofin, utildeb, Hmat, Zmat, Ws, Ggmat$d, Ggmat$v.vec )
-    # gmm.weghts<-psirhorho_hom_mod(rhofin, utildeb, Hmat, Zmat, Ws2, Ggmat$d, Ggmat$v.vec )
+    rhofin <- optres$par
+    gmm.weghts<-psirhorho_hom(rhofin, utildeb, Hmat, Zmat, Ws, Ggmat$d, Ggmat$v.vec)
     
     vcmat <- Omega_hom(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2, 
                        gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, 
                        Ggmat$bigG, gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar)
     
-    # vcmat <- Omega_hom_mod(rhofin, gmm.weghts$Pmat, gmm.weghts$A1, gmm.weghts$A2,gmm.weghts$a.vec1, gmm.weghts$a.vec2, Hmat, Ggmat$bigG, gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar)
     
   }
   
   coeff <- as.matrix(c(as.numeric(delta), rhofin))
-  rownames(coeff)<-c(colnames(Zmat), 'rho')
-  s2<-crossprod(utildeb)/(n-k)
+  rownames(coeff) <- c(colnames(Zmat), 'rho')
+  s2 <- crossprod(utildeb)/(n-k)
   
   
-  model.data<-data.frame(cbind(y,x[,-1]))
+  model.data <- data.frame(cbind(y,x[,-1]))
   
-  method<-"gmm spatial"
+  method <- "gmm error"
   
-  k<-nrow(coeff)
-  R<-matrix(0,1,k)
-  R[,((k-1):k)]<-1
-  Rbeta<-R%*%coeff
-  Rvar<-R%*% vcmat$Omega %*%t(R)
-  stat<-as.numeric(t(Rbeta)%*% Rbeta/Rvar)
-  pval <- pchisq(stat,df=1,lower.tail=FALSE)
-  W<-list(stat=stat,pval=pval)
-  
-  
-  
-  if(het && step1.c) results<-list(coefficients=coeff,var=vcmat$Omega, 
-                                   s2=s2, call=cl, residuals=as.numeric(utildeb), 
-                                   model=model.data,method=method,W=W, 
-                                   firststep=firststep$coefficients, 
-                                   init.rho = rhotilde,  twosls = results_2sls)
-  
-  else  results<-list(coefficients=coeff,var=vcmat$Omega, s2=s2, call=cl, 
-                      residuals=as.numeric(utildeb), model=model.data,
-                      method=method,W=W, firststep=firststep$coefficients, 
-                      init.rho = rhotilde)
+  k <- nrow(coeff)
+  R <- matrix(0,1,k)
+  R[,((k-1):k)] <- 1
+  Rbeta <- R %*% coeff
+  Rvar <- R %*% vcmat$Omega %*% t(R)
+  stat <- as.numeric(t(Rbeta) %*% Rbeta/Rvar)
+  pval <- pchisq(stat,df = 1, lower.tail = FALSE)
+  W <- list(stat = stat, pval = pval)
   
   
-  class(results)<-c("sphet", "gstsls")# gmm error
+  
+  if(het && step1.c) results <- list(coefficients = coeff,var = vcmat$Omega, 
+                                   s2 = s2, call = cl, residuals = as.numeric(utildeb), 
+                                   model = model.data, method = method, W = W, 
+                                   firststep = firststep$coefficients, 
+                                   init.rho = rhotilde,  twosls = results_2sls, 
+                                   Durbin = Durbin, endog = endog)
+  
+  else  results <- list(coefficients = coeff, var = vcmat$Omega, s2 = s2, call = cl, 
+                      residuals = as.numeric(utildeb), model = model.data,
+                      method = method, W = W, firststep = firststep$coefficients, 
+                      init.rho = rhotilde, Durbin = Durbin, endog = endog)
+  
+  
+  class(results) <- c("sphet", "error_gmm")# gmm error
   
   return(results)
   
   
 }
-
 
 laghac <- function(formula, data, listw, listw2, endog, 
                    instruments, lag.instr,  verbose, 
@@ -1546,19 +1528,18 @@ laghac <- function(formula, data, listw, listw2, endog,
   results <- spatial.ivreg(y =y , Zmat = Zmat, Hmat = Hmat, het = het,  HAC=HAC, type=type, bandwidth=bandwidth, distance=distance)	
   model.data <- data.frame(cbind(y, x[, -1]))
   results$call <- cl
+  results$listw <- Ws
   results$model <- model.data
   results$type <- type
   results$bandwidth <- bandwidth
-  results$method <- "gmm spatial"
+  results$method <- "s2slshac"
   results$HAC <- HAC
-  class(results) <- c("sphet", "stsls_sphet")#change to lag hac
+  results$endog <- endog
+  class(results) <- c("sphet", "lag_gmm")#change to lag hac
   
   return(results)
   
 }
-
-
-
 
 olshac <- function(formula, data, endog, instruments, listw, 
                    na.action, het, HAC, distance, type, bandwidth, cl, Durbin = NULL){
@@ -1569,8 +1550,8 @@ olshac <- function(formula, data, endog, instruments, listw,
   na.act<-attr(mf,'na.action')
   
   #generates x and y 
-  y<-c(model.extract(mf,"response"))
-  x<-model.matrix(mt,mf)
+  y <- c(model.extract(mf,"response"))
+  x <- model.matrix(mt,mf)
   
   #checks on teh dimensions of x and y 	
   if (length(y)!=nrow(x)) 
@@ -1582,6 +1563,8 @@ olshac <- function(formula, data, endog, instruments, listw,
   if (any(is.na(x))) 
     stop("NAs in independent variable")
  
+  Ws <- NULL
+#
   if (!is.null(Durbin)){ 
   if(!inherits(listw,c("listw", "Matrix", "matrix"))) stop("listw format unknown")
   if(inherits(listw,"listw"))  Ws <- listw2dgCMatrix(listw)	
@@ -1590,8 +1573,10 @@ olshac <- function(formula, data, endog, instruments, listw,
   if (nrow(x) != nrow(Ws)) stop("Input data and weights have different dimension")
   }
   
+  if(!is.null(endog)) model <- 'ols.end'
+  else model <- "ols"
+  
   if(HAC){
-    if(!is.null(endog)) model <- 'ols.end'	
     if(is.null(distance)) stop("No distance measure specified")
     if(!inherits(distance,"distance")) 
       stop("The distance measure is not a distance object")
@@ -1601,11 +1586,11 @@ olshac <- function(formula, data, endog, instruments, listw,
   
   
   #fix the dimensions of the problem
-  n<-nrow(x)
-  k<-ncol(x)	
-  xcolnames<-colnames(x)
+  n <- nrow(x)
+  k <- ncol(x)	
+  xcolnames <- colnames(x)
   
-  K<-ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
+  K <- ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
   
   if(Durbin == TRUE | class(Durbin) == "formula"  ){
     if(class(Durbin) == "formula"){
@@ -1832,14 +1817,19 @@ olshac <- function(formula, data, endog, instruments, listw,
   
 
   if(model == "ols.end" ){
+   
     endog <- as.matrix(lm(endog, data, na.action=na.action, method="model.frame"))	
     instruments <- as.matrix(lm(instruments, data, na.action=na.action, method="model.frame"))	
     AddH<- cbind(instruments)
-     Zmat<- cbind(x, endog)            
-      Hmat <- cbind(Hin, AddH)
+    Zmat<- cbind(x, endog)            
+    Hmat <- cbind(Hin, AddH)
     
     
-    results <-spatial.ivreg(y =y , Zmat = Zmat, Hmat = Hmat, HAC=HAC, type=type, bandwidth=bandwidth, distance=distance)	
+    if(HAC) results <- spatial.ivreg(y =y , Zmat = Zmat, Hmat = Hmat, 
+                            HAC = HAC, type = type, bandwidth = bandwidth, distance = distance)	
+    else results <-spatial.ivreg(y =y , Zmat = Zmat, Hmat = Hmat, 
+                                 het = het)	
+     
     model.data <- data.frame(cbind(y, x[, -1]))
     results$call <- cl
     results$model <- model.data
@@ -1852,15 +1842,18 @@ olshac <- function(formula, data, endog, instruments, listw,
   }
   
   if(model == "ols"){
-    results <-hac.ols(y =y , x = x, HAC=HAC, type=type, bandwidth=bandwidth, distance=distance)	
+  if(HAC)  results <- hac.ols(y =y , x = x, HAC=HAC, type=type, bandwidth=bandwidth, distance=distance, het = FALSE)	
+   else  results <-  hac.ols(y =y , x = x, het = het) 
     model.data <- data.frame(cbind(y, x[, -1]))
     results$call <- cl
+    results$listw <- Ws
     results$model <- model.data
     results$type <- type
     results$bandwidth <- bandwidth
     results$method <- "olshac"
     results$HAC <- HAC
-    class(results) <- c("sphet")
+    results$Durbin <- Durbin
+    class(results) <- c("sphet", "ols")
   }
   
   return(results)
