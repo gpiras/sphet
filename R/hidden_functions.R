@@ -127,8 +127,8 @@ sarargmm <- function(formula, data, listw, listw2, endog,
           
           wonxl <- as.matrix(Ws %*% onxl)
           if(dim(wonxl)[2]!=0){
-            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
-            else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur),sep = "") 
+            else names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur)[-pos.xdur],sep = "") 
           } 
           else nmwonxl <- NULL
           wwonxl <- as.matrix(Ws %*% wonxl)
@@ -136,8 +136,8 @@ sarargmm <- function(formula, data, listw, listw2, endog,
           
           wonboth <- as.matrix(Ws %*% onboth)
           if(dim(wonboth)[2]!=0) {
-            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
-            else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur),sep = "") 
+            else names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur)[pos.xdur],sep = "") 
           }
           else nmwonb <- NULL
           wwonboth <- as.matrix(Ws %*% wonboth)
@@ -192,8 +192,8 @@ sarargmm <- function(formula, data, listw, listw2, endog,
             
             wonxl <- as.matrix(Ws %*% onxl)
             if(dim(wonxl)[2]!=0){
-              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
-              else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur),sep = "") 
+              else names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur)[-pos.xdur],sep = "") 
             } 
             else nmwonxl <- NULL
             wwonxl <- as.matrix(Ws %*% wonxl)
@@ -201,8 +201,8 @@ sarargmm <- function(formula, data, listw, listw2, endog,
             
             wonboth <- as.matrix(Ws %*% onboth)
             if(dim(wonboth)[2]!=0){
-              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
-              else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur),sep = "") 
+              else names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur)[pos.xdur],sep = "") 
             } 
             else nmwonb <- NULL
             wwonboth <- as.matrix(Ws %*% wonboth)
@@ -227,7 +227,7 @@ sarargmm <- function(formula, data, listw, listw2, endog,
             wwxdur <- as.matrix(Ws %*% wxdur)
             wwwxdur <- as.matrix(Ws %*% wwxdur)
             x <- cbind(x, wxdur)
-            colnames(x) <- c(xcolnames, paste("lag.",colnames(xdur),sep =""))
+            colnames(x) <- c(xcolnames, paste("lag_",colnames(xdur),sep =""))
             Hin <- cbind(x, wwxdur, wwwxdur)
             
             if(!is.null(listw2)){ 
@@ -585,8 +585,8 @@ laggmm <- function(formula, data, listw, listw2, endog,
            
            wonxl <- as.matrix(Ws %*% onxl)
            if(dim(wonxl)[2]!=0){
-             if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
-               else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+             if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur),sep = "") 
+               else names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur)[-pos.xdur],sep = "") 
            } 
            else nmwonxl <- NULL
            wwonxl <- as.matrix(Ws %*% wonxl)
@@ -595,8 +595,8 @@ laggmm <- function(formula, data, listw, listw2, endog,
            wonboth <- as.matrix(Ws %*% onboth)
            
            if(dim(wonboth)[2]!=0) {
-             if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
-               else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+             if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur),sep = "") 
+               else names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur)[pos.xdur],sep = "") 
              }
            else nmwonb <- NULL
            wwonboth <- as.matrix(Ws %*% wonboth)
@@ -646,8 +646,8 @@ laggmm <- function(formula, data, listw, listw2, endog,
             
             wonxl <- as.matrix(Ws %*% onxl)
             if(dim(wonxl)[2]!=0){
-              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
-                else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur),sep = "") 
+                else names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur)[-pos.xdur],sep = "") 
             } 
             else nmwonxl <- NULL
             wwonxl <- as.matrix(Ws %*% wonxl)
@@ -656,8 +656,8 @@ laggmm <- function(formula, data, listw, listw2, endog,
             wonboth <- as.matrix(Ws %*% onboth)
             
             if(dim(wonboth)[2]!=0){
-              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
-                else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur),sep = "") 
+                else names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur)[pos.xdur],sep = "") 
             } 
             else nmwonb <- NULL
             wwonboth <- as.matrix(Ws %*% wonboth)
@@ -676,7 +676,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
           wwxdur <- as.matrix(Ws %*% wxdur)
           wwwxdur <- as.matrix(Ws %*% wwxdur)
           x <- cbind(x, wxdur)
-          colnames(x) <- c(xcolnames, paste("lag.",colnames(xdur),sep =""))
+          colnames(x) <- c(xcolnames, paste("lag_",colnames(xdur),sep =""))
           Hin <- cbind(x, wwxdur, wwwxdur)
           # print(head(x))
           # print(head(Hin))
@@ -890,8 +890,8 @@ errorgmm <- function(formula, data, listw, listw2, endog,
           
           wonxl <- as.matrix(Ws %*% onxl)
           if(dim(wonxl)[2]!=0){
-            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
-            else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur),sep = "") 
+            else names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur)[-pos.xdur],sep = "") 
           } 
           else nmwonxl <- NULL
           wwonxl <- as.matrix(Ws %*% wonxl)
@@ -899,8 +899,8 @@ errorgmm <- function(formula, data, listw, listw2, endog,
           wonboth <- as.matrix(Ws %*% onboth)
         
           if(dim(wonboth)[2]!=0) {
-            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
-            else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur),sep = "") 
+            else names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur)[pos.xdur],sep = "") 
           }
           else nmwonb <- NULL
           wwonboth <- as.matrix(Ws %*% wonboth)
@@ -950,8 +950,8 @@ errorgmm <- function(formula, data, listw, listw2, endog,
             
             wonxl <- as.matrix(Ws %*% onxl)
             if(dim(wonxl)[2]!=0){
-              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
-              else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur),sep = "") 
+              else names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur)[-pos.xdur],sep = "") 
             } 
             else nmwonxl <- NULL
             wwonxl <- as.matrix(Ws %*% wonxl)
@@ -959,8 +959,8 @@ errorgmm <- function(formula, data, listw, listw2, endog,
             wonboth <- as.matrix(Ws %*% onboth)
            
             if(dim(wonboth)[2]!=0){
-              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
-              else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur),sep = "") 
+              else names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur)[pos.xdur],sep = "") 
             } 
             else nmwonb <- NULL
             wwonboth <- as.matrix(Ws %*% wonboth)
@@ -978,7 +978,7 @@ errorgmm <- function(formula, data, listw, listw2, endog,
             wwxdur <- as.matrix(Ws %*% wxdur)
            
             x <- cbind(x, wxdur)
-            colnames(x) <- c(xcolnames, paste("lag.",colnames(xdur),sep =""))
+            colnames(x) <- c(xcolnames, paste("lag_",colnames(xdur),sep =""))
             Hin <- cbind(x, wwxdur)
             # print(head(x))
             # print(head(Hin))
@@ -1132,10 +1132,8 @@ errorgmm <- function(formula, data, listw, listw2, endog,
     
     Ggmat<-gg_hom(Ws, ubase, n)
     optres <- nlminb(pars, optimfunct, control = control, 
-                     v = Ggmat, verbose = verbose)
-                     
-                    # lower = -0.9 + .Machine$double.eps , 
-                    # upper = 0.9 -  .Machine$double.eps, 
+                     v = Ggmat, verbose = verbose, lower = -0.9 + .Machine$double.eps , 
+                     upper = 0.9 -  .Machine$double.eps)
     rhotilde <- optres$par
      
   }
@@ -1174,9 +1172,8 @@ errorgmm <- function(formula, data, listw, listw2, endog,
     gmm.weghts <- psirhorho_hom(rhotilde, utildeb, Hmat, Zmat, Ws, Ggmat$d, Ggmat$v.vec )
     optres <- nlminb(rhotilde, optimfunct_eff, v = Ggmat, 
                      vcmat = gmm.weghts$Phiinv, verbose = verbose, 
-                      control = control)
-                     #lower = -1 + .Machine$double.eps , 
-                     #upper = 1 -  .Machine$double.eps, control = control)	
+                      control = control, lower = -1 + .Machine$double.eps , 
+                     upper = 1 -  .Machine$double.eps)	
     
     rhofin <- optres$par
     gmm.weghts<-psirhorho_hom(rhofin, utildeb, Hmat, Zmat, Ws, Ggmat$d, Ggmat$v.vec)
@@ -1349,8 +1346,8 @@ laghac <- function(formula, data, listw, listw2, endog,
           
           wonxl <- as.matrix(Ws %*% onxl)
           if(dim(wonxl)[2]!=0){
-            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
-            else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur),sep = "") 
+            else names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur)[-pos.xdur],sep = "") 
           } 
           else nmwonxl <- NULL
           wwonxl <- as.matrix(Ws %*% wonxl)
@@ -1359,8 +1356,8 @@ laghac <- function(formula, data, listw, listw2, endog,
           wonboth <- as.matrix(Ws %*% onboth)
           
           if(dim(wonboth)[2]!=0) {
-            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
-            else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur),sep = "") 
+            else names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur)[pos.xdur],sep = "") 
           }
           else nmwonb <- NULL
           wwonboth <- as.matrix(Ws %*% wonboth)
@@ -1412,8 +1409,8 @@ laghac <- function(formula, data, listw, listw2, endog,
             
             wonxl <- as.matrix(Ws %*% onxl)
             if(dim(wonxl)[2]!=0){
-              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
-              else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur),sep = "") 
+              else names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur)[-pos.xdur],sep = "") 
             } 
             else nmwonxl <- NULL
             wwonxl <- as.matrix(Ws %*% wonxl)
@@ -1422,8 +1419,8 @@ laghac <- function(formula, data, listw, listw2, endog,
             wonboth <- as.matrix(Ws %*% onboth)
             
             if(dim(wonboth)[2]!=0){
-              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
-              else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur),sep = "") 
+              else names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur)[pos.xdur],sep = "") 
             } 
             else nmwonb <- NULL
             wwonboth <- as.matrix(Ws %*% wonboth)
@@ -1442,7 +1439,7 @@ laghac <- function(formula, data, listw, listw2, endog,
             wwxdur <- as.matrix(Ws %*% wxdur)
             wwwxdur <- as.matrix(Ws %*% wwxdur)
             x <- cbind(x, wxdur)
-            colnames(x) <- c(xcolnames, paste("lag.",colnames(xdur),sep =""))
+            colnames(x) <- c(xcolnames, paste("lag_",colnames(xdur),sep =""))
             Hin <- cbind(x, wwxdur, wwwxdur )
             # print(head(x))
             # print(head(Hin))
@@ -1672,8 +1669,8 @@ olshac <- function(formula, data, endog, instruments, listw,
           
           wonxl <- as.matrix(Ws %*% onxl)
           if(dim(wonxl)[2]!=0){
-            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
-            else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur),sep = "") 
+            else names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur)[-pos.xdur],sep = "") 
           } 
           else nmwonxl <- NULL
           wwonxl <- as.matrix(Ws %*% wonxl)
@@ -1681,8 +1678,8 @@ olshac <- function(formula, data, endog, instruments, listw,
           wonboth <- as.matrix(Ws %*% onboth)
          
           if(dim(wonboth)[2]!=0) {
-            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
-            else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+            if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur),sep = "") 
+            else names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur)[pos.xdur],sep = "") 
           }
           else nmwonb <- NULL
           wwonboth <- as.matrix(Ws %*% wonboth)
@@ -1731,16 +1728,16 @@ olshac <- function(formula, data, endog, instruments, listw,
             wonx <- as.matrix(Ws %*% onx[,-1])
             wonxl <- as.matrix(Ws %*% onxl)
             if(dim(wonxl)[2]!=0){
-              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur),sep = "") 
-              else names(wonxl) <- nmwonxl <- paste("lag.", colnames(xdur)[-pos.xdur],sep = "") 
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur),sep = "") 
+              else names(wonxl) <- nmwonxl <- paste("lag_", colnames(xdur)[-pos.xdur],sep = "") 
             } 
             else nmwonxl <- NULL
             wwonxl <- as.matrix(Ws %*% wonxl)
             
             wonboth <- as.matrix(Ws %*% onboth)
             if(dim(wonboth)[2]!=0){
-              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur),sep = "") 
-              else names(wonboth) <- nmwonb <- paste("lag.",colnames(xdur)[pos.xdur],sep = "") 
+              if(all(is.na(match(colnames(xdur), xcolnames)))) names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur),sep = "") 
+              else names(wonboth) <- nmwonb <- paste("lag_",colnames(xdur)[pos.xdur],sep = "") 
             } 
             else nmwonb <- NULL
             wwonboth <- as.matrix(Ws %*% wonboth)
@@ -1758,7 +1755,7 @@ olshac <- function(formula, data, endog, instruments, listw,
             wwxdur <- as.matrix(Ws %*% wxdur)
             
             x <- cbind(x, wxdur)
-            colnames(x) <- c(xcolnames, paste("lag.",colnames(xdur),sep =""))
+            colnames(x) <- c(xcolnames, paste("lag_",colnames(xdur),sep =""))
             Hin <- cbind(x, wwxdur)
             # print(head(x))
             # print(head(Hin))

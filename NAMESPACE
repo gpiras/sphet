@@ -7,7 +7,7 @@ import(spatialreg)
 import(Matrix)
 import(mvtnorm)
 importFrom(sp, spDists)
-
+importFrom(stringr, str_remove)
 
 export(distance, gstslshet, read.gwt2dist, stslshac, listw2dgCMatrix, impacts,
        spreg, circular, kpjtest)
