@@ -35,11 +35,12 @@ impacts <- function(object, ...){
 #' summary(effects)
 impacts.sphet <- function(object, ...) {
    
-
+  if(class(object$Durbin) == "formula") object$Durbin <- TRUE
+ 
   if(!is.null(object$endog)) stop("Impacts not yet implemented 
                                for models with additional endogenous variables")
  
-  if(class(object)[[2]] %in% c("ols", "error_gmm")) stop("Impacts not implemented
+  if(class(object)[[2]] %in% c("ols", "error_gmm")) stop("Impacts not needed
                                                  for error and ols models")
   
   if(!isTRUE(all.equal(Matrix::rowSums(object$listw), rep(1,dim(object$listw)[2])))) stop("Impacts not yet implemented 
@@ -138,9 +139,10 @@ impacts.sarar <-function(object, n_mvn = 3000, weg = NULL,
          if(is.null(trW))   trW <-  smtrace(object$listw, m = m)
 
       
-         ADE <- c(ADRE_rn_Dur(c(P, lambda), weg, n, m = m, object$listw, c(0, lambda), exact = TRUE, trW = trW), 
-                  ADRE_rn_Dur(c(xb, lambda), weg, n, m = m, object$listw, c(gamma, lambda), exact = TRUE, trW = trW), 
-                  ADRE_rn_Dur(c(0, lambda), weg, n, m = m, object$listw, c(don, lambda), exact = TRUE, trW = trW) )
+         ADE <- c(ADRE_rn_Dur(c(P, lambda), weg, n, m = m, object$listw, c(0, lambda), exact = F, trW = trW), 
+                  ADRE_rn_Dur(c(xb, lambda), weg, n, m = m, object$listw, c(gamma, lambda), exact = F, trW = trW), 
+                  ADRE_rn_Dur(c(0, lambda), weg, n, m = m, object$listw, c(don, lambda), exact = F, trW = trW) )
+
          
       }
       
@@ -152,34 +154,70 @@ impacts.sarar <-function(object, n_mvn = 3000, weg = NULL,
          mu <- c(P, xb, gamma, don, lambda)
          mc_splm <- mvtnorm::rmvnorm(n_mvn, mean = mu, sigma = Sigma)
          
-         ATE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) 
-                          + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, AVTE_rn_Dur_sp),
-                          apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) + 
-                             apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, AVTE_rn_Dur_sp),
-                          apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, AVTE_rn_Dur_fp) + 
-                             apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, AVTE_rn_Dur_sp))
-         rownames(ATE_inf) <- bnames
+         
+         if (length(P) == 0 && length(don) == 0)       ATE_inf <- rbind(apply(mc_splm[ ,c((1 : length(xb)), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) + 
+                                                                           apply( mc_splm[ , c((length(xb) + 1) : ( ncol(mc_splm)-1), ncol(mc_splm))], 1, AVTE_rn_Dur_sp))
+         
+         else if(length(P) == 0 && length(don) != 0) ATE_inf <- rbind(apply(mc_splm[ ,c( (1 : length(xb)), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) + 
+                                                                         apply(mc_splm[ , c((length(xb) + 1) : (ncol(mc_splm) - 1), ncol(mc_splm))], 1, AVTE_rn_Dur_sp), 
+                                                                      apply(mc_splm[ , c(length(xb) + length(gamma) +1) : (ncol(mc_splm) - 1), ncol(mc_splm)], 1, AVTE_rn_Dur_sp))
+         
+         else if(length(P) != 0 && length(don) == 0) ATE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, AVTE_rn_Dur_fp),
+                                                                      apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) + 
+                                                                         apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( ncol(mc_splm) - 1), ncol(mc_splm))], 1, AVTE_rn_Dur_sp))  
+         
+         else ATE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) 
+                               + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, AVTE_rn_Dur_sp),
+                               apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) + 
+                                  apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, AVTE_rn_Dur_sp),
+                               apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, AVTE_rn_Dur_fp) + 
+                                  apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, AVTE_rn_Dur_sp))
+         
          
          if(exact){ 
-           
-            ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) 
-                             + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE),
-                             apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
-                                apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE),
-                             apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
-                                apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE))
-            rownames(ADE_inf) <- bnames
-               
-             
+            
+            
+            if (length(P) == 0 && length(don) == 0)       ADE_inf <- rbind(apply(mc_splm[ ,c((1 : length(xb)), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE ) + 
+                                                                              apply( mc_splm[ , c((length(xb) + 1) : ( ncol(mc_splm)-1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE))
+            
+            else if(length(P) == 0 && length(don) != 0) ADE_inf <- rbind(apply(mc_splm[ ,c( (1 : length(xb)), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
+                                                                            apply(mc_splm[ , c((length(xb) + 1) : (ncol(mc_splm) - 1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE), 
+                                                                         apply(mc_splm[ , c(length(xb) + length(gamma) +1) : (ncol(mc_splm) - 1), ncol(mc_splm)], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE))
+            
+            else if(length(P) != 0 && length(don) == 0) ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE),
+                                                                         apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
+                                                                            apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( ncol(mc_splm) - 1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE))  
+            
+            else ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) 
+                                  + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE),
+                                  apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
+                                     apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE),
+                                  apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
+                                     apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE))
+            
+            
          }
          else{
-            ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= FALSE, trW) 
-                             + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= FALSE, trW),
-                             apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, FALSE, trW) + 
-                                apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= FALSE, trW),
-                             apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= FALSE, trW) + 
-                                apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= FALSE, trW))
-            rownames(ADE_inf) <- bnames
+            
+            
+            if (length(P) == 0 && length(don) == 0)       ADE_inf <- rbind(apply(mc_splm[ ,c((1 : length(xb)), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW ) + 
+                                                                              apply( mc_splm[ , c((length(xb) + 1) : ( ncol(mc_splm)-1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW))
+            
+            else if(length(P) == 0 && length(don) != 0) ADE_inf <- rbind(apply(mc_splm[ ,c( (1 : length(xb)), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW) + 
+                                                                            apply(mc_splm[ , c((length(xb) + 1) : (ncol(mc_splm) - 1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW), 
+                                                                         apply(mc_splm[ , c(length(xb) + length(gamma) +1) : (ncol(mc_splm) - 1), ncol(mc_splm)], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW))
+            
+            else if(length(P) != 0 && length(don) == 0) ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW),
+                                                                         apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW) + 
+                                                                            apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( ncol(mc_splm) - 1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW))  
+            
+            else ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW) 
+                                  + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW),
+                                  apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW) + 
+                                     apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW),
+                                  apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW) + 
+                                     apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW))
+            
             
             
          }
@@ -282,8 +320,8 @@ impacts.sarar <-function(object, n_mvn = 3000, weg = NULL,
 #' summary(res)
 #' effects <- impacts(res, n_mvn = 3000)
 #' summary(effects)
-impacts.lag <-function(object, n_mvn, weg, 
-                        inference, exact, m, trW, mvn){ 
+impacts.lag <-function(object, n_mvn = 3000, weg = NULL, 
+                       inference = FALSE, exact = TRUE, m = 30, trW = NULL, mvn = TRUE){ 
    
    if(object$Durbin){ 
       
@@ -308,17 +346,18 @@ impacts.lag <-function(object, n_mvn, weg,
       
       icept <- grep("(Intercept)", names(xo))
       iicept <- length(icept) > 0
-      Sigma <- object$var  
+      Sigma <- as.matrix(object$var)
+      #print(Sigma)
       
       if (iicept) {
          P <- xo[-icept]
-         Sigma <- Sigma[-c(icept,p2),-c(icept,p2)]
-         bnames <- c(names(xo[-icept]), stringr::str_remove(names(dc), "lag_"))
+         Sigma <- Sigma[-c(icept),-c(icept)]
+         bnames <- c(names(xo[-icept]), stringr::str_remove(names(dc), "lag_"), names(don))
       } 
       else {
          P <- xo
-         Sigma <- Sigma[-c(p2),-c(p2)]
-         bnames <-c(names(xo), stringr::str_remove(names(dc), "lag_"))
+         Sigma <- Sigma
+         bnames <-c(names(xo), stringr::str_remove(names(dc), "lag_"), names(don))
       }
       
       n <- length(object$residuals)
@@ -344,9 +383,9 @@ impacts.lag <-function(object, n_mvn, weg,
          if(is.null(trW))   trW <-  smtrace(object$listw, m = m)
          
          
-         ADE <- c(ADRE_rn_Dur(c(P, lambda), weg, n, m = m, object$listw, c(0, lambda), exact = TRUE, trW = trW), 
-                  ADRE_rn_Dur(c(xb, lambda), weg, n, m = m, object$listw, c(gamma, lambda), exact = TRUE, trW = trW), 
-                  ADRE_rn_Dur(c(0, lambda), weg, n, m = m, object$listw, c(don, lambda), exact = TRUE, trW = trW) )
+         ADE <- c(ADRE_rn_Dur(c(P, lambda), weg, n, m = m, object$listw, c(0, lambda), exact = F, trW = trW), 
+                  ADRE_rn_Dur(c(xb, lambda), weg, n, m = m, object$listw, c(gamma, lambda), exact = F, trW = trW), 
+                  ADRE_rn_Dur(c(0, lambda), weg, n, m = m, object$listw, c(don, lambda), exact = F, trW = trW) )
          
       }
       
@@ -358,34 +397,72 @@ impacts.lag <-function(object, n_mvn, weg,
          mu <- c(P, xb, gamma, don, lambda)
          mc_splm <- mvtnorm::rmvnorm(n_mvn, mean = mu, sigma = Sigma)
          
-         ATE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) 
-                          + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, AVTE_rn_Dur_sp),
-                          apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) + 
-                             apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, AVTE_rn_Dur_sp),
-                          apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, AVTE_rn_Dur_fp) + 
-                             apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, AVTE_rn_Dur_sp))
-         rownames(ATE_inf) <- bnames
+
+if (length(P) == 0 && length(don) == 0)       ATE_inf <- rbind(apply(mc_splm[ ,c((1 : length(xb)), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) + 
+                                                                  apply( mc_splm[ , c((length(xb) + 1) : ( ncol(mc_splm)-1), ncol(mc_splm))], 1, AVTE_rn_Dur_sp))
+         
+         else if(length(P) == 0 && length(don) != 0) ATE_inf <- rbind(apply(mc_splm[ ,c( (1 : length(xb)), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) + 
+                                                                    apply(mc_splm[ , c((length(xb) + 1) : (ncol(mc_splm) - 1), ncol(mc_splm))], 1, AVTE_rn_Dur_sp), 
+                                                                    apply(mc_splm[ , c(length(xb) + length(gamma) +1) : (ncol(mc_splm) - 1), ncol(mc_splm)], 1, AVTE_rn_Dur_sp))
+         
+         else if(length(P) != 0 && length(don) == 0) ATE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, AVTE_rn_Dur_fp),
+                                                                     apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) + 
+                                                                        apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( ncol(mc_splm) - 1), ncol(mc_splm))], 1, AVTE_rn_Dur_sp))  
+   
+   else ATE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) 
+                                           + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, AVTE_rn_Dur_sp),
+                                           apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, AVTE_rn_Dur_fp) + 
+                                             apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, AVTE_rn_Dur_sp),
+                                             apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, AVTE_rn_Dur_fp) + 
+                                             apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, AVTE_rn_Dur_sp))
+                         
+
+#         print(head(ATE_inf)[,1:5])
          
          if(exact){ 
             
-            ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) 
-                             + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE),
-                             apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
-                                apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE),
-                             apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
-                                apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE))
-            rownames(ADE_inf) <- bnames
+            
+            if (length(P) == 0 && length(don) == 0)       ADE_inf <- rbind(apply(mc_splm[ ,c((1 : length(xb)), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE ) + 
+                                                                              apply( mc_splm[ , c((length(xb) + 1) : ( ncol(mc_splm)-1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE))
+            
+            else if(length(P) == 0 && length(don) != 0) ADE_inf <- rbind(apply(mc_splm[ ,c( (1 : length(xb)), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
+                                                                            apply(mc_splm[ , c((length(xb) + 1) : (ncol(mc_splm) - 1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE), 
+                                                                         apply(mc_splm[ , c(length(xb) + length(gamma) +1) : (ncol(mc_splm) - 1), ncol(mc_splm)], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE))
+            
+            else if(length(P) != 0 && length(don) == 0) ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE),
+                                                                         apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
+                                                                            apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( ncol(mc_splm) - 1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE))  
+            
+            else ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) 
+                                  + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE),
+                                  apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
+                                     apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE),
+                                  apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= TRUE) + 
+                                     apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= TRUE))
             
             
          }
          else{
-            ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= FALSE, trW) 
-                             + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= FALSE, trW),
-                             apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, FALSE, trW) + 
-                                apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= FALSE, trW),
-                             apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= FALSE, trW) + 
-                                apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= FALSE, trW))
-            rownames(ADE_inf) <- bnames
+            
+
+            if (length(P) == 0 && length(don) == 0)       ADE_inf <- rbind(apply(mc_splm[ ,c((1 : length(xb)), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW ) + 
+                                                                              apply( mc_splm[ , c((length(xb) + 1) : ( ncol(mc_splm)-1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW))
+            
+            else if(length(P) == 0 && length(don) != 0) ADE_inf <- rbind(apply(mc_splm[ ,c( (1 : length(xb)), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW) + 
+                                                                            apply(mc_splm[ , c((length(xb) + 1) : (ncol(mc_splm) - 1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW), 
+                                                                         apply(mc_splm[ , c(length(xb) + length(gamma) +1) : (ncol(mc_splm) - 1), ncol(mc_splm)], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW))
+            
+            else if(length(P) != 0 && length(don) == 0) ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW),
+                                                                         apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW) + 
+                                                                            apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( ncol(mc_splm) - 1), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW))  
+            
+            else ADE_inf <- rbind(apply(mc_splm[ ,c(1:length(P), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW) 
+                                  + apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW),
+                                  apply( mc_splm[ ,c( ((length(P) + 1) : (length(P) + length(xb))), ncol(mc_splm))], 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW) + 
+                                     apply( mc_splm[ , c((length(P) + length(xb) + 1) : ( (length(P) + length(xb) + length(gamma))), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW),
+                                  apply(cbind(0, mc_splm[ ,c(ncol(mc_splm))]), 1, ADRE_rn_Dur_fp, weg, n, m, object$listw, exact= F, trW) + 
+                                     apply( mc_splm[ , c( (length(P) +  length(xb) +length(gamma) +1) : (length(P) + length(xb) +length(gamma) +length(don)), ncol(mc_splm))], 1, ADRE_rn_Dur_sp, weg, n, m, object$listw, exact= F, trW))
+            
             
             
          }
@@ -412,7 +489,7 @@ impacts.lag <-function(object, n_mvn, weg,
      p1 <- p + 1
      icept <- grep("(Intercept)", names(beta))
      iicept <- length(icept) > 0
-     Sigma <- object$var  
+     Sigma <- as.matrix(object$var)  
 
      if (iicept) {
        P <- beta[-icept]
@@ -471,7 +548,7 @@ impacts.lag <-function(object, n_mvn, weg,
      else res <- list(ATE, ADE, AIE)
 
    }
-
+   attr(res, "inference") <- inference
    class(res) <- c("impacts_sphet") 
    
    invisible(res)
@@ -574,7 +651,6 @@ AVTE_rn <- function(x){
 AVTE_rn_Dur <- function(x,y){
    x[-length(x)]/(1-x[length(x)]) + y[-length(y)]/(1-y[length(y)]) 
 }
-
 AVTE_rn_Dur_fp <- function(x){
    x[-length(x)]/(1-x[length(x)]) 
 }
