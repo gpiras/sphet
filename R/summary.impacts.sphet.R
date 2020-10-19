@@ -53,7 +53,7 @@ impacts.sphet <- function(object, ...) {
          )
 
 }
-  
+  # TODO in the future implement the VC matrix of the impacts 
 
 #' Generate impacts
 #' 
