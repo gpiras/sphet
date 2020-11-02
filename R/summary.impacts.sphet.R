@@ -43,7 +43,8 @@ impacts.sphet <- function(object, ...) {
   if(class(object)[[2]] %in% c("ols", "error_gmm")) stop("Impacts not needed
                                                  for error and ols models")
   
-  if(!isTRUE(all.equal(Matrix::rowSums(object$listw), rep(1,dim(object$listw)[2])))) stop("Impacts not yet implemented 
+  
+  if(!isTRUE(all.equal(as.numeric(Matrix::rowSums(object$listw)), rep(1,dim(object$listw)[2])))) stop("Impacts not yet implemented 
                                           for non row-standardized listw")
     
   ag <- class(object)[[2]]
@@ -54,6 +55,7 @@ impacts.sphet <- function(object, ...) {
 
 }
   # TODO in the future implement the VC matrix of the impacts 
+  # TODO check two things in the impacts: 1) calculate the impacts only for the coefficients in parameter space 2) fix the Z test
 
 #' Generate impacts
 #' 
@@ -318,7 +320,7 @@ impacts.sarar <-function(object, n_mvn = 3000, weg = NULL,
 #' res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,
 #'             het = TRUE, verbose = FALSE, model = "sarar")
 #' summary(res)
-#' effects <- impacts(res, n_mvn = 3000)
+#' effects <- sphet::impacts(res, n_mvn = 3000)
 #' summary(effects)
 impacts.lag <-function(object, n_mvn = 3000, weg = NULL, 
                        inference = FALSE, exact = TRUE, m = 30, trW = NULL, mvn = TRUE){ 
