@@ -736,7 +736,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
   }
   
   
-  wy<-Ws %*% y	
+  wy <- Ws %*% y	
   colnames(wy)<-"lambda"
   if (!is.null(endog) && is.null(instruments)) stop("No instruments specified for the endogenous variable in the model")
   
