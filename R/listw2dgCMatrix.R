@@ -1,3 +1,22 @@
+#' @name listw2dgCMatrix
+#' @aliases listw2dgCMatrix
+#' @title Interface between Matrix class objects and weights list 
+#' @description Interface between Matrix class objects and weights list 
+#' @usage listw2dgCMatrix(listw, zero.policy = NULL) 
+#' @param listw a \code{listw} object created for example by \code{nb2listw} 
+#' @param zero.policy See \code{lagsarlm} for details
+#' @return Matrix class object: a sparse Matrix
+#' @author Gianfranco Piras \email{gpiras@mac.com}
+#' @examples 
+#' library(spdep)
+#' data(columbus)
+#' listw <- nb2listw(col.gal.nb)
+#' spW <- listw2dgCMatrix(listw)
+#' @keywords spatial
+#' @export
+
+
+
 listw2dgCMatrix<-function (listw, zero.policy=NULL) 
 {
     if (!inherits(listw, "listw")) 

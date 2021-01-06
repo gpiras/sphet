@@ -369,7 +369,7 @@ sarargmm <- function(formula, data, listw, listw2, endog,
       rownames(coeff_2sls) <- c(colnames(Zmat), 'rho')
       s2_2sls <- crossprod(ubase)/(n-k)
       model.data <- data.frame(cbind(y,x[,-1]))
-      method <- "gm sarar spatial"
+      method <- "gmm sarar"
       
       k <- nrow(coeff_2sls)
       R <- matrix(0,1,k)
@@ -383,7 +383,7 @@ sarargmm <- function(formula, data, listw, listw2, endog,
                            call = cl, residuals = as.numeric(ubase), model = model.data, 
                            method = method, W = W, firststep = firststep$coefficients, 
                            init.rho = rhotilde)
-      class(results_2sls) <- c("sphet", "sarar")
+      class(results_2sls) <- c("sphet", "sarar", "gstsls")
     }
     
   }
@@ -468,7 +468,7 @@ sarargmm <- function(formula, data, listw, listw2, endog,
   
   results$listw <- Ws
   
-  class(results)<-c("sphet", "sarar_gmm") #remember to change to sarar when impacts will be developed
+  class(results)<-c("sphet", "sarar_gmm", "gstsls") #remember to change to sarar when impacts will be developed
   return(results)
 }
 
@@ -774,7 +774,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
   results$HAC <- FALSE
   results$Durbin <- Durbin
   results$endog <- endog
-  class(results) <- c("sphet", "lag_gmm") #change to lag gmm
+  class(results) <- c("sphet", "lag_gmm", "stsls_sphet") #change to lag gmm
   
   return(results)
   

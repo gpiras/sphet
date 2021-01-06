@@ -44,6 +44,7 @@ Ithaca, New York 14853 USA\\
 
 \begin{document}
 
+
 \section{Introduction}
 \pkg{sphet} is a package for estimating 
 and testing a variety of spatial models 
@@ -263,7 +264,7 @@ options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
 @
    
 <<readdata, results=hide>>=
-library("sphet")
+library(sphet)
 library(spdep)
 data("boston", package = "spdep")
 @
@@ -349,8 +350,9 @@ sequence from one to the number of observations
 (i.e., the number of coordinates).
 
 <<distance1>>=
-thm1 <- distance(coord = coord1, region.id = NULL, output = FALSE, type = "inverse", measure = "euclidean")
-print(thm1[1:15, ])
+thm1 <- distance(coord = coord1, region.id = NULL, 
+                 output = FALSE, type = "inverse", measure = "euclidean")
+print(head(thm1))
 @
 
 
@@ -384,8 +386,9 @@ the number of nearest neighbors,
 as it is illustrated in the following example. 
 
 <<distance2>>=
-thm2 <- distance(coord1, region.id = NULL, output = FALSE, type = "NN", nn = 6)
-print(thm2[1:15, ])
+thm2 <- distance(coord1, region.id = NULL, 
+                 output = FALSE, type = "NN", nn = 6)
+print(head(thm2))
 @
 
 When \code{output} is TRUE, 
@@ -403,7 +406,10 @@ If an output file is produced,
 the name of the file can be set by \code{file.name}.
 
 <<distance3>>=
-thm3 <- distance(coord1, region.id = NULL, output = TRUE, type = "distance", cutoff = 1, measure = "gcircle", shape.name = "shapefile", region.id.name = "id1", firstline = TRUE, file.name = "dist_100.GWT")
+thm3 <- distance(coord1, region.id = NULL, output = TRUE, 
+                 type = "distance", cutoff = 1, measure = "gcircle", 
+                 shape.name = "shapefile", region.id.name = "id1", 
+                 firstline = TRUE, file.name = "dist_100.GWT")
 class(thm3)
 @
 
@@ -419,7 +425,10 @@ as in the following example:
 
 <<read>>=
 id1 <- seq(1, nrow(boston.utm))
-tmp <- distance(boston.utm, region.id = id1, output = TRUE, type = "NN", nn = 10, shape.name = "shapefile", region.id.name = "id1", firstline = TRUE, file.name = "boston_nn_10.GWT")
+tmp <- distance(boston.utm, region.id = id1, output = TRUE, 
+                type = "NN", nn = 10, shape.name = "shapefile", 
+                region.id.name = "id1", firstline = TRUE, 
+                file.name = "boston_nn_10.GWT")
 coldist <- read.gwt2dist(file = "boston_nn_10.GWT", region.id = id1, skip = 1)
 @
 
@@ -663,7 +672,10 @@ Note that the two objects, although belonging to a different \code{class},
 may be generated according to the same definition.
 
 <<stslshac>>=
-res <- stslshac(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw, distance = coldist, type = "Triangular", HAC = TRUE) 
+res <- stslshac(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) 
+                + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+                data = boston.c, listw, 
+                distance = coldist, type = "Triangular", HAC = TRUE) 
 summary(res)
 @
 
@@ -690,7 +702,9 @@ the ``classical" two stage least square
 estimator of the variance covariance matrix is provided.
 
 <<stslshac1>>=
-res <- stslshac(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw, distance = coldist, HAC = FALSE)
+res <- stslshac(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) 
+                + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+                data = boston.c, listw, distance = coldist, HAC = FALSE)
 summary(res)
 @
 
@@ -724,7 +738,9 @@ If this leads to different significance levels, one should always present
 robust results. 
 
 <<stsls>>=
-res <- stsls(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw = listw)
+res <- stsls(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) 
+             + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+             data = boston.c, listw = listw)
 summary(res)
 @
 
@@ -742,7 +758,9 @@ a GLS estimator is performed that yields different coefficient
 estimates. Results are displayed in the following example.
 
 <<stsls2>>=
-res <- stsls(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw = listw, robust = TRUE)
+res <- stsls(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) 
+             + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+             data = boston.c, listw = listw, robust = TRUE)
 summary(res)
 @
 
@@ -763,7 +781,9 @@ that fixes as bandwidth the maximum distance (overall).
 
 <<stslshac2>>=
 fix <- max(unlist(attributes(coldist)$GeoDa$dist))
-res <- stslshac(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw, distance = coldist, type = "Parzen", bandwidth = fix)
+res <- stslshac(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) 
+                + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+                data = boston.c, listw, distance = coldist, type = "Parzen", bandwidth = fix)
 summary(res)
 @
 
@@ -926,7 +946,9 @@ Alternatively, if \code{initial.value} is set to \code{"SAR"} the
 optimization will start from the estimated coefficient of a regression of the 2SLS residuals over their spatial lag. 
 
 <<gstslshet1>>=
-res <- gstslshet(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw = listw, initial.value = 0.2)
+res <- gstslshet(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) 
+                 + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+                 data = boston.c, listw = listw, initial.value = 0.2)
 summary(res)
 @
 
@@ -939,7 +961,10 @@ The next example illustrates the use of the approximated inverse
 in the context of a model where $\lambda$ is assumed to be zero (\code{sarar = FALSE}). 
 
 <<gstslshet2>>=
-res <- gstslshet(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), data = boston.c, listw = listw, initial.value = 0.2, inverse = FALSE, eps = 1e-18, sarar = FALSE )
+res <- gstslshet(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) 
+                 + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+                 data = boston.c, listw = listw, initial.value = 0.2, 
+                 inverse = FALSE, eps = 1e-18, sarar = FALSE )
 summary(res)
 @
 

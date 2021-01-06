@@ -1,9 +1,10 @@
+
+
 dist.euclidean<-function(X,Y,...){
 	X<-matrix(X,nrow(Y),2,byrow=TRUE)
 	dif<-rowSums((X-Y)^2)
 	return<-sqrt(dif)
 	}
-	
 
 dist.chebyshev<-function(X,Y,...){
 	X<-matrix(X,nrow(Y),2,byrow=TRUE)
@@ -18,6 +19,7 @@ dist.braycur<-function(X,Y,...){
 	su<-rowSums(abs(X+Y))
 	return<- dif /su
 	}
+
 
 dist.canberra<-function(X,Y,...){
 	X<-matrix(X,nrow(Y),2,byrow=TRUE)

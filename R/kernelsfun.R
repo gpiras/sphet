@@ -1,3 +1,7 @@
+
+
+
+
 triangular <- function(q,bandwidth){
 			if (is.numeric(bandwidth)) ban<-bandwidth
 		else ban<-max(q)

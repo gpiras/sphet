@@ -5,7 +5,7 @@ Title: Estimation of Spatial Autoregressive Models with and without Heteroskedas
 Authors@R: c(person(given = "Gianfranco", family = "Piras", role = c("aut", "cre"), email = "gpiras@mac.com"),
              person("Roger", "Bivand", role = c("ctb"), email = "Roger.Bivand@nhh.no", comment=c(ORCID="0000-0003-2392-6140")))
 Depends: R (>= 3.0.1)
-Imports: nlme, spatialreg, spdep, Matrix, sp, methods, stats, utils, mvtnorm, stringr
+Imports: nlme, spatialreg, spdep, Matrix, sp, methods, stats, utils, mvtnorm, stringr, coda
 Suggests: 
 URL: https://github.com/gpiras/sphet
 BugReports: https://github.com/gpiras/sphet/issues
