@@ -171,9 +171,9 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
         #print(Sigma)
       }
     
-      if (!requireNamespace("spatialreg", quietly=TRUE))
-        stop("install spatialreg")
-      #print(P)
+      # if (!requireNamespace("spatialreg", quietly=TRUE))
+      #   stop("install spatialreg")
+      # #print(P)
       res <- spatialreg::intImpacts(rho=lambda, beta=beta, P=P, n=n, mu=mu,
                                     Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
                                     interval=interval, type = type, tr=tr, R=R, listw=listw, evalues=evalues,
@@ -225,8 +225,8 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
     irho <- length(beta) + 1
     drop2beta <- (length(beta) + 1):p2
     
-    if (!requireNamespace("spatialreg", quietly=TRUE))
-      stop("install spatialreg")
+    # if (!requireNamespace("spatialreg", quietly=TRUE))
+    #   stop("install spatialreg")
     res <- spatialreg::intImpacts(rho=lambda, beta=beta, P=P, n=n, mu=mu,
                                   Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
                                   interval=interval, type = type, tr=tr, R=R, listw=listw, evalues=evalues,
@@ -451,8 +451,8 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     
   }
 
-  if (!requireNamespace("spatialreg", quietly=TRUE))
-    stop("install spatialreg")
+  # if (!requireNamespace("spatialreg", quietly=TRUE))
+  #   stop("install spatialreg")
   res <- spatialreg::intImpacts(rho=lambda, beta=beta, P=P, n=n, mu=mu,
                                 Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
                                 interval=interval, type = type, tr=tr, R=R, listw=listw, evalues=evalues,
