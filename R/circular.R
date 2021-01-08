@@ -10,6 +10,7 @@
 #' @return An object of class \code{nb}
 #'
 #' @examples ab.3 <- circular(10, 10, 3)
+#' ab.5 <-  circular(15, 15, 5)
 #' @author Gianfranco Piras \email{gpiras@mac.com}
 #' @keywords spatial
 #' @export
