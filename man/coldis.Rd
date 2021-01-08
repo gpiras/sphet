@@ -6,7 +6,9 @@
 \alias{knn10columbus}
 \title{Object of class distance for Columbus dataset 
 10-nearest neighbors matrix for columbus dataset}
-\format{A list of neighbors and distances for the columbus neighborhoods}
+\format{
+A list of neighbors and distances for the columbus neighborhoods
+}
 \description{
 Object of class distance for Columbus dataset 
 10-nearest neighbors matrix for columbus dataset
