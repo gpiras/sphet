@@ -197,4 +197,5 @@ switch(match.arg(model),
 
   }
 
-
+# coefficients.sphet <- function(x) drop(as.numeric(x$coefficients))
+# vcov.sphet <- function(x) x$var

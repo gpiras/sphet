@@ -1834,7 +1834,8 @@ olshac <- function(formula, data, endog, instruments, listw,
     results$bandwidth <- bandwidth
     results$method <- "s2slshac"
     results$HAC <- HAC
-    class(results) <- c("sphet", "stsls_sphet")
+    results$endog <- TRUE
+    class(results) <- c("sphet", "ols_sphet")
     
   }
   
@@ -1850,6 +1851,7 @@ olshac <- function(formula, data, endog, instruments, listw,
     results$method <- "olshac"
     results$HAC <- HAC
     results$Durbin <- Durbin
+    results$endog <- FALSE
     class(results) <- c("sphet", "ols_sphet")
   }
   

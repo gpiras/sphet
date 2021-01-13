@@ -1,11 +1,10 @@
 Package: sphet
-Version: 1.9-01
-Date: 2020-27-07
+Version: 1.10
+Date: 2021-01-13
 Title: Estimation of Spatial Autoregressive Models with and without Heteroskedastic Innovations
-Authors@R: c(person(given = "Gianfranco", family = "Piras", role = c("aut", "cre"), email = "gpiras@mac.com"),
-             person("Roger", "Bivand", role = c("ctb"), email = "Roger.Bivand@nhh.no", comment=c(ORCID="0000-0003-2392-6140")))
+Authors@R: c(person(given = "Gianfranco", family = "Piras", role = c("aut", "cre"), email = "gpiras@mac.com",comment=c(ORCID="0000-0003-0225-6061")),person(given = "Roger", family = "Bivand", role = c("ctb"), email = "Roger.Bivand@nhh.no", comment=c(ORCID="0000-0003-2392-6140")))
 Depends: R (>= 3.0.1)
-Imports: nlme, spatialreg, spdep, Matrix, sp, methods, stats, utils, mvtnorm, stringr, coda
+Imports: nlme, spatialreg, spdep, Matrix, sp, methods, stats, utils, mvtnorm, stringr, coda, spData, sf
 Suggests: 
 URL: https://github.com/gpiras/sphet
 BugReports: https://github.com/gpiras/sphet/issues

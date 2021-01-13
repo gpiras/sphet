@@ -42,11 +42,49 @@ Estimate of the Average Total, Average Direct, and Average Indirect Effects
 Generate impacts for objects of class sarar_gmm created in sphet
 }
 \examples{
-data(columbus, package="spdep")
-listw <- spdep::nb2listw(col.gal.nb)
-res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,
-            het = TRUE, verbose = FALSE, model = "sarar")
-summary(res)
-effects <- impacts(res, listw = listw,  R = 399)
-summary(effects)
+data(boston, package="spData")
+Wb <- as(spdep::nb2listw(boston.soi), "CsparseMatrix")
+ev <- eigen(Wb)$values
+trMatb <- spatialreg::trW(Wb, type="mult")
+sarar1 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + 
+                  I(RM^2) +  AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+                data = boston.c, listw = Wb, model = "sarar")
+summary(sarar1)
+summary(impacts(sarar1, tr=trMatb, R=1000), zstats=TRUE, short=TRUE)
+summary(impacts(sarar1, evalues = ev, R=1000), zstats=TRUE, short=TRUE)
+
+sarar2 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + 
+                  I(RM^2) +  AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+                data = boston.c, listw = Wb, model = "sarar", Durbin = TRUE)
+
+summary(sarar2)
+impacts(sarar2, evalues = ev)
+impacts(sarar2, listw = spdep::nb2listw(boston.soi))
+impacts(sarar2, tr = trMatb)
+summary(impacts(sarar2, evalues = ev, R=1000), zstats=TRUE, short=TRUE)
+
+sarar3 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + 
+                  I(RM^2) +  AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+                data = boston.c, listw = Wb, model = "sarar", Durbin = ~CRIM + TAX)
+
+summary(sarar3)
+impacts(sarar3, evalues = ev)
+impacts(sarar3, listw = spdep::nb2listw(boston.soi))
+impacts(sarar3, tr = trMatb)
+summary(impacts(sarar3, listw = spdep::nb2listw(boston.soi), R=1000), zstats=TRUE, short=TRUE)
+
+sarar4 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + 
+                  I(RM^2) +  AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B , 
+                data = boston.c, listw = Wb, model = "sarar", Durbin = ~CRIM + TAX + log(LSTAT))
+
+summary(sarar4)
+impacts(sarar4, evalues = ev)
+summary(impacts(sarar4, evalues = ev, R=1000), zstats=TRUE, short=TRUE)
+
+sarar5 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) +  AGE + log(DIS), 
+                data = boston.c, listw = Wb, model = "sarar", Durbin = ~ TAX + log(LSTAT))
+
+summary(sarar5)
+impacts(sarar5, evalues = ev)
+summary(impacts(sarar4, tr = trMatb, R=1000), zstats=TRUE, short=TRUE)
 }

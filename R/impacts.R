@@ -36,13 +36,51 @@ impacts <- function(obj, ...){
 #' @return Estimate of the Average Total, Average Direct, and Average Indirect Effects
 #'
 #' @examples
-#' data(columbus, package="spdep")
-#' listw <- spdep::nb2listw(col.gal.nb)
-#' res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,
-#'             het = TRUE, verbose = FALSE, model = "sarar")
-#' summary(res)
-#' effects <- impacts(res, listw = listw,  R = 399)
-#' summary(effects)
+#' data(boston, package="spData")
+#' Wb <- as(spdep::nb2listw(boston.soi), "CsparseMatrix")
+#' ev <- eigen(Wb)$values
+#' trMatb <- spatialreg::trW(Wb, type="mult")
+#' sarar1 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + 
+#'                   I(RM^2) +  AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+#'                 data = boston.c, listw = Wb, model = "sarar")
+#' summary(sarar1)
+#' summary(impacts(sarar1, tr=trMatb, R=1000), zstats=TRUE, short=TRUE)
+#' summary(impacts(sarar1, evalues = ev, R=1000), zstats=TRUE, short=TRUE)
+#' 
+#' sarar2 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + 
+#'                   I(RM^2) +  AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+#'                 data = boston.c, listw = Wb, model = "sarar", Durbin = TRUE)
+#'
+#' summary(sarar2)
+#' impacts(sarar2, evalues = ev)
+#' impacts(sarar2, listw = spdep::nb2listw(boston.soi))
+#' impacts(sarar2, tr = trMatb)
+#' summary(impacts(sarar2, evalues = ev, R=1000), zstats=TRUE, short=TRUE)
+#' 
+#' sarar3 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + 
+#'                   I(RM^2) +  AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
+#'                 data = boston.c, listw = Wb, model = "sarar", Durbin = ~CRIM + TAX)
+#'
+#' summary(sarar3)
+#' impacts(sarar3, evalues = ev)
+#' impacts(sarar3, listw = spdep::nb2listw(boston.soi))
+#' impacts(sarar3, tr = trMatb)
+#' summary(impacts(sarar3, listw = spdep::nb2listw(boston.soi), R=1000), zstats=TRUE, short=TRUE)
+#' 
+#' sarar4 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + 
+#'                   I(RM^2) +  AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B , 
+#'                 data = boston.c, listw = Wb, model = "sarar", Durbin = ~CRIM + TAX + log(LSTAT))
+#'
+#' summary(sarar4)
+#' impacts(sarar4, evalues = ev)
+#' summary(impacts(sarar4, evalues = ev, R=1000), zstats=TRUE, short=TRUE)
+#' 
+#' sarar5 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) +  AGE + log(DIS), 
+#'                 data = boston.c, listw = Wb, model = "sarar", Durbin = ~ TAX + log(LSTAT))
+#'
+#' summary(sarar5)
+#' impacts(sarar5, evalues = ev)
+#' summary(impacts(sarar4, tr = trMatb, R=1000), zstats=TRUE, short=TRUE)
 #' @export
 #' @method impacts gstsls
 impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
@@ -66,6 +104,11 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
     rho <- coefs[p2]
     beta <- coefs[1:(p2-2)]
 
+    # print((lambda > interval[2]))
+    # print((lambda < interval[1]))
+    # #print(lambda > interval[2] | lambda < interval[1])
+if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spatial parameter outside of parameter space")    
+  
     p <- length(beta)
     p1 <- p + 1
     names(beta) <- rownames(object$coefficients)[1:(p2-2)]
@@ -215,6 +258,8 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
     names(beta) <- rownames(object$coefficients)[1:(p2-2)]
     p <- length(beta)
     p1 <- p + 1
+
+    if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spatial parameter outside of parameter space")    
     
     icept <- grep("(Intercept)", names(beta))
     iicept <- length(icept) > 0L
@@ -365,7 +410,8 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
    irho <- length(beta) + 1
    drop2beta <- length(beta) + 1
    
-
+   if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spatial parameter outside of parameter space")    
+   
   if(isTRUE(object$Durbin)){
     zero_fill <- NULL
     dvars <- NULL
@@ -511,7 +557,9 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     names(beta) <- rownames(object$coefficients)[1:(p2-1)]
     p <- length(beta)
     p1 <- p + 1
-  
+
+    if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spatial parameter outside of parameter space")    
+    
     icept <- grep("(Intercept)", names(beta))
     iicept <- length(icept) > 0L
     zero_fill <- NULL
@@ -579,13 +627,77 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
 #' @return Estimate of the Average Total, Average Direct, and Average Indirect Effects
 #'
 #' @examples
-#' data(columbus, package="spdep")
+#' data(boston, package="spData")
+#' Wb <- as(spdep::nb2listw(boston.soi), "CsparseMatrix") 
+#' ev <- eigen(Wb)$values
+#' trMatb <- spatialreg::trW(Wb, type="mult")
+#' 
+#' lm.D <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) +  AGE + log(DIS), 
+#'           data = boston.c, listw = Wb, model = "ols", Durbin =  TRUE)
+#' summary(lm.D)
+#' impacts(lm.D)
+#' summary(impacts(lm.D))
+#' 
+#' lm.D2 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) +  AGE + log(DIS), 
+#'                data = boston.c, listw = Wb, model = "ols", Durbin =  ~AGE)
+#' summary(lm.D2)
+#' impacts(lm.D2)
+#' summary(impacts(lm.D2))
+#' 
+#' lm.D3 <- spreg(log(CMEDV) ~ CRIM + ZN +  CHAS + I(NOX^2) + I(RM^2) +  AGE, 
+#'                data = boston.c, listw = Wb, model = "ols", Durbin =  ~AGE + INDUS )
+#' summary(lm.D3)
+#' impacts(lm.D3)
+#' summary(impacts(lm.D3))
+#' 
+#' require("sf", quietly=TRUE)
+#' columbus <- st_read(system.file("shapes/columbus.shp", package="spData")[1], quiet=TRUE)
+#' col.gal.nb <- spdep::read.gal(system.file("weights/columbus.gal", package="spData")[1])
 #' listw <- spdep::nb2listw(col.gal.nb)
-#' res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,
-#'             het = TRUE, verbose = FALSE, model = "ols", Durbin = TRUE)
-#' summary(res)
-#' effects <- impacts(res)
-#' summary(effects)
+#' knear <- spdep::knearneigh(cbind(columbus$X, columbus$Y), 5)
+#' knb <- spdep::knn2nb(knear)
+#' dist <- spdep::nbdists(knb, cbind(columbus$X, columbus$Y))
+#' k5d <- spdep::nb2listw(knb, glist = dist, style = "B")
+#' class(k5d) <- c("listw", "nb", "distance")
+#' lm.D4 <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
+#'                model = "ols")
+#' summary(lm.D4)
+#' impacts(lm.D4)
+#' 
+#' lm.D5 <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin= ~ INC,
+#'                model = "ols")
+#' summary(lm.D5)
+#' impacts(lm.D5)
+#' summary(impacts(lm.D5))
+#' 
+#' lm.D6 <- spreg(CRIME ~ HOVAL, columbus, listw, Durbin= ~ INC,
+#'                model = "ols")
+#' summary(lm.D6)
+#' summary(impacts(lm.D6))
+#' \dontrun{
+#' lm.D7 <- spreg(CRIME ~ INC + HOVAL, columbus, listw,
+#'                  model = "ols", HAC = TRUE, distance = k5d, 
+#'                                   type = "Triangular")
+#' summary(lm.D7)
+#' impacts(lm.D7)
+#' summary(impacts(lm.D7))
+#' }
+#' lm.D8 <- spreg(CRIME ~ INC + HOVAL, data = columbus, listw = listw, Durbin=TRUE,
+#'                model = "ols", distance = k5d, type = "Triangular")
+#' summary(lm.D8)
+#' impacts(lm.D8)
+#' summary(impacts(lm.D8))
+#' 
+#' 
+#' lmD.9 <- spreg(CRIME ~ INC + HOVAL, data = columbus, listw = listw, Durbin= ~ INC,
+#'                model = "ols", distance = k5d, type = "Parzen")
+#'                
+#' impacts(lmD.9)
+#' 
+#' lmD.10 <- spreg(CRIME ~ HOVAL, columbus, listw, Durbin= ~ INC,
+#'                 model = "ols", distance = k5d, type = "Bisquare")
+#' summary(lmD.10)
+#' summary(impacts(lmD.10))
 #' @export
 #' @method impacts ols_sphet
 
@@ -595,7 +707,8 @@ impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
   
   if(isFALSE(obj$Durbin) && !is.formula(obj$Durbin)) 
     stop("Trying to evaluate impacts in linear models without spatially autocorrelated regressors")
-  if (!is.null(obj$endo)) stop("impacts for model with additional endogenous variables not yet available in sphet")
+  #engenous is true only for the OLS
+  if (isTRUE(obj$endog)) stop("impacts for model with additional endogenous variables not yet available in sphet")
   
   
      beta <- drop(obj$coefficients)
@@ -631,11 +744,7 @@ impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
      st.err <- sqrt(diag(Sigma))
      st.err.tot <- c()
      for(i in 1:(p/2))  st.err.tot[i] <-  sqrt(Sigma[i,i] + Sigma[(i+p/2),(i+p/2)] + 2*Sigma[i,(i+p/2)])
-     #print(st.err.tot)
-     #print(st.err)
-     #print(names(b1)[1:(p/2)])
-     #print(c(b1[((p/2)+1):p], st.err[((p/2)+1):p]))
-     #print((length(p)/2))
+
      indirImps <- matrix(c(b1[((p/2)+1):p], st.err[((p/2)+1):p]), nrow = p/2, ncol = 2, byrow = F)
      rownames(indirImps) <- names(b1)[1:(p/2)]
      
@@ -658,7 +767,6 @@ impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
      
     }  
     else{
-      ##not yet implementeds_
       dvars <- NULL
       
       dn <- grep("lag_", names(beta)) #which of the names of beta has "lag_"
@@ -721,12 +829,15 @@ impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
       p1 <- ncol(Sigma.b)
       
       if(is.matrix(Sigma.x)) st.err.x <- sqrt(diag(Sigma.x))
-      if(is.numeric(Sigma.x)) st.err.x <- sqrt(Sigma.x)
-      if(!is.null(p1)) for (i in 1:(p1/2)) st.err.b <-  sqrt(Sigma.b[i,i] + Sigma.b[(i+p1/2),(i+p1/2)] + 2*Sigma.b[i,(i+p1/2)])
+      if(l_xo ==1) st.err.x <- sqrt(Sigma.x)
+      #print(st.err.x)
+      st.err.b <- c()
+      if(!is.null(p1)) for (i in 1:(p1/2)) st.err.b <-  c(st.err.b, sqrt(Sigma.b[i,i] + Sigma.b[(i+p1/2),(i+p1/2)] + 2*Sigma.b[i,(i+p1/2)]))
+      #print(st.err.b)
       if(is.matrix(Sigma.o)) st.err.o <-  sqrt(diag(Sigma.o))
-      if(is.numeric(Sigma.o)) st.err.o <- sqrt(Sigma.o)
-      
-
+      if(l_don == 1) st.err.o <- sqrt(Sigma.o)
+      #print(st.err.o)
+      #print(p1)
       if(!is.null(p1)) st.err.T <- c(st.err.x, st.err.b, st.err.o)
       else st.err.T <- c(st.err.x,  st.err.o)
       
@@ -746,6 +857,7 @@ impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
       
       totImps <- cbind(b2[1:(p/2)] + b2[((p/2)+1):p], st.err.T)
       
+      
       colnames(indirImps) <- colnames(dirImps) <- colnames(totImps) <- c("Estimate", "Std. Error")
       
       mixedImps <- list(dirImps=dirImps, indirImps=indirImps,
@@ -756,12 +868,7 @@ impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
       attr(res, "mixedImps") <- mixedImps
       class(res) <- c("ols_sphet", "SLX")
       
-      
-      
-      
-      
-      
-    }    
+          }    
   
     spatialreg::impacts.SLX(res)
 }
@@ -786,28 +893,23 @@ impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
 #' @return Estimate of the Average Total, Average Direct, and Average Indirect Effects
 #'
 #' @examples
+#' library(sphet)
 #' require("sf", quietly=TRUE)
-#' library(coda)
 #' columbus <- st_read(system.file("shapes/columbus.shp", package="spData")[1], quiet=TRUE)
 #' col.gal.nb <- spdep::read.gal(system.file("weights/columbus.gal", package="spData")[1])
 #' listw <- spdep::nb2listw(col.gal.nb)
-#' mobj_gme <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
-#'                   model = "error")
-#' summary(mobj_gme)
-#' mobj_gmhe <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
-#'                   model = "error", het = TRUE)
-#' summary(mobj_gmhe)
-#' summary(impacts(mobj_gme))
-#' summary(impacts(mobj_gmhe))
-#' mobj1_gme <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin= ~ INC,
-#'                   model = "error")
-#' mobj1_gmhe <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin= ~ INC,
-#'                    model = "error", het = TRUE)
-#' impacts(mobj1_gme)
-#' impacts(mobj1_gmhe)
-#' mobj1_gme <- spreg(CRIME ~ HOVAL, columbus, listw, Durbin= ~ INC,
-#'                    model = "error")
-#' summary(impacts(mobj1_gme))
+#' error1 <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
+#'                 model = "error")
+#' summary(error1)
+#' impacts(error1)
+#' summary(impacts(error1))
+#' error2 <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin= ~ INC,
+#'                 model = "error")
+#' impacts(error2)
+#' error3 <- spreg(CRIME ~ HOVAL, columbus, listw, Durbin= ~ INC,
+#'                 model = "error")
+#' summary(impacts(error3))
+#' 
 #' @export
 #' @method impacts error_sphet
 
@@ -880,7 +982,6 @@ impacts.error_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     
   }  
   else{
-    ##not yet implementeds_
     dvars <- NULL
     
     dn <- grep("lag_", names(beta)) #which of the names of beta has "lag_"
@@ -933,8 +1034,8 @@ impacts.error_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
                        match(c(sort(names(xb)), paste("lag_", sort(names(xb)),sep="")), rownames(Sigma))]
       Sigma.o <- Sigma[match(names(don), rownames(Sigma)), match(names(don), rownames(Sigma))]
     }
-  #  print(Sigma)
-  #  print(sqrt(diag(Sigma)))
+    #  print(Sigma)
+    #  print(sqrt(diag(Sigma)))
     
     st.err <- sqrt(diag(Sigma))
     p <- length(b1)
@@ -943,31 +1044,26 @@ impacts.error_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     p1 <- ncol(Sigma.b)
     
     if(is.matrix(Sigma.x)) st.err.x <- sqrt(diag(Sigma.x))
-    if(is.numeric(Sigma.x)) st.err.x <- sqrt(Sigma.x)
-    if(!is.null(p1)) for (i in 1:(p1/2)) st.err.b <-  sqrt(Sigma.b[i,i] + Sigma.b[(i+p1/2),(i+p1/2)] + 2*Sigma.b[i,(i+p1/2)])
+    if(l_xo ==1) st.err.x <- sqrt(Sigma.x)
+    #print(st.err.x)
+    st.err.b <- c()
+    if(!is.null(p1)) for (i in 1:(p1/2)) st.err.b <-  c(st.err.b, sqrt(Sigma.b[i,i] + Sigma.b[(i+p1/2),(i+p1/2)] + 2*Sigma.b[i,(i+p1/2)]))
+    #print(st.err.b)
     if(is.matrix(Sigma.o)) st.err.o <-  sqrt(diag(Sigma.o))
-    if(is.numeric(Sigma.o)) st.err.o <- sqrt(Sigma.o)
-
-    #print(st.err)    
-#print(st.err.x)
-#print(st.err.b)
-#print(st.err.o)
-
-
+    if(l_don == 1) st.err.o <- sqrt(Sigma.o)
+    #print(st.err.o)
+    #print(p1)
     if(!is.null(p1)) st.err.T <- c(st.err.x, st.err.b, st.err.o)
     else st.err.T <- c(st.err.x,  st.err.o)
-
     
-if(!is.null(p1)) st.err <- c(st.err[1:l_xo], st.err[(1+l_xo):(l_xo+l_xb)], rep(NA, l_don), 
-                rep(NA, l_xo),st.err[(1+l_xo+l_xb):(l_xo + l_xb +l_gamma)], 
-                st.err[(l_xo + l_xb +l_gamma+1):(l_xo + l_xb +l_gamma+l_don)])
+    
+    if(!is.null(p1)) st.err <- c(st.err[1:l_xo], st.err[(1+l_xo):(l_xo+l_xb)], rep(NA, l_don), 
+                                 rep(NA, l_xo),st.err[(1+l_xo+l_xb):(l_xo + l_xb +l_gamma)], 
+                                 st.err[(l_xo + l_xb +l_gamma+1):(l_xo + l_xb +l_gamma+l_don)])
     else st.err <- c(st.err[1:l_xo], rep(NA, l_xo), 
                      rep(NA, l_don), st.err[(1+l_xo):(l_xo + l_don)])
-#print(st.err[1:l_xo])    
-#print(rep(NA, l_xo))
-#print(rep(NA, l_don))
-#print(st.err[(1+l_xo):(l_xo + l_don)])    
-#print((1+l_xo):(l_xo + l_don))
+    
+    
     indirImps <- matrix(c(b1[((p/2)+1):p], st.err[((p/2)+1):p]), nrow = p/2, ncol = 2, byrow = F)
     rownames(indirImps) <- names(b1)[1:(p/2)]
     
@@ -975,6 +1071,7 @@ if(!is.null(p1)) st.err <- c(st.err[1:l_xo], st.err[(1+l_xo):(l_xo+l_xb)], rep(N
     rownames(dirImps) <- names(b1)[1:(p/2)]
     
     totImps <- cbind(b2[1:(p/2)] + b2[((p/2)+1):p], st.err.T)
+    
     
     colnames(indirImps) <- colnames(dirImps) <- colnames(totImps) <- c("Estimate", "Std. Error")
     
@@ -985,7 +1082,6 @@ if(!is.null(p1)) st.err <- c(st.err[1:l_xo], st.err[(1+l_xo):(l_xo+l_xb)], rep(N
     res$k <- obj$k
     attr(res, "mixedImps") <- mixedImps
     class(res) <- c("ols_sphet", "SLX")
-    
     
     
     

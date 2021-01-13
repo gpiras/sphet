@@ -188,7 +188,7 @@ else{
     cat("\nCall:\n", deparse(x$call), "\n\n", sep = "")
     if (length(coef(x))) {
         cat("Coefficients:\n")
-        print.default(format(coef(x), digits = digits), print.gap = 2, 
+        print.default(format(x$coefficients[,1], digits = digits), print.gap = 2, 
             quote = FALSE)
     }
     else cat("No coefficients\n")
