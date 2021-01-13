@@ -42,11 +42,64 @@ Estimate of the Average Total, Average Direct, and Average Indirect Effects
 Generate impacts for objects of class lag_gmm created in sphet
 }
 \examples{
-data(columbus, package="spdep")
+require("sf", quietly=TRUE)
+library(coda)
+columbus <- st_read(system.file("shapes/columbus.shp", package="spData")[1], quiet=TRUE)
+col.gal.nb <- spdep::read.gal(system.file("weights/columbus.gal", package="spData")[1])
 listw <- spdep::nb2listw(col.gal.nb)
-res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,
-            het = TRUE, verbose = FALSE, model = "lag")
-summary(res)
-effects <- impacts(res, listw = listw,  R = 399)
-summary(effects)
+ev <- spatialreg::eigenw(listw)
+W <- as(listw, "CsparseMatrix")
+trMatc <- spatialreg::trW(W, type="mult")
+trMC <- spatialreg::trW(W, type="MC")
+#LAG
+lobj_gm <- spreg(CRIME ~ INC + HOVAL, columbus, listw,
+                model = "lag")
+summary(lobj_gm)
+lobj_gmh <- spreg(CRIME ~ INC + HOVAL, columbus, listw,
+                 model = "lag", het = TRUE)
+summary(lobj_gmh)
+set.seed(1)
+impacts(lobj_gm, listw=listw)
+impacts(lobj_gm, tr=trMatc)
+impacts(lobj_gm, tr=trMC)
+impacts(lobj_gm, evalues=ev)
+impacts(lobj_gmh, listw=listw)
+impacts(lobj_gmh, tr=trMatc)
+impacts(lobj_gmh, tr=trMC)
+impacts(lobj_gmh, evalues=ev)
+#same impacts but different SD
+summary(impacts(lobj_gm, evalues = ev, R = 1000))
+summary(impacts(lobj_gmh, evalues = ev, R = 1000))
+lobjIQ5_gm <- impacts(lobj_gm, tr=trMatc, R=1000, Q=5)
+summary(lobjIQ5_gm, zstats=TRUE, short=TRUE)
+summary(lobjIQ5_gm, zstats=TRUE, short=TRUE, reportQ=TRUE)
+# LAG durbin TRUE
+mobj_gm <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
+                model = "lag")
+summary(mobj_gm)
+mobj_gmh <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
+                 model = "lag", het = TRUE)
+summary(mobj_gmh)
+impacts(mobj_gm, listw=listw)
+impacts(mobj_gm, tr=trMatc)
+impacts(mobj_gm, tr=trMC)
+impacts(mobj_gm, evalues=ev)
+summary(impacts(mobj_gm, evalues=ev, R=1000), short=TRUE, zstats=TRUE)
+impacts(mobj_gmh, listw=listw)
+impacts(mobj_gmh, tr=trMatc)
+impacts(mobj_gmh, tr=trMC)
+impacts(mobj_gmh, evalues=ev)
+summary(impacts(mobj_gmh, tr=trMatc, R=1000), short=TRUE, zstats=TRUE)
+#lag durbin = ~formula
+mobj1_gm <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin= ~ INC,
+                 model = "lag")
+mobj1_gmh <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin= ~ INC,
+                  model = "lag", het = TRUE)
+impacts(mobj1_gm, tr=trMatc)
+impacts(mobj1_gm, listw=listw)
+summary(impacts(mobj_gm, evalues=ev, R=200), short=TRUE, zstats=TRUE)
+summary(impacts(mobj1_gm, tr=trMatc, R=200), short=TRUE, zstats=TRUE)
+mobj1_gm <- spreg(CRIME ~ HOVAL, columbus, listw, Durbin= ~ INC,
+                 model = "lag")
+summary(impacts(mobj1_gm, evalues=ev, R=200), short=TRUE, zstats=TRUE)
 }

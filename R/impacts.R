@@ -48,7 +48,12 @@ impacts <- function(obj, ...){
 impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
                            tol=1e-6, empirical=FALSE, Q=NULL) {
 
+  
+  
   object <- obj
+  if (!is.null(object$endo)) stop("impacts for model with additional endogenous variables not yet available in sphet")
+  
+  
   if(isTRUE(object$Durbin) | class(object$Durbin) == "formula"){
     
     type <- "mixed"
@@ -74,7 +79,7 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
     Sigma <- object$var  
     rownames(Sigma) <- colnames(Sigma) <- names(coefs)
     
-    
+    #print(Sigma)
     if(isTRUE(object$Durbin)){
       zero_fill <- NULL
       dvars <- NULL
@@ -88,23 +93,15 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
       
       if(!is.null(R)){
         mu <- c(beta, lambda, rho)
-        Sigma <- object$var
+        #Sigma <- object$var
         
       }
-      res <- spatialreg::intImpacts(rho=lambda, beta=beta, P=P, n=n, mu=mu,
-                                    Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
-                                    interval=interval, type = type, tr=tr, R=R, listw=listw, evalues=evalues,
-                                    tol=tol, empirical=empirical, Q=Q, icept=icept, iicept=iicept, p=p, 
-                                    zero_fill = zero_fill)
-      
-      
+
     }  
     
     else{
       
       dvars <- NULL
-      
-      
       
       dn <- grep("lag_", names(beta)) #which of the names of beta has "lag_"
       dc <- beta[dn] # betas that are lagged
@@ -115,6 +112,7 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
       if(length(which(names(beta1) %in% stringr::str_remove(names(dc),"lag_") ))>=1) xo <- beta1[ -which(names(beta1) %in% stringr::str_remove(names(dc),"lag_") )]
       else xo <- beta1
       
+      
       gamma <- dc[which( stringr::str_remove(names(dc),"lag_")  %in% names(beta1))]
       gamma <- gamma[order(names(gamma))]
       l_gamma <- length(gamma)
@@ -123,63 +121,83 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
       else don <- dc
       l_don <- length(don)
       
+      
+      
       if (iicept) {
         xo <- xo[-icept]
         l_xo <- length(xo)  
-        b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
-       # print(b2)
+        if(l_xb != 0){
+          b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
+          bnames <- c(names(xo), sort(names(xb)), names(don)) 
+        } 
+        else{
+          b2 <- c(xo, rep(0, l_don), rep(0, l_xo),  don)
+          bnames <- c(names(xo), names(don)) 
+        }
         P <- matrix(b2, ncol = 2)
-        # print(names(xb))
-        # print(sort(names(xb)))
-        bnames <- c(names(xo), sort(names(xb)), names(don))
       } 
       else {
         xo <- xo
         l_xo <- length(xo)
-        b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
+        if(l_xb != 0){
+          b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
+          bnames <- c(names(xo), sort(names(xb)), names(don)) 
+        } 
+        else{
+          b2 <- c(xo, rep(0, l_don), rep(0, l_xo),  don)
+          bnames <- c(names(xo), names(don)) 
+        }
         P <- matrix(b2, ncol = 2)
-        bnames <- c(names(xo), sort(names(xb)), names(don))
       }
       
       
       if(!is.null(R)){
-        if (l_xo != 0 && l_don != 0) {
+        
+        #first build the zero fills
+        if (l_xo != 0 && l_don != 0 && l_xb !=0) {
           zero_fill <- list(1: l_xo, (l_xo+1):(l_xo+ l_xb),  l_don, 
                             l_xo, (l_xo + l_xb+1):  (l_xo + l_xb+l_gamma),
                             (l_xo + l_xb+l_gamma+1):(l_xo + l_xb+l_gamma+l_don))
           l_zero_fill <- 6
         }
-        else{
-          if(l_xo != 0 && l_don == 0) {
-            zero_fill <- list(1: l_xo, (l_xo+1):(l_xo+ l_xb),  
-                              l_xo, (l_xo + l_xb+1):  (l_xo + l_xb+l_gamma))
-            
-            l_zero_fill <- 5
-          }
-          else  {
-            zero_fill <- list(1: l_xb,  l_don,(l_xb+1):  (l_xb+l_gamma), (l_xb+l_gamma+1):( l_xb+l_gamma+l_don))
-            l_zero_fill <- 4
-          }
+        
+        if(l_xo != 0 && l_don == 0 && l_xb != 0) {
+          zero_fill <- list(1: l_xo, (l_xo+1):(l_xo+ l_xb),  
+                            l_xo, (l_xo + l_xb+1):  (l_xo + l_xb+l_gamma))
+          
+          l_zero_fill <- 5
+        }
+        if(l_xo == 0 && l_don != 0 && l_xb !=0)  {
+          zero_fill <- list(1: l_xb,  l_don,(l_xb+1):  (l_xb+l_gamma), (l_xb+l_gamma+1):( l_xb+l_gamma+l_don))
+          l_zero_fill <- 4
         }
         
+        if(l_xo != 0 && l_don != 0 && l_xb ==0)  {
+          zero_fill <- list(1: l_xo, l_don, 
+                            l_xo, (l_xo+1):(l_xo +l_don))
+          l_zero_fill <- 3
+        }
+        
+        # if(l_xo == 0 && l_don != 0 && l_xb ==0){
+        #   zero_fill <- list(l_don, 1: l_don)
+        #   l_zero_fill <- 2   
+        #   
+        # }
+        
+       # print(class(zero_fill))
         attr(zero_fill, "l_zero_fill") <- l_zero_fill
-       
+        #  print(l_zero_fill)
+       # print(Sigma)
         if(iicept) mu <- c(beta[1], xo, xb, gamma, don, lambda, rho)
         else mu <- c(xo, xb, gamma, don, lambda, rho)
-        #print(mu)
-        Sigma <- Sigma[match(names(mu), rownames(Sigma)),match(names(mu), rownames(Sigma)) ]
+        #print(names(mu))
+        #print(rownames(Sigma))
+        Sigma <- Sigma[match(names(mu), rownames(Sigma)),match(names(mu), colnames(Sigma)) ]
+        #
         #print(Sigma)
       }
-    
-      # if (!requireNamespace("spatialreg", quietly=TRUE))
-      #   stop("install spatialreg")
-      # #print(P)
-      res <- spatialreg::intImpacts(rho=lambda, beta=beta, P=P, n=n, mu=mu,
-                                    Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
-                                    interval=interval, type = type, tr=tr, R=R, listw=listw, evalues=evalues,
-                                    tol=tol, empirical=empirical, Q=Q, icept=icept, iicept=iicept, p=p, 
-                                    zero_fill = zero_fill)
       
+
       
     }
   }
@@ -227,14 +245,14 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
     
     # if (!requireNamespace("spatialreg", quietly=TRUE))
     #   stop("install spatialreg")
-    res <- spatialreg::intImpacts(rho=lambda, beta=beta, P=P, n=n, mu=mu,
-                                  Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
-                                  interval=interval, type = type, tr=tr, R=R, listw=listw, evalues=evalues,
-                                  tol=tol, empirical=empirical, Q=Q, icept=icept, iicept=iicept, p=p)
     
     
   }
-  #############################################
+  #print(beta)
+  res <- spatialreg::intImpacts(rho=lambda, beta=beta, P=P, n=n, mu=mu,
+                                Sigma=Sigma, irho=irho, drop2beta=drop2beta, bnames=bnames,
+                                interval=interval, type = type, tr=tr, R=R, listw=listw, evalues=evalues,
+                                tol=tol, empirical=empirical, Q=Q, icept=icept, iicept=iicept, p=p, zero_fill = zero_fill)
   
   attr(res, "iClass") <- class(object)
   
@@ -260,13 +278,66 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
 #' @return Estimate of the Average Total, Average Direct, and Average Indirect Effects
 #'
 #' @examples
-#' data(columbus, package="spdep")
+#' require("sf", quietly=TRUE)
+#' library(coda)
+#' columbus <- st_read(system.file("shapes/columbus.shp", package="spData")[1], quiet=TRUE)
+#' col.gal.nb <- spdep::read.gal(system.file("weights/columbus.gal", package="spData")[1])
 #' listw <- spdep::nb2listw(col.gal.nb)
-#' res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,
-#'             het = TRUE, verbose = FALSE, model = "lag")
-#' summary(res)
-#' effects <- impacts(res, listw = listw,  R = 399)
-#' summary(effects)
+#' ev <- spatialreg::eigenw(listw)
+#' W <- as(listw, "CsparseMatrix")
+#' trMatc <- spatialreg::trW(W, type="mult")
+#' trMC <- spatialreg::trW(W, type="MC")
+#' #LAG
+#' lobj_gm <- spreg(CRIME ~ INC + HOVAL, columbus, listw,
+#'                 model = "lag")
+#' summary(lobj_gm)
+#' lobj_gmh <- spreg(CRIME ~ INC + HOVAL, columbus, listw,
+#'                  model = "lag", het = TRUE)
+#' summary(lobj_gmh)
+#' set.seed(1)
+#' impacts(lobj_gm, listw=listw)
+#' impacts(lobj_gm, tr=trMatc)
+#' impacts(lobj_gm, tr=trMC)
+#' impacts(lobj_gm, evalues=ev)
+#' impacts(lobj_gmh, listw=listw)
+#' impacts(lobj_gmh, tr=trMatc)
+#' impacts(lobj_gmh, tr=trMC)
+#' impacts(lobj_gmh, evalues=ev)
+#' #same impacts but different SD
+#' summary(impacts(lobj_gm, evalues = ev, R = 1000))
+#' summary(impacts(lobj_gmh, evalues = ev, R = 1000))
+#' lobjIQ5_gm <- impacts(lobj_gm, tr=trMatc, R=1000, Q=5)
+#' summary(lobjIQ5_gm, zstats=TRUE, short=TRUE)
+#' summary(lobjIQ5_gm, zstats=TRUE, short=TRUE, reportQ=TRUE)
+#' # LAG durbin TRUE
+#' mobj_gm <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
+#'                 model = "lag")
+#' summary(mobj_gm)
+#' mobj_gmh <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
+#'                  model = "lag", het = TRUE)
+#' summary(mobj_gmh)
+#' impacts(mobj_gm, listw=listw)
+#' impacts(mobj_gm, tr=trMatc)
+#' impacts(mobj_gm, tr=trMC)
+#' impacts(mobj_gm, evalues=ev)
+#' summary(impacts(mobj_gm, evalues=ev, R=1000), short=TRUE, zstats=TRUE)
+#' impacts(mobj_gmh, listw=listw)
+#' impacts(mobj_gmh, tr=trMatc)
+#' impacts(mobj_gmh, tr=trMC)
+#' impacts(mobj_gmh, evalues=ev)
+#' summary(impacts(mobj_gmh, tr=trMatc, R=1000), short=TRUE, zstats=TRUE)
+#' #lag durbin = ~formula
+#' mobj1_gm <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin= ~ INC,
+#'                  model = "lag")
+#' mobj1_gmh <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin= ~ INC,
+#'                   model = "lag", het = TRUE)
+#' impacts(mobj1_gm, tr=trMatc)
+#' impacts(mobj1_gm, listw=listw)
+#' summary(impacts(mobj_gm, evalues=ev, R=200), short=TRUE, zstats=TRUE)
+#' summary(impacts(mobj1_gm, tr=trMatc, R=200), short=TRUE, zstats=TRUE)
+#' mobj1_gm <- spreg(CRIME ~ HOVAL, columbus, listw, Durbin= ~ INC,
+#'                  model = "lag")
+#' summary(impacts(mobj1_gm, evalues=ev, R=200), short=TRUE, zstats=TRUE)
 #' @export
 #' @method impacts stsls_sphet
 impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
@@ -274,7 +345,7 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
   
   
   object <- obj
-  
+  if (!is.null(object$endo)) stop("impacts for model with additional endogenous variables not yet available in sphet")
  if(isTRUE(object$Durbin) | class(object$Durbin) == "formula"){
   
    type <- "mixed"
@@ -346,42 +417,67 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
   if (iicept) {
       xo <- xo[-icept]
       l_xo <- length(xo)  
-      b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
+     if(l_xb != 0){
+       b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
+       bnames <- c(names(xo), sort(names(xb)), names(don)) 
+     } 
+      else{
+        b2 <- c(xo, rep(0, l_don), rep(0, l_xo),  don)
+        bnames <- c(names(xo), names(don)) 
+      }
       P <- matrix(b2, ncol = 2)
-      # print(names(xb))
-      # print(sort(names(xb)))
-      bnames <- c(names(xo), sort(names(xb)), names(don))
     } 
   else {
     xo <- xo
     l_xo <- length(xo)
-    b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
+    if(l_xb != 0){
+      b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
+      bnames <- c(names(xo), sort(names(xb)), names(don)) 
+    } 
+    else{
+      b2 <- c(xo, rep(0, l_don), rep(0, l_xo),  don)
+      bnames <- c(names(xo), names(don)) 
+    }
     P <- matrix(b2, ncol = 2)
-    bnames <- c(names(xo), sort(names(xb)), names(don))
     }
   
   
    if(!is.null(R)){
-    if (l_xo != 0 && l_don != 0) {
+     
+ #first build the zero fills
+    if (l_xo != 0 && l_don != 0 && l_xb !=0) {
       zero_fill <- list(1: l_xo, (l_xo+1):(l_xo+ l_xb),  l_don, 
                      l_xo, (l_xo + l_xb+1):  (l_xo + l_xb+l_gamma),
                      (l_xo + l_xb+l_gamma+1):(l_xo + l_xb+l_gamma+l_don))
      l_zero_fill <- 6
     }
-     else{
-    if(l_xo != 0 && l_don == 0) {
+     
+    if(l_xo != 0 && l_don == 0 && l_xb != 0) {
       zero_fill <- list(1: l_xo, (l_xo+1):(l_xo+ l_xb),  
                                                   l_xo, (l_xo + l_xb+1):  (l_xo + l_xb+l_gamma))
     
       l_zero_fill <- 5
     }
-    else  {
+    if(l_xo == 0 && l_don != 0 && l_xb !=0)  {
       zero_fill <- list(1: l_xb,  l_don,(l_xb+1):  (l_xb+l_gamma), (l_xb+l_gamma+1):( l_xb+l_gamma+l_don))
     l_zero_fill <- 4
-}
+    }
+     
+     if(l_xo != 0 && l_don != 0 && l_xb ==0)  {
+       zero_fill <- list(1: l_xo, l_don, 
+                         l_xo, (l_xo+1):(l_xo +l_don))
+       l_zero_fill <- 3
      }
      
+     # if(l_xo == 0 && l_don != 0 && l_xb ==0){
+     #   zero_fill <- list(l_don, 1: l_don)
+     #   l_zero_fill <- 2   
+     #   
+     # }
+ 
+# print(class(zero_fill))
    attr(zero_fill, "l_zero_fill") <- l_zero_fill
+#   print(l_zero_fill)
 
    if(iicept) mu <- c(beta[1], xo, xb, gamma, don, lambda)
    else mu <- c(xo, xb, gamma, don, lambda)
@@ -464,6 +560,443 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
   res
 }
 
+
+
+
+#' @title Generate impacts for objects of class ols_sphet created in sphet
+#'
+#' @param obj A spreg spatial regression object created by \code{spreg} with model ="lag"
+#' @param tr A vector of traces of powers of the spatial weights matrix created using \code{trW}, for approximate impact measures; if not given, \code{listw} must be given for exact measures (for small to moderate spatial weights matrices); the traces must be for the same spatial weights as were used in fitting the spatial regression
+#' @param R If given, simulations are used to compute distributions for the impact measures, returned as \code{mcmc} objects
+#' @param listw a listw object
+#' @param evalues vector of eigenvalues of spatial weights matrix for impacts calculations
+#' @param tol Argument passed to \code{mvrnorm}: tolerance (relative to largest variance) for numerical lack of positive-definiteness in the coefficient covariance matrix
+#' @param empirical Argument passed to \code{mvrnorm} (default FALSE): if true, the coefficients and their covariance matrix specify the empirical not population mean and covariance matrix
+#' @param Q default NULL, else an integer number of cumulative power series impacts to calculate if \code{tr} is given
+#' @param ... Arguments passed through to methods in the \pkg{coda} package 
+
+#'
+#' @return Estimate of the Average Total, Average Direct, and Average Indirect Effects
+#'
+#' @examples
+#' data(columbus, package="spdep")
+#' listw <- spdep::nb2listw(col.gal.nb)
+#' res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,
+#'             het = TRUE, verbose = FALSE, model = "ols", Durbin = TRUE)
+#' summary(res)
+#' effects <- impacts(res)
+#' summary(effects)
+#' @export
+#' @method impacts ols_sphet
+
+impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
+                              evalues=NULL, tol=1e-6, empirical=FALSE, Q=NULL){
+  
+  
+  if(isFALSE(obj$Durbin) && !is.formula(obj$Durbin)) 
+    stop("Trying to evaluate impacts in linear models without spatially autocorrelated regressors")
+  if (!is.null(obj$endo)) stop("impacts for model with additional endogenous variables not yet available in sphet")
+  
+  
+     beta <- drop(obj$coefficients)
+     Sigma <- obj$var
+    p <- length(beta)
+   names(beta) <- rownames(obj$coefficients)
+    #print(beta)
+    
+   icept <- grep("(Intercept)", names(beta))
+    iicept <- length(icept) > 0L
+    n <- length(obj$residuals)
+    
+     
+    
+    if(isTRUE(obj$Durbin)){
+
+      zero_fill <- NULL
+      dvars <- NULL
+      
+      if (iicept) {
+        b1 <- beta[-icept]
+        Sigma <- Sigma[-icept, -icept]
+      }
+      else{
+        b1 <- beta
+        Sigma <- Sigma
+      } 
+      p <- length(b1)
+
+      if (p %% 2 != 0) stop("non-matched coefficient pairs")
+      
+      
+     st.err <- sqrt(diag(Sigma))
+     st.err.tot <- c()
+     for(i in 1:(p/2))  st.err.tot[i] <-  sqrt(Sigma[i,i] + Sigma[(i+p/2),(i+p/2)] + 2*Sigma[i,(i+p/2)])
+     #print(st.err.tot)
+     #print(st.err)
+     #print(names(b1)[1:(p/2)])
+     #print(c(b1[((p/2)+1):p], st.err[((p/2)+1):p]))
+     #print((length(p)/2))
+     indirImps <- matrix(c(b1[((p/2)+1):p], st.err[((p/2)+1):p]), nrow = p/2, ncol = 2, byrow = F)
+     rownames(indirImps) <- names(b1)[1:(p/2)]
+     
+     dirImps <- matrix(c(b1[1:(p/2)], st.err[1:(p/2)]), nrow = p/2, ncol = 2, byrow = F )
+     rownames(dirImps) <- names(b1)[1:(p/2)]
+     
+     totImps <- cbind(indirImps[,1] + dirImps[,1], st.err.tot)
+     
+     colnames(indirImps) <- colnames(dirImps) <- colnames(totImps) <- c("Estimate", "Std. Error")
+     
+     mixedImps <- list(dirImps=dirImps, indirImps=indirImps,
+                       totImps=totImps)
+     res <- list()
+     res$n <- n
+     res$k <- obj$k
+     attr(res, "mixedImps") <- mixedImps
+     class(res) <- c("ols_sphet", "SLX")
+     
+     
+     
+    }  
+    else{
+      ##not yet implementeds_
+      dvars <- NULL
+      
+      dn <- grep("lag_", names(beta)) #which of the names of beta has "lag_"
+      dc <- beta[dn] # betas that are lagged
+      beta1 <- beta[-dn] # all the betas (and)including the lagged) 
+      xb <- beta1[which(names(beta1) %in% stringr::str_remove(names(dc),"lag_") )]
+      xb <- xb[order(names(xb))]
+      l_xb <- length(xb)
+      if(length(which(names(beta1) %in% stringr::str_remove(names(dc),"lag_") ))>=1) xo <- beta1[ -which(names(beta1) %in% stringr::str_remove(names(dc),"lag_") )]
+      else xo <- beta1
+      #print(l_xb)
+      
+      gamma <- dc[which( stringr::str_remove(names(dc),"lag_")  %in% names(beta1))]
+      gamma <- gamma[order(names(gamma))]
+      l_gamma <- length(gamma)
+      
+      if(length(which(stringr::str_remove(names(dc),"lag_") %in% names(beta1)))>=1) don <- dc[-which( stringr::str_remove(names(dc),"lag_")  %in% names(beta1))]
+      else don <- dc
+      l_don <- length(don)
+      
+      
+      
+      if (iicept) {
+        xo <- xo[-icept]
+        l_xo <- length(xo)  
+        b1 <- c(xo, xb, rep(NA, l_don), rep(NA, l_xo), gamma, don)
+        b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
+        if(l_xb !=0) bnames <- c(names(xo), sort(names(xb)), paste("lag_", sort(names(xb)),sep=""), names(don))
+        else bnames <- c(names(xo), names(don))
+        Sigma <- Sigma[-icept, -icept]
+        Sigma <- Sigma[match(bnames, rownames(Sigma)), match(bnames, rownames(Sigma))]
+        #print(bnames)
+        #print(rownames(Sigma))
+        #print(Sigma)
+        Sigma.x <- Sigma[match(names(xo), rownames(Sigma)), match(names(xo), rownames(Sigma))]
+        Sigma.b <- Sigma[match(c(sort(names(xb)), paste("lag_", sort(names(xb)),sep="")), rownames(Sigma)),
+                         match(c(sort(names(xb)), paste("lag_", sort(names(xb)),sep="")), rownames(Sigma))]
+        Sigma.o <- Sigma[match(names(don), rownames(Sigma)), match(names(don), rownames(Sigma))]
+      } 
+      else {
+        xo <- xo
+        l_xo <- length(xo)
+        b1 <- c(xo, xb, rep(NA, l_don), rep(NA, l_xo), gamma, don)
+        b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
+        if(l_xb !=0) bnames <- c(names(xo), sort(names(xb)), paste("lag_", sort(names(xb)),sep=""), names(don))
+        else bnames <- c(names(xo), names(don))
+        Sigma <- Sigma[match(bnames, rownames(Sigma)), match(bnames, rownames(Sigma))]
+        Sigma.x <- Sigma[match(names(xo), rownames(Sigma)), match(names(xo), rownames(Sigma))]
+        Sigma.b <- Sigma[match(c(sort(names(xb)), paste("lag_", sort(names(xb)),sep="")), rownames(Sigma)),
+                         match(c(sort(names(xb)), paste("lag_", sort(names(xb)),sep="")), rownames(Sigma))]
+        Sigma.o <- Sigma[match(names(don), rownames(Sigma)), match(names(don), rownames(Sigma))]
+      }
+      #  print(Sigma)
+      #  print(sqrt(diag(Sigma)))
+      
+      st.err <- sqrt(diag(Sigma))
+      p <- length(b1)
+      if (p %% 2 != 0) stop("non-matched coefficient pairs")
+      
+      p1 <- ncol(Sigma.b)
+      
+      if(is.matrix(Sigma.x)) st.err.x <- sqrt(diag(Sigma.x))
+      if(is.numeric(Sigma.x)) st.err.x <- sqrt(Sigma.x)
+      if(!is.null(p1)) for (i in 1:(p1/2)) st.err.b <-  sqrt(Sigma.b[i,i] + Sigma.b[(i+p1/2),(i+p1/2)] + 2*Sigma.b[i,(i+p1/2)])
+      if(is.matrix(Sigma.o)) st.err.o <-  sqrt(diag(Sigma.o))
+      if(is.numeric(Sigma.o)) st.err.o <- sqrt(Sigma.o)
+      
+
+      if(!is.null(p1)) st.err.T <- c(st.err.x, st.err.b, st.err.o)
+      else st.err.T <- c(st.err.x,  st.err.o)
+      
+      
+      if(!is.null(p1)) st.err <- c(st.err[1:l_xo], st.err[(1+l_xo):(l_xo+l_xb)], rep(NA, l_don), 
+                                   rep(NA, l_xo),st.err[(1+l_xo+l_xb):(l_xo + l_xb +l_gamma)], 
+                                   st.err[(l_xo + l_xb +l_gamma+1):(l_xo + l_xb +l_gamma+l_don)])
+      else st.err <- c(st.err[1:l_xo], rep(NA, l_xo), 
+                       rep(NA, l_don), st.err[(1+l_xo):(l_xo + l_don)])
+
+      
+      indirImps <- matrix(c(b1[((p/2)+1):p], st.err[((p/2)+1):p]), nrow = p/2, ncol = 2, byrow = F)
+      rownames(indirImps) <- names(b1)[1:(p/2)]
+      
+      dirImps <- matrix(c(b1[1:(p/2)], st.err[1:(p/2)]), nrow = p/2, ncol = 2, byrow = F )
+      rownames(dirImps) <- names(b1)[1:(p/2)]
+      
+      totImps <- cbind(b2[1:(p/2)] + b2[((p/2)+1):p], st.err.T)
+      
+      colnames(indirImps) <- colnames(dirImps) <- colnames(totImps) <- c("Estimate", "Std. Error")
+      
+      mixedImps <- list(dirImps=dirImps, indirImps=indirImps,
+                        totImps=totImps)
+      res <- list()
+      res$n <- n
+      res$k <- obj$k
+      attr(res, "mixedImps") <- mixedImps
+      class(res) <- c("ols_sphet", "SLX")
+      
+      
+      
+      
+      
+      
+    }    
+  
+    spatialreg::impacts.SLX(res)
+}
+
+
+
+
+
+#' @title Generate impacts for objects of class error_sphet created in sphet
+#'
+#' @param obj A spreg spatial regression object created by \code{spreg} with model ="lag"
+#' @param tr A vector of traces of powers of the spatial weights matrix created using \code{trW}, for approximate impact measures; if not given, \code{listw} must be given for exact measures (for small to moderate spatial weights matrices); the traces must be for the same spatial weights as were used in fitting the spatial regression
+#' @param R If given, simulations are used to compute distributions for the impact measures, returned as \code{mcmc} objects
+#' @param listw a listw object
+#' @param evalues vector of eigenvalues of spatial weights matrix for impacts calculations
+#' @param tol Argument passed to \code{mvrnorm}: tolerance (relative to largest variance) for numerical lack of positive-definiteness in the coefficient covariance matrix
+#' @param empirical Argument passed to \code{mvrnorm} (default FALSE): if true, the coefficients and their covariance matrix specify the empirical not population mean and covariance matrix
+#' @param Q default NULL, else an integer number of cumulative power series impacts to calculate if \code{tr} is given
+#' @param ... Arguments passed through to methods in the \pkg{coda} package 
+
+#'
+#' @return Estimate of the Average Total, Average Direct, and Average Indirect Effects
+#'
+#' @examples
+#' require("sf", quietly=TRUE)
+#' library(coda)
+#' columbus <- st_read(system.file("shapes/columbus.shp", package="spData")[1], quiet=TRUE)
+#' col.gal.nb <- spdep::read.gal(system.file("weights/columbus.gal", package="spData")[1])
+#' listw <- spdep::nb2listw(col.gal.nb)
+#' mobj_gme <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
+#'                   model = "error")
+#' summary(mobj_gme)
+#' mobj_gmhe <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
+#'                   model = "error", het = TRUE)
+#' summary(mobj_gmhe)
+#' summary(impacts(mobj_gme))
+#' summary(impacts(mobj_gmhe))
+#' mobj1_gme <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin= ~ INC,
+#'                   model = "error")
+#' mobj1_gmhe <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin= ~ INC,
+#'                    model = "error", het = TRUE)
+#' impacts(mobj1_gme)
+#' impacts(mobj1_gmhe)
+#' mobj1_gme <- spreg(CRIME ~ HOVAL, columbus, listw, Durbin= ~ INC,
+#'                    model = "error")
+#' summary(impacts(mobj1_gme))
+#' @export
+#' @method impacts error_sphet
+
+impacts.error_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
+                              evalues=NULL, tol=1e-6, empirical=FALSE, Q=NULL){
+  
+  
+  if(isFALSE(obj$Durbin) && !is.formula(obj$Durbin)) 
+    stop("Trying to evaluate impacts in error models without spatially autocorrelated regressors")
+  if (!is.null(obj$endo)) stop("impacts for model with additional endogenous variables not yet available in sphet")
+  
+  
+  cf <- drop(obj$coefficients)
+  names(cf) <- rownames(obj$coefficients)
+  rho <- length(cf)
+  beta <- cf[-rho]
+  Sigma <- obj$var[-rho,-rho]
+  colnames(Sigma) <- rownames(Sigma) <- names(cf)[-rho]
+  p <- length(beta)
+  names(beta) <- rownames(obj$coefficients)[-rho]
+  #print(Sigma)
+  
+  icept <- grep("(Intercept)", names(beta))
+  iicept <- length(icept) > 0L
+  n <- length(obj$residuals)
+  
+  
+  
+  if(isTRUE(obj$Durbin)){
+    
+    zero_fill <- NULL
+    dvars <- NULL
+    
+    if (iicept) {
+      b1 <- beta[-icept]
+      Sigma <- Sigma[-icept, -icept]
+    }
+    else{
+      b1 <- beta
+      Sigma <- Sigma
+    } 
+    p <- length(b1)
+    
+    if (p %% 2 != 0) stop("non-matched coefficient pairs")
+    
+    
+    st.err <- sqrt(diag(Sigma))
+    st.err.tot <- c()
+    for(i in 1:(p/2))  st.err.tot[i] <-  sqrt(Sigma[i,i] + Sigma[(i+p/2),(i+p/2)] + 2*Sigma[i,(i+p/2)])
+
+    indirImps <- matrix(c(b1[((p/2)+1):p], st.err[((p/2)+1):p]), nrow = p/2, ncol = 2, byrow = F)
+    rownames(indirImps) <- names(b1)[1:(p/2)]
+    
+    dirImps <- matrix(c(b1[1:(p/2)], st.err[1:(p/2)]), nrow = p/2, ncol = 2, byrow = F )
+    rownames(dirImps) <- names(b1)[1:(p/2)]
+    
+    totImps <- cbind(indirImps[,1] + dirImps[,1], st.err.tot)
+    
+    colnames(indirImps) <- colnames(dirImps) <- colnames(totImps) <- c("Estimate", "Std. Error")
+    
+    mixedImps <- list(dirImps=dirImps, indirImps=indirImps,
+                      totImps=totImps)
+    res <- list()
+    res$n <- n
+    res$k <- obj$k
+    attr(res, "mixedImps") <- mixedImps
+    class(res) <- c("ols_sphet", "SLX")
+    
+    
+    
+  }  
+  else{
+    ##not yet implementeds_
+    dvars <- NULL
+    
+    dn <- grep("lag_", names(beta)) #which of the names of beta has "lag_"
+    dc <- beta[dn] # betas that are lagged
+    beta1 <- beta[-dn] # all the betas (and)including the lagged) 
+    xb <- beta1[which(names(beta1) %in% stringr::str_remove(names(dc),"lag_") )]
+    xb <- xb[order(names(xb))]
+    l_xb <- length(xb)
+    if(length(which(names(beta1) %in% stringr::str_remove(names(dc),"lag_") ))>=1) xo <- beta1[ -which(names(beta1) %in% stringr::str_remove(names(dc),"lag_") )]
+    else xo <- beta1
+    #print(l_xb)
+    
+    gamma <- dc[which( stringr::str_remove(names(dc),"lag_")  %in% names(beta1))]
+    gamma <- gamma[order(names(gamma))]
+    l_gamma <- length(gamma)
+    
+    if(length(which(stringr::str_remove(names(dc),"lag_") %in% names(beta1)))>=1) don <- dc[-which( stringr::str_remove(names(dc),"lag_")  %in% names(beta1))]
+    else don <- dc
+    l_don <- length(don)
+    
+    
+    
+    if (iicept) {
+      xo <- xo[-icept]
+      l_xo <- length(xo)  
+      b1 <- c(xo, xb, rep(NA, l_don), rep(NA, l_xo), gamma, don)
+      b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
+      if(l_xb !=0) bnames <- c(names(xo), sort(names(xb)), paste("lag_", sort(names(xb)),sep=""), names(don))
+      else bnames <- c(names(xo), names(don))
+      Sigma <- Sigma[-icept, -icept]
+      Sigma <- Sigma[match(bnames, rownames(Sigma)), match(bnames, rownames(Sigma))]
+      #print(bnames)
+      #print(rownames(Sigma))
+      #print(Sigma)
+      Sigma.x <- Sigma[match(names(xo), rownames(Sigma)), match(names(xo), rownames(Sigma))]
+      Sigma.b <- Sigma[match(c(sort(names(xb)), paste("lag_", sort(names(xb)),sep="")), rownames(Sigma)),
+                       match(c(sort(names(xb)), paste("lag_", sort(names(xb)),sep="")), rownames(Sigma))]
+      Sigma.o <- Sigma[match(names(don), rownames(Sigma)), match(names(don), rownames(Sigma))]
+    } 
+    else {
+      xo <- xo
+      l_xo <- length(xo)
+      b1 <- c(xo, xb, rep(NA, l_don), rep(NA, l_xo), gamma, don)
+      b2 <- c(xo, xb, rep(0, l_don), rep(0, l_xo), gamma, don)
+      if(l_xb !=0) bnames <- c(names(xo), sort(names(xb)), paste("lag_", sort(names(xb)),sep=""), names(don))
+      else bnames <- c(names(xo), names(don))
+      Sigma <- Sigma[match(bnames, rownames(Sigma)), match(bnames, rownames(Sigma))]
+      Sigma.x <- Sigma[match(names(xo), rownames(Sigma)), match(names(xo), rownames(Sigma))]
+      Sigma.b <- Sigma[match(c(sort(names(xb)), paste("lag_", sort(names(xb)),sep="")), rownames(Sigma)),
+                       match(c(sort(names(xb)), paste("lag_", sort(names(xb)),sep="")), rownames(Sigma))]
+      Sigma.o <- Sigma[match(names(don), rownames(Sigma)), match(names(don), rownames(Sigma))]
+    }
+  #  print(Sigma)
+  #  print(sqrt(diag(Sigma)))
+    
+    st.err <- sqrt(diag(Sigma))
+    p <- length(b1)
+    if (p %% 2 != 0) stop("non-matched coefficient pairs")
+    
+    p1 <- ncol(Sigma.b)
+    
+    if(is.matrix(Sigma.x)) st.err.x <- sqrt(diag(Sigma.x))
+    if(is.numeric(Sigma.x)) st.err.x <- sqrt(Sigma.x)
+    if(!is.null(p1)) for (i in 1:(p1/2)) st.err.b <-  sqrt(Sigma.b[i,i] + Sigma.b[(i+p1/2),(i+p1/2)] + 2*Sigma.b[i,(i+p1/2)])
+    if(is.matrix(Sigma.o)) st.err.o <-  sqrt(diag(Sigma.o))
+    if(is.numeric(Sigma.o)) st.err.o <- sqrt(Sigma.o)
+
+    #print(st.err)    
+#print(st.err.x)
+#print(st.err.b)
+#print(st.err.o)
+
+
+    if(!is.null(p1)) st.err.T <- c(st.err.x, st.err.b, st.err.o)
+    else st.err.T <- c(st.err.x,  st.err.o)
+
+    
+if(!is.null(p1)) st.err <- c(st.err[1:l_xo], st.err[(1+l_xo):(l_xo+l_xb)], rep(NA, l_don), 
+                rep(NA, l_xo),st.err[(1+l_xo+l_xb):(l_xo + l_xb +l_gamma)], 
+                st.err[(l_xo + l_xb +l_gamma+1):(l_xo + l_xb +l_gamma+l_don)])
+    else st.err <- c(st.err[1:l_xo], rep(NA, l_xo), 
+                     rep(NA, l_don), st.err[(1+l_xo):(l_xo + l_don)])
+#print(st.err[1:l_xo])    
+#print(rep(NA, l_xo))
+#print(rep(NA, l_don))
+#print(st.err[(1+l_xo):(l_xo + l_don)])    
+#print((1+l_xo):(l_xo + l_don))
+    indirImps <- matrix(c(b1[((p/2)+1):p], st.err[((p/2)+1):p]), nrow = p/2, ncol = 2, byrow = F)
+    rownames(indirImps) <- names(b1)[1:(p/2)]
+    
+    dirImps <- matrix(c(b1[1:(p/2)], st.err[1:(p/2)]), nrow = p/2, ncol = 2, byrow = F )
+    rownames(dirImps) <- names(b1)[1:(p/2)]
+    
+    totImps <- cbind(b2[1:(p/2)] + b2[((p/2)+1):p], st.err.T)
+    
+    colnames(indirImps) <- colnames(dirImps) <- colnames(totImps) <- c("Estimate", "Std. Error")
+    
+    mixedImps <- list(dirImps=dirImps, indirImps=indirImps,
+                      totImps=totImps)
+    res <- list()
+    res$n <- n
+    res$k <- obj$k
+    attr(res, "mixedImps") <- mixedImps
+    class(res) <- c("ols_sphet", "SLX")
+    
+    
+    
+    
+  }    
+  
+  spatialreg::impacts.SLX(res)
+}
+
+is.formula <- function(x){
+  inherits(x,"formula")
+}
 # processXSample_2 <- function(x, drop2beta, type, iicept, icept, n, listw,
 #                            irho, zero_fill, dvars) {
 #   

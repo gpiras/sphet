@@ -75,14 +75,18 @@ else{
 hac.ols <- function(y, x, het, HAC = FALSE, distance, 
                     type =  c("Epanechnikov","Triangular","Bisquare","Parzen", 
                                "QS","TH","Rectangular"), bandwidth){
-	df <- nrow(x) - ncol(x)
+	
+  
+  df <- nrow(x) - ncol(x)
+	k <- qr(lm(y ~x-1))$rank
     xpx<-crossprod(x)
     xpxi<-solve(xpx)
-	xpy<-crossprod(x, y)
-	delta <- crossprod(xpxi, xpy)
-	yp <- x %*% delta
-	e <- y - yp
+xpy<-crossprod(x, y)
+delta <- crossprod(xpxi, xpy)
+yp <- x %*% delta
+e <- y - yp
 
+	
 	if(HAC){
 if(ncol(x)==1) e <- e - mean(e) ### rescale the residuals if x has no intercept
 	n<-nrow(x)
@@ -137,7 +141,7 @@ s2 <- crossprod(e) / df
 	  }
 	}
 	
-	result <- list(coefficients=delta, var=vardelta, s2=s2, residuals=as.numeric(e), yhat=yp)
+	result <- list(coefficients=delta, var=vardelta, s2=s2, residuals=as.numeric(e), yhat = yp, k = k)
 
 	return(result)
 }

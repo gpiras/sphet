@@ -1122,7 +1122,7 @@ errorgmm <- function(formula, data, listw, listw2, endog,
                            firststep = firststep$coefficients, init.rho = rhotilde, 
                            Durbin = Durbin)
       
-      class(results_2sls)<-c("sphet", "error gmm")
+      class(results_2sls)<-c("sphet", "error_gmm", "error_sphet")
       
     }
     
@@ -1218,7 +1218,7 @@ errorgmm <- function(formula, data, listw, listw2, endog,
                       init.rho = rhotilde, Durbin = Durbin, endog = endog)
   
   
-  class(results) <- c("sphet", "error_gmm")# gmm error
+  class(results) <- c("sphet", "error_gmm", "error_sphet")# gmm error
   
   return(results)
   
@@ -1532,8 +1532,7 @@ laghac <- function(formula, data, listw, listw2, endog,
   results$method <- "s2slshac"
   results$HAC <- HAC
   results$endog <- endog
-  class(results) <- c("sphet", "lag_gmm")#change to lag hac
-  
+  class(results) <- c("sphet", "lag_gmm", "stsls_sphet")
   return(results)
   
 }
@@ -1541,14 +1540,15 @@ laghac <- function(formula, data, listw, listw2, endog,
 olshac <- function(formula, data, endog, instruments, listw, 
                    na.action, het, HAC, distance, type, bandwidth, cl, Durbin = NULL){
   
+  #if(!isTRUE(HAC) || !isTRUE(het) || !is.null(Durbin))  
   #extract model objects	
-  mt<-terms(formula,data=data)
-  mf<-lm(formula, data, na.action=na.action, method="model.frame")
-  na.act<-attr(mf,'na.action')
+  mt <- terms(formula,data=data)
+  mf <- lm(formula, data, na.action=na.action, method="model.frame")
+  na.act <- attr(mf, 'na.action')
   
   #generates x and y 
-  y <- c(model.extract(mf,"response"))
-  x <- model.matrix(mt,mf)
+  y <- c(model.extract(mf, "response"))
+  x <- model.matrix(mt, mf)
   
   #checks on teh dimensions of x and y 	
   if (length(y)!=nrow(x)) 
@@ -1850,7 +1850,7 @@ olshac <- function(formula, data, endog, instruments, listw,
     results$method <- "olshac"
     results$HAC <- HAC
     results$Durbin <- Durbin
-    class(results) <- c("sphet", "ols")
+    class(results) <- c("sphet", "ols_sphet")
   }
   
   return(results)
