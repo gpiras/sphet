@@ -13,7 +13,8 @@
   evalues = NULL,
   tol = 1e-06,
   empirical = FALSE,
-  Q = NULL
+  Q = NULL,
+  KPformula = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@
 \item{empirical}{Argument passed to \code{mvrnorm} (default FALSE): if true, the coefficients and their covariance matrix specify the empirical not population mean and covariance matrix}
 
 \item{Q}{default NULL, else an integer number of cumulative power series impacts to calculate if \code{tr} is given}
+
+\item{KPformula}{default FALSE, else inference of the impacts based on Kelejian and Piras (2020)}
 }
 \value{
 Estimate of the Average Total, Average Direct, and Average Indirect Effects
@@ -87,4 +90,8 @@ sarar5 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) +  AG
 summary(sarar5)
 impacts(sarar5, evalues = ev)
 summary(impacts(sarar4, tr = trMatb, R=1000), zstats=TRUE, short=TRUE)
+}
+\references{
+Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation Methods for Spatial Econometrics. \emph{Journal of Statistical Software}, 63(18), 1-36. \url{http://www.jstatsoft.org/v63/i18/}.
+Harry Kelejian, Gianfranco Piras (2020). Spillover effects in spatial models: Generalization and extensions. \emph{Journal of Regional Science}, 60(3), 425-442. \url{https://onlinelibrary.wiley.com/doi/10.1111/jors.12476}
 }
