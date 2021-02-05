@@ -29,9 +29,12 @@ impacts <- function(obj, ...){
 #' @param tol Argument passed to \code{mvrnorm}: tolerance (relative to largest variance) for numerical lack of positive-definiteness in the coefficient covariance matrix
 #' @param empirical Argument passed to \code{mvrnorm} (default FALSE): if true, the coefficients and their covariance matrix specify the empirical not population mean and covariance matrix
 #' @param Q default NULL, else an integer number of cumulative power series impacts to calculate if \code{tr} is given
+#' @param KPformula default FALSE, else inference of the impacts based on Kelejian and Piras (2020)  
 #' @param ... Arguments passed through to methods in the \pkg{coda} package 
 #'
-#'
+#' @references 
+#' Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation Methods for Spatial Econometrics. \emph{Journal of Statistical Software}, 63(18), 1-36. \url{http://www.jstatsoft.org/v63/i18/}.
+#' Harry Kelejian, Gianfranco Piras (2020). Spillover effects in spatial models: Generalization and extensions. \emph{Journal of Regional Science}, 60(3), 425-442. \url{https://onlinelibrary.wiley.com/doi/10.1111/jors.12476}
 #'
 #' @return Estimate of the Average Total, Average Direct, and Average Indirect Effects
 #'
@@ -44,7 +47,8 @@ impacts <- function(obj, ...){
 #'                   I(RM^2) +  AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
 #'                 data = boston.c, listw = Wb, model = "sarar")
 #' summary(sarar1)
-#' summary(impacts(sarar1, tr=trMatb, R=1000), zstats=TRUE, short=TRUE)
+#' impacts(sarar1, KPformula = TRUE)
+#' summary(impacts(sarar1, tr = trMatb, R=1000), zstats=TRUE, short=TRUE)
 #' summary(impacts(sarar1, evalues = ev, R=1000), zstats=TRUE, short=TRUE)
 #' 
 #' sarar2 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + 
@@ -52,6 +56,7 @@ impacts <- function(obj, ...){
 #'                 data = boston.c, listw = Wb, model = "sarar", Durbin = TRUE)
 #'
 #' summary(sarar2)
+#' impacts(sarar2, evalues = ev, KPformula = TRUE)
 #' impacts(sarar2, evalues = ev)
 #' impacts(sarar2, listw = spdep::nb2listw(boston.soi))
 #' impacts(sarar2, tr = trMatb)
@@ -63,6 +68,7 @@ impacts <- function(obj, ...){
 #'
 #' summary(sarar3)
 #' impacts(sarar3, evalues = ev)
+#' impacts(sarar3, evalues = ev, KPformula = TRUE)
 #' impacts(sarar3, listw = spdep::nb2listw(boston.soi))
 #' impacts(sarar3, tr = trMatb)
 #' summary(impacts(sarar3, listw = spdep::nb2listw(boston.soi), R=1000), zstats=TRUE, short=TRUE)
@@ -84,7 +90,7 @@ impacts <- function(obj, ...){
 #' @export
 #' @method impacts gstsls
 impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
-                           tol=1e-6, empirical=FALSE, Q=NULL) {
+                           tol=1e-6, empirical=FALSE, Q=NULL, KPformula = FALSE) {
 
   
   
@@ -92,6 +98,13 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
   if (!is.null(object$endo)) stop("impacts for model with additional endogenous variables not yet available in sphet")
   
   
+  
+  if(isTRUE(KPformula)){
+    if(is.null(evalues)) ev <- eigen(object$listw)$values
+    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_sarar_mixed(object, ev)
+    else vc_impacts_formula_sarar(object, ev)
+  }
+  else{
   if(isTRUE(object$Durbin) | class(object$Durbin) == "formula"){
     
     type <- "mixed"
@@ -302,7 +315,7 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
   attr(res, "iClass") <- class(object)
   
   res
-  
+  }
   }
 
  
@@ -317,10 +330,14 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
 #' @param tol Argument passed to \code{mvrnorm}: tolerance (relative to largest variance) for numerical lack of positive-definiteness in the coefficient covariance matrix
 #' @param empirical Argument passed to \code{mvrnorm} (default FALSE): if true, the coefficients and their covariance matrix specify the empirical not population mean and covariance matrix
 #' @param Q default NULL, else an integer number of cumulative power series impacts to calculate if \code{tr} is given
+#' @param KPformula default FALSE, else inference of the impacts based on Kelejian and Piras (2020)  
 #' @param ... Arguments passed through to methods in the \pkg{coda} package 
-
 #'
 #' @return Estimate of the Average Total, Average Direct, and Average Indirect Effects
+#' 
+#' @references 
+#' Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation Methods for Spatial Econometrics. \emph{Journal of Statistical Software}, 63(18), 1-36. \url{http://www.jstatsoft.org/v63/i18/}.
+#' Harry Kelejian, Gianfranco Piras (2020). Spillover effects in spatial models: Generalization and extensions. \emph{Journal of Regional Science}, 60(3), 425-442. \url{https://onlinelibrary.wiley.com/doi/10.1111/jors.12476}
 #'
 #' @examples
 #' require("sf", quietly=TRUE)
@@ -361,6 +378,7 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
 #' mobj_gmh <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
 #'                  model = "lag", het = TRUE)
 #' summary(mobj_gmh)
+#' impacts(mobj_gm, KPformula = TRUE)
 #' impacts(mobj_gm, listw=listw)
 #' impacts(mobj_gm, tr=trMatc)
 #' impacts(mobj_gm, tr=trMC)
@@ -378,6 +396,7 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
 #'                   model = "lag", het = TRUE)
 #' impacts(mobj1_gm, tr=trMatc)
 #' impacts(mobj1_gm, listw=listw)
+#' impacts(mobj1_gm, KPformula = TRUE)
 #' summary(impacts(mobj_gm, evalues=ev, R=200), short=TRUE, zstats=TRUE)
 #' summary(impacts(mobj1_gm, tr=trMatc, R=200), short=TRUE, zstats=TRUE)
 #' mobj1_gm <- spreg(CRIME ~ HOVAL, columbus, listw, Durbin= ~ INC,
@@ -386,12 +405,23 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
 #' @export
 #' @method impacts stsls_sphet
 impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
-                                evalues=NULL, tol=1e-6, empirical=FALSE, Q=NULL) {
+                                evalues=NULL, tol=1e-6, empirical=FALSE, Q=NULL, 
+                                KPformula = FALSE) {
   
   
   object <- obj
   if (!is.null(object$endo)) stop("impacts for model with additional endogenous variables not yet available in sphet")
- if(isTRUE(object$Durbin) | class(object$Durbin) == "formula"){
+ 
+  
+  
+  if(isTRUE(KPformula)){
+    if(is.null(evalues)) ev <- eigen(object$listw)$values
+    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_lag_mixed(object, ev)
+    else vc_impacts_formula_lag(object, ev)
+  }
+  else{ 
+  
+  if(isTRUE(object$Durbin) | class(object$Durbin) == "formula"){
   
    type <- "mixed"
    if (is.null(object$interval)) interval <- c(-1,0.999)
@@ -608,7 +638,7 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
   res
 }
 
-
+}
 
 
 #' @title Generate impacts for objects of class ols_sphet created in sphet

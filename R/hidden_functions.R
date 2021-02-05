@@ -369,6 +369,8 @@ sarargmm <- function(formula, data, listw, listw2, endog,
       rownames(coeff_2sls) <- c(colnames(Zmat), 'rho')
       s2_2sls <- crossprod(ubase)/(n-k)
       model.data <- data.frame(cbind(y,x[,-1]))
+      vc_mat <- vcmat_2sls$Omega
+      rownames(vc_mat) <- colnames(vc_mat) <- rownames(coeff_2sls)
       method <- "gmm sarar"
       
       k <- nrow(coeff_2sls)
@@ -379,7 +381,7 @@ sarargmm <- function(formula, data, listw, listw2, endog,
       stat <- as.numeric(t(Rbeta) %*% Rbeta/Rvar)
       pval <- pchisq(stat, df = 1, lower.tail = FALSE)
       W <- list(stat = stat, pval = pval)
-      results_2sls <- list(coefficients = coeff_2sls, var = vcmat_2sls$Omega, s2 = s2_2sls, 
+      results_2sls <- list(coefficients = coeff_2sls, var = vc_mat, s2 = s2_2sls, 
                            call = cl, residuals = as.numeric(ubase), model = model.data, 
                            method = method, W = W, firststep = firststep$coefficients, 
                            init.rho = rhotilde)
@@ -438,9 +440,11 @@ sarargmm <- function(formula, data, listw, listw2, endog,
                        gmm.weghts$Phiinv, gmm.weghts$epsilon, gmm.weghts$Zstar)
   }
   
+  vc_Omega <- vcmat$Omega
   
   coeff <- as.matrix(c(as.numeric(delta), rhofin))
   rownames(coeff) <- c(colnames(Zmat), 'rho')
+  rownames(vc_Omega) <- colnames(vc_Omega) <- rownames(coeff)
   s2 <- crossprod(utildeb)/(n-k)
   
   model.data<-data.frame(cbind(y,x[,-1]))
@@ -458,11 +462,11 @@ sarargmm <- function(formula, data, listw, listw2, endog,
   
   
   
-  if(het && step1.c) results <- list(coefficients = coeff, var = vcmat$Omega, 
+  if(het && step1.c) results <- list(coefficients = coeff, var = vc_Omega, 
                                      s2 = s2, call = cl, residuals = as.numeric(utildeb), 
                                      model = model.data, method = method, W = W, firststep = firststep$coefficients, 
                                      init.rho = rhotilde,  twosls = results_2sls, Durbin = Durbin, endog = endog)
-  else  results <- list(coefficients = coeff, var = vcmat$Omega, s2 = s2, call = cl, 
+  else  results <- list(coefficients = coeff, var = vc_Omega, s2 = s2, call = cl, 
                         residuals = as.numeric(utildeb), model = model.data, method = method, W = W, 
                         firststep = firststep$coefficients, init.rho = rhotilde, Durbin = Durbin, endog = endog)
   
