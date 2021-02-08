@@ -87,6 +87,7 @@ vc_impacts_formula_lag <- function(obj, ev){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
+  return(list(cbind(ADE, AIE, ATE), se, mat, xx))
 }
 vc_impacts_formula_sarar <- function(obj, ev){
   
@@ -176,6 +177,7 @@ vc_impacts_formula_sarar <- function(obj, ev){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
+  return(list(cbind(ADE, AIE, ATE), se, mat, xx))
 }
 
 
@@ -399,6 +401,7 @@ if(isTRUE(obj$Durbin)){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
+  return(list(cbind(ADE, AIE, ATE), se, mat, xx))
 }
 vc_impacts_formula_sarar_mixed <- function(obj, ev){
   
@@ -620,4 +623,5 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
+  return(list(cbind(ADE, AIE, ATE), se, mat, xx))
 }

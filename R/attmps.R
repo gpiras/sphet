@@ -55,7 +55,7 @@
 #'   # set.seed("1234")
 #'   # summary(sphet::impacts(res, n_mvn = 10, inference = T, exact = T))
 #'   set.seed("1234")
-#'   eff <- spatialreg::impacts(res, listw = listw, R = 10)
+#'    summary(impacts(res, listw = listw, R = 10))
 #'    summary(eff)
 #' #
 #' #    #eigenvalues
