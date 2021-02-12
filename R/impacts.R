@@ -100,9 +100,9 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
   
   
   if(isTRUE(KPformula)){
-    if(is.null(evalues)) ev <- eigen(object$listw)$values
-    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_sarar_mixed(object, ev)
-    else vc_impacts_formula_sarar(object, ev)
+    if(is.null(evalues)) evalues <- eigen(object$listw)$values
+    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_sarar_mixed(object, evalues)
+    else vc_impacts_formula_sarar(object, evalues)
   }
   else{
   if(isTRUE(object$Durbin) | class(object$Durbin) == "formula"){
@@ -377,8 +377,12 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
 #' summary(mobj_gm)
 #' mobj_gmh <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
 #'                  model = "lag", het = TRUE)
+#' mobj_gm2 <- spreg(CRIME ~ INC, columbus, listw, Durbin=TRUE,
+#'                 model = "lag")
 #' summary(mobj_gmh)
 #' impacts(mobj_gm, KPformula = TRUE)
+#' impacts(mobj_gm2, KPformula = TRUE)
+#' summary(impacts(mobj_gm2, evalues=ev, R=1000), short=TRUE, zstats=TRUE)
 #' impacts(mobj_gm, listw=listw)
 #' impacts(mobj_gm, tr=trMatc)
 #' impacts(mobj_gm, tr=trMC)
@@ -415,9 +419,9 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
   
   
   if(isTRUE(KPformula)){
-    if(is.null(evalues)) ev <- eigen(object$listw)$values
-    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_lag_mixed(object, ev)
-    else vc_impacts_formula_lag(object, ev)
+    if(is.null(evalues)) evalues <- eigen(object$listw)$values
+    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_lag_mixed(object, evalues)
+    else vc_impacts_formula_lag(object, evalues)
   }
   else{ 
   

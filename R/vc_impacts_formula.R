@@ -66,7 +66,10 @@ vc_impacts_formula_lag <- function(obj, ev){
   
   
   cat("Impact Measures (lag, KP_formula):\n")
-  print(cbind(ADE, AIE, ATE))
+  tb <- cbind(ADE, AIE, ATE)
+  colnames(tb) <- c("Direct", "Indirect", "Total")
+  rownames(tb) <- bnames
+  print(tb)
   cat("========================================================\n")
   cat("Results based on Kelejian and Piras formula:\n")
   cat("========================================================\n")
@@ -78,7 +81,7 @@ vc_impacts_formula_lag <- function(obj, ev){
   cat("\nAnalytical z-values:\n")
   mat <- cbind(ADE, AIE, ATE)/se
   colnames(mat) <- c("Direct", "Indirect", "Total")
-  print(mat) 
+  print(mat)
   cat("\nAnalytical p-values:\n")
   xx <- apply(2*(1-pnorm(abs(mat))), 2, format.pval)
   if (length(bnames) == 1L) {
@@ -86,8 +89,7 @@ vc_impacts_formula_lag <- function(obj, ev){
     colnames(xx) <- c("Direct", "Indirect", "Total")
   }
   rownames(xx) <- bnames
-  print(xx, quote=FALSE)
-  return(list(cbind(ADE, AIE, ATE), se, mat, xx))
+ print(xx, quote=FALSE)
 }
 vc_impacts_formula_sarar <- function(obj, ev){
   
@@ -156,7 +158,10 @@ vc_impacts_formula_sarar <- function(obj, ev){
 
   
   cat("Impact Measures (lag, KP_formula):\n")
-  print(cbind(ADE, AIE, ATE))
+  tb <- cbind(ADE, AIE, ATE)
+  colnames(tb) <- c("Direct", "Indirect", "Total")
+  rownames(tb) <- bnames
+  print(tb)
   cat("========================================================\n")
   cat("Results based on Kelejian and Piras formula:\n")
   cat("========================================================\n")
@@ -168,7 +173,7 @@ vc_impacts_formula_sarar <- function(obj, ev){
   cat("\nAnalytical z-values:\n")
   mat <- cbind(ADE, AIE, ATE)/se
   colnames(mat) <- c("Direct", "Indirect", "Total")
-  print(mat) 
+  print(mat)
   cat("\nAnalytical p-values:\n")
   xx <- apply(2*(1-pnorm(abs(mat))), 2, format.pval)
   if (length(bnames) == 1L) {
@@ -177,7 +182,6 @@ vc_impacts_formula_sarar <- function(obj, ev){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
-  return(list(cbind(ADE, AIE, ATE), se, mat, xx))
 }
 
 
@@ -392,7 +396,7 @@ if(isTRUE(obj$Durbin)){
   mat <- cbind(ADE, AIE, ATE)/se
   colnames(mat) <- c("Direct", "Indirect", "Total")
   rownames(mat) <- bnames
-  print(mat) 
+  print(mat)
   cat("\nAnalytical p-values:\n")
   xx <- apply(2*(1-pnorm(abs(mat))), 2, format.pval)
   if (length(bnames) == 1L) {
@@ -401,7 +405,6 @@ if(isTRUE(obj$Durbin)){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
-  return(list(cbind(ADE, AIE, ATE), se, mat, xx))
 }
 vc_impacts_formula_sarar_mixed <- function(obj, ev){
   
@@ -601,7 +604,7 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev){
   tb <- cbind(ADE, AIE, ATE)
   colnames(tb) <- c("Direct", "Indirect", "Total")
   rownames(tb) <- bnames
-  print(tb)
+   print(tb)
   cat("========================================================\n")
   cat("Results based on Kelejian and Piras formula:\n")
   cat("========================================================\n")
@@ -614,7 +617,7 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev){
   mat <- cbind(ADE, AIE, ATE)/se
   colnames(mat) <- c("Direct", "Indirect", "Total")
   rownames(mat) <- bnames
-  print(mat) 
+  print(mat)
   cat("\nAnalytical p-values:\n")
   xx <- apply(2*(1-pnorm(abs(mat))), 2, format.pval)
   if (length(bnames) == 1L) {
@@ -623,5 +626,4 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
-  return(list(cbind(ADE, AIE, ATE), se, mat, xx))
-}
+  }
