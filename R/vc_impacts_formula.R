@@ -34,10 +34,10 @@ vc_impacts_formula_lag <- function(obj, ev){
   p_l_ATE <- c()
   for(i in 1:p1) p_l_ATE <- c(p_l_ATE, beta[i]/(1-lambda)^2)
   p_b_ATE <- 1/(1-lambda)
-  der_ATE <- cbind(rep(p_b_ATE, p1), p_l_ATE)
-  
+  der_ATE <- matrix(cbind(rep(p_b_ATE, p1), p_l_ATE), nrow = p1, ncol = 2)
   se_ATE <- c()
-  for(i in 1:p1) se_ATE <- c(se_ATE, as.numeric(sqrt(der_ATE[i,] %*% Sigma[c(i,pl),c(i,pl)] %*% (der_ATE[i,]))))
+  for(i in 1:p1) se_ATE <- c(se_ATE, sqrt(as.numeric(matrix(der_ATE[i,], nrow = 1, ncol = 2) %*% 
+                                                       Sigma[c(i,pl),c(i,pl)] %*% t(matrix(der_ATE[i,], nrow = 1, ncol = 2)))))
  
   
   ############ ADE######
@@ -51,14 +51,19 @@ vc_impacts_formula_lag <- function(obj, ev){
   p_l_ADE <- c()
   for(i in 1:p1) p_l_ADE <- c(p_l_ADE, Re((1/n)*beta[i]*dv_l))
   p_b_ADE <- Re((1/n)*tr_G)
-  der_ADE <- cbind(rep(p_b_ADE, p1), p_l_ADE)
-  
+  der_ADE <- matrix(cbind(rep(p_b_ADE, p1), p_l_ADE), nrow = p1, ncol = 2)
   se_ADE <- c()
-  for(i in 1:p1) se_ADE <- c(se_ADE, as.numeric(sqrt(der_ADE[i,] %*% Sigma[c(i,pl),c(i,pl)] %*% (der_ADE[i,]))))
+  for(i in 1:p1) se_ADE <- c(se_ADE, sqrt(as.numeric(matrix(der_ADE[i,], nrow = 1, ncol = 2) %*% 
+                                                    Sigma[c(i,pl),c(i,pl)] %*% t(matrix(der_ADE[i,], nrow = 1, ncol = 2)))))
+
+
   
   ######### AIE ######
   AIE <- ATE - ADE
-  se_AIE <- se_ATE - se_ADE
+  der_AIE <- der_ATE - der_ADE
+  se_AIE <- c()
+  se_AIE <- c(se_AIE, sqrt(as.numeric(matrix(der_AIE[i,], nrow = 1, ncol = 2) %*% 
+                                        Sigma[c(i,pl),c(i,pl)] %*% t(matrix(der_AIE[i,], nrow = 1, ncol = 2)))))
   
   #############################################
   
@@ -90,6 +95,7 @@ vc_impacts_formula_lag <- function(obj, ev){
   }
   rownames(xx) <- bnames
  print(xx, quote=FALSE)
+  return(list(tb, se, mat, xx))
 }
 vc_impacts_formula_sarar <- function(obj, ev){
   
@@ -128,12 +134,11 @@ vc_impacts_formula_sarar <- function(obj, ev){
   p_l_ATE <- c()
   for(i in 1:p1) p_l_ATE <- c(p_l_ATE, beta[i]/(1-lambda)^2)
   p_b_ATE <- 1/(1-lambda)
-  der_ATE <- cbind(rep(p_b_ATE, p1), p_l_ATE)
   
+  der_ATE <- matrix(cbind(rep(p_b_ATE, p1), p_l_ATE), nrow = p1, ncol = 2)
   se_ATE <- c()
-  for(i in 1:p1) se_ATE <- c(se_ATE, as.numeric(sqrt(der_ATE[i,] %*% Sigma[c(i,pl),c(i,pl)] %*% (der_ATE[i,]))))
-  
-  
+  for(i in 1:p1) se_ATE <- c(se_ATE, sqrt(as.numeric(matrix(der_ATE[i,], nrow = 1, ncol = 2) %*% 
+                                                       Sigma[c(i,pl),c(i,pl)] %*% t(matrix(der_ATE[i,], nrow = 1, ncol = 2)))))
   ############ ADE######
   tr_G <- sum(1/(1-lambda*ev))
   dv_l <- sum(ev/(1-lambda*ev)^2)
@@ -145,17 +150,22 @@ vc_impacts_formula_sarar <- function(obj, ev){
   p_l_ADE <- c()
   for(i in 1:p1) p_l_ADE <- c(p_l_ADE, Re((1/n)*beta[i]*dv_l))
   p_b_ADE <- Re((1/n)*tr_G)
-  der_ADE <- cbind(rep(p_b_ADE, p1), p_l_ADE)
-  
+  der_ADE <- matrix(cbind(rep(p_b_ADE, p1), p_l_ADE), nrow = p1, ncol = 2)
   se_ADE <- c()
-  for(i in 1:p1) se_ADE <- c(se_ADE, as.numeric(sqrt(der_ADE[i,] %*% Sigma[c(i,pl),c(i,pl)] %*% (der_ADE[i,]))))
+  for(i in 1:p1) se_ADE <- c(se_ADE, sqrt(as.numeric(matrix(der_ADE[i,], nrow = 1, ncol = 2) %*% 
+                                                       Sigma[c(i,pl),c(i,pl)] %*% t(matrix(der_ADE[i,], nrow = 1, ncol = 2)))))
+  
+  
   
   ######### AIE ######
   AIE <- ATE - ADE
-  se_AIE <- se_ATE - se_ADE
+  der_AIE <- der_ATE - der_ADE
+  se_AIE <- c()
+  se_AIE <- c(se_AIE, sqrt(as.numeric(matrix(der_AIE[i,], nrow = 1, ncol = 2) %*% 
+                                        Sigma[c(i,pl),c(i,pl)] %*% t(matrix(der_AIE[i,], nrow = 1, ncol = 2)))))
   
   #############################################
-
+  
   
   cat("Impact Measures (lag, KP_formula):\n")
   tb <- cbind(ADE, AIE, ATE)
@@ -226,10 +236,12 @@ if(isTRUE(obj$Durbin)){
   for(i in 1:p1) p_l_ATE <- c(p_l_ATE, P[i,1]/(1-lambda)^2+ P[i,2]/(1-lambda)^2)
   p_b_ATE <- 1/(1-lambda)
   p_g_ATE <- 1/(1-lambda) 
-  der_ATE <- cbind(rep(p_b_ATE, p1), rep(p_g_ATE, p1), p_l_ATE) 
+  der_ATE <- matrix(cbind(rep(p_b_ATE, p1), rep(p_g_ATE, p1), p_l_ATE) , nrow = p1, ncol = 3)
   
   se_ATE <- c()
-  for(i in 1:p1) se_ATE <- c(se_ATE, as.numeric(sqrt(der_ATE[i,] %*% Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% (der_ATE[i,]))))
+  for(i in 1:p1) se_ATE <- c(se_ATE, sqrt(as.numeric(matrix(der_ATE[i,], nrow = 1, ncol = 3) %*% 
+                                                       Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                       t(matrix(der_ATE[i,], nrow = 1, ncol = 3)))))
   
   
   ############ ADE######
@@ -245,14 +257,20 @@ if(isTRUE(obj$Durbin)){
   for(i in 1:p1) p_l_ADE <- c(p_l_ADE, Re((1/n)*P[i,1] * dv_l) + Re((1/n)*P[i,2] * tr_H2))
   p_b_ADE <- Re((1/n)*tr_G)
   p_g_ADE <- Re((1/n)*tr_H)
-  der_ADE <- cbind(rep(p_b_ADE, p1), rep(p_g_ADE, p1), p_l_ADE)
+  der_ADE <- matrix(cbind(rep(p_b_ADE, p1), rep(p_g_ADE, p1), p_l_ADE), nrow = p1, ncol = 3)
   
   se_ADE <- c()
-  for(i in 1:p1) se_ADE <- c(se_ADE, as.numeric(sqrt(der_ADE[i,] %*% Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% (der_ADE[i,]))))
-  
+  for(i in 1:p1) se_ADE <- c(se_ADE, sqrt(as.numeric(matrix(der_ADE[i,], nrow = 1, ncol = 3) %*% 
+                                                       Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                       t(matrix(der_ADE[i,], nrow = 1, ncol = 3)))))
+
   ######### AIE ######
   AIE <- ATE - ADE
-  se_AIE <- se_ATE - se_ADE
+  der_AIE <- der_ATE - der_ADE
+  se_AIE <- c()
+  for(i in 1:p1) se_AIE <- c(se_AIE, sqrt(as.numeric(matrix(der_AIE[i,], nrow = 1, ncol = 3) %*% 
+                                                       Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                       t(matrix(der_AIE[i,], nrow = 1, ncol = 3)))))
   
   #############################################
 }
@@ -339,14 +357,14 @@ if(isTRUE(obj$Durbin)){
     
     p_l_ATE <- c()
     for(i in 1:p1) p_l_ATE <- c(p_l_ATE, P[i,1]/(1-lambda)^2+ P[i,2]/(1-lambda)^2)
-    p_b_ATE <- c()
-    for(i in 1:p1) p_b_ATE <- c(p_b_ATE, ifelse(P[i,1] ==0, 0, 1/(1-lambda)))
-    p_g_ATE <- c()
-    for(i in 1:p1) p_g_ATE <- c(p_g_ATE, ifelse(P[i,2] == 0, 0, 1/(1-lambda)))
-    der_ATE <- cbind(p_b_ATE, p_g_ATE, p_l_ATE) 
+    p_b_ATE <- 1/(1-lambda)
+    p_g_ATE <- 1/(1-lambda) 
+    der_ATE <- matrix(cbind(rep(p_b_ATE, p1), rep(p_g_ATE, p1), p_l_ATE) , nrow = p1, ncol = 3)
     
     se_ATE <- c()
-    for(i in 1:p1) se_ATE <- c(se_ATE, as.numeric(sqrt(der_ATE[i,] %*% Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% (der_ATE[i,]))))
+    for(i in 1:p1) se_ATE <- c(se_ATE, sqrt(as.numeric(matrix(der_ATE[i,], nrow = 1, ncol = 3) %*% 
+                                                         Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                         t(matrix(der_ATE[i,], nrow = 1, ncol = 3)))))
     
     
     ############ ADE######
@@ -360,20 +378,24 @@ if(isTRUE(obj$Durbin)){
     
     p_l_ADE <- c()
     for(i in 1:p1) p_l_ADE <- c(p_l_ADE, Re((1/n)*P[i,1] * dv_l) + Re((1/n)*P[i,2] * tr_H2))
-    p_b_ADE <- c()
-    for(i in 1:p1) p_b_ADE <- c(p_b_ADE, ifelse(P[i,1] ==0, 0, Re((1/n)*tr_G)))
-    p_g_ADE <- c()
-    for(i in 1:p1) p_g_ADE <- c(p_g_ADE, ifelse(P[i,2] == 0, 0, Re((1/n)*tr_H)))
-    der_ADE <- cbind(p_b_ADE, p_g_ADE, p_l_ADE)
+    p_b_ADE <- Re((1/n)*tr_G)
+    p_g_ADE <- Re((1/n)*tr_H)
+    der_ADE <- matrix(cbind(rep(p_b_ADE, p1), rep(p_g_ADE, p1), p_l_ADE), nrow = p1, ncol = 3)
+    
     se_ADE <- c()
-    for(i in 1:p1) se_ADE <- c(se_ADE, as.numeric(sqrt(der_ADE[i,] %*% Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% (der_ADE[i,]))))
+    for(i in 1:p1) se_ADE <- c(se_ADE, sqrt(as.numeric(matrix(der_ADE[i,], nrow = 1, ncol = 3) %*% 
+                                                         Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                         t(matrix(der_ADE[i,], nrow = 1, ncol = 3)))))
     
     ######### AIE ######
     AIE <- ATE - ADE
-    se_AIE <- se_ATE - se_ADE
+    der_AIE <- der_ATE - der_ADE
+    se_AIE <- c()
+    for(i in 1:p1) se_AIE <- c(se_AIE, sqrt(as.numeric(matrix(der_AIE[i,], nrow = 1, ncol = 3) %*% 
+                                                         Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                         t(matrix(der_AIE[i,], nrow = 1, ncol = 3)))))
     
-    #############################################
-    
+    #############################################    
      
   }
   
@@ -405,6 +427,7 @@ if(isTRUE(obj$Durbin)){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
+  return(list(tb, se, mat, xx))
 }
 vc_impacts_formula_sarar_mixed <- function(obj, ev){
   
@@ -448,10 +471,13 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev){
     for(i in 1:p1) p_l_ATE <- c(p_l_ATE, P[i,1]/(1-lambda)^2+ P[i,2]/(1-lambda)^2)
     p_b_ATE <- 1/(1-lambda)
     p_g_ATE <- 1/(1-lambda) 
-    der_ATE <- cbind(rep(p_b_ATE, p1), rep(p_b_ATE, p1), p_l_ATE) 
+    der_ATE <- matrix(cbind(rep(p_b_ATE, p1), rep(p_g_ATE, p1), p_l_ATE) , nrow = p1, ncol = 3)
     
     se_ATE <- c()
-    for(i in 1:p1) se_ATE <- c(se_ATE, as.numeric(sqrt(der_ATE[i,] %*% Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% (der_ATE[i,]))))
+    for(i in 1:p1) se_ATE <- c(se_ATE, sqrt(as.numeric(matrix(der_ATE[i,], nrow = 1, ncol = 3) %*% 
+                                                         Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                         t(matrix(der_ATE[i,], nrow = 1, ncol = 3)))))
+    
     
     ############ ADE######
     tr_G <- sum(1/(1-lambda*ev))
@@ -466,14 +492,20 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev){
     for(i in 1:p1) p_l_ADE <- c(p_l_ADE, Re((1/n)*P[i,1] * dv_l) + Re((1/n)*P[i,2] * tr_H2))
     p_b_ADE <- Re((1/n)*tr_G)
     p_g_ADE <- Re((1/n)*tr_H)
-    der_ADE <- cbind(rep(p_b_ADE, p1), rep(p_g_ADE, p1), p_l_ADE)
+    der_ADE <- matrix(cbind(rep(p_b_ADE, p1), rep(p_g_ADE, p1), p_l_ADE), nrow = p1, ncol = 3)
     
     se_ADE <- c()
-    for(i in 1:p1) se_ADE <- c(se_ADE, as.numeric(sqrt(der_ADE[i,] %*% Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% (der_ADE[i,]))))
+    for(i in 1:p1) se_ADE <- c(se_ADE, sqrt(as.numeric(matrix(der_ADE[i,], nrow = 1, ncol = 3) %*% 
+                                                         Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                         t(matrix(der_ADE[i,], nrow = 1, ncol = 3)))))
     
     ######### AIE ######
     AIE <- ATE - ADE
-    se_AIE <- se_ATE - se_ADE
+    der_AIE <- der_ATE - der_ADE
+    se_AIE <- c()
+    for(i in 1:p1) se_AIE <- c(se_AIE, sqrt(as.numeric(matrix(der_AIE[i,], nrow = 1, ncol = 3) %*% 
+                                                         Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                         t(matrix(der_AIE[i,], nrow = 1, ncol = 3)))))
     
     #############################################
   }
@@ -561,14 +593,14 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev){
     
     p_l_ATE <- c()
     for(i in 1:p1) p_l_ATE <- c(p_l_ATE, P[i,1]/(1-lambda)^2+ P[i,2]/(1-lambda)^2)
-    p_b_ATE <- c()
-    for(i in 1:p1) p_b_ATE <- c(p_b_ATE, ifelse(P[i,1] ==0, 0, 1/(1-lambda)))
-    p_g_ATE <- c()
-    for(i in 1:p1) p_g_ATE <- c(p_g_ATE, ifelse(P[i,2] == 0, 0, 1/(1-lambda)))
-    der_ATE <- cbind(p_b_ATE, p_g_ATE, p_l_ATE) 
+    p_b_ATE <- 1/(1-lambda)
+    p_g_ATE <- 1/(1-lambda) 
+    der_ATE <- matrix(cbind(rep(p_b_ATE, p1), rep(p_g_ATE, p1), p_l_ATE) , nrow = p1, ncol = 3)
     
     se_ATE <- c()
-    for(i in 1:p1) se_ATE <- c(se_ATE, as.numeric(sqrt(der_ATE[i,] %*% Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% (der_ATE[i,]))))
+    for(i in 1:p1) se_ATE <- c(se_ATE, sqrt(as.numeric(matrix(der_ATE[i,], nrow = 1, ncol = 3) %*% 
+                                                         Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                         t(matrix(der_ATE[i,], nrow = 1, ncol = 3)))))
     
     
     ############ ADE######
@@ -582,17 +614,22 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev){
     
     p_l_ADE <- c()
     for(i in 1:p1) p_l_ADE <- c(p_l_ADE, Re((1/n)*P[i,1] * dv_l) + Re((1/n)*P[i,2] * tr_H2))
-    p_b_ADE <- c()
-    for(i in 1:p1) p_b_ADE <- c(p_b_ADE, ifelse(P[i,1] ==0, 0, Re((1/n)*tr_G)))
-    p_g_ADE <- c()
-    for(i in 1:p1) p_g_ADE <- c(p_g_ADE, ifelse(P[i,2] == 0, 0, Re((1/n)*tr_H)))
-    der_ADE <- cbind(p_b_ADE, p_g_ADE, p_l_ADE)
+    p_b_ADE <- Re((1/n)*tr_G)
+    p_g_ADE <- Re((1/n)*tr_H)
+    der_ADE <- matrix(cbind(rep(p_b_ADE, p1), rep(p_g_ADE, p1), p_l_ADE), nrow = p1, ncol = 3)
+    
     se_ADE <- c()
-    for(i in 1:p1) se_ADE <- c(se_ADE, as.numeric(sqrt(der_ADE[i,] %*% Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% (der_ADE[i,]))))
+    for(i in 1:p1) se_ADE <- c(se_ADE, sqrt(as.numeric(matrix(der_ADE[i,], nrow = 1, ncol = 3) %*% 
+                                                         Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                         t(matrix(der_ADE[i,], nrow = 1, ncol = 3)))))
     
     ######### AIE ######
     AIE <- ATE - ADE
-    se_AIE <- se_ATE - se_ADE
+    der_AIE <- der_ATE - der_ADE
+    se_AIE <- c()
+    for(i in 1:p1) se_AIE <- c(se_AIE, sqrt(as.numeric(matrix(der_AIE[i,], nrow = 1, ncol = 3) %*% 
+                                                         Sigma[c(i,i+p1,pl),c(i,i+p1,pl)] %*% 
+                                                         t(matrix(der_AIE[i,], nrow = 1, ncol = 3)))))
     
     #############################################
     
