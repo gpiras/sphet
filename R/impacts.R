@@ -450,11 +450,11 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     zero_fill <- NULL
     dvars <- NULL
  
-       if (iicept) b1 <- beta[-icept]
+    if (iicept) b1 <- beta[-icept]
      else  b1 <- beta
     p <- length(b1)
     if (p %% 2 != 0) stop("non-matched coefficient pairs")
-    P <- cbind(b1[1:(p/2)], b1[((p/2)+1):p])
+    P <- cbind(b1[1:(p/2)], b1[((p/2)+1):p]) 
     bnames <- names(b1[1:(p/2)])
     
     if(!is.null(R)){

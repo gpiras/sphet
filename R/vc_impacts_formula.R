@@ -95,7 +95,6 @@ vc_impacts_formula_lag <- function(obj, ev){
   }
   rownames(xx) <- bnames
  print(xx, quote=FALSE)
-  return(list(tb, se, mat, xx))
 }
 vc_impacts_formula_sarar <- function(obj, ev){
   
@@ -427,7 +426,6 @@ if(isTRUE(obj$Durbin)){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
-  return(list(tb, se, mat, xx))
 }
 vc_impacts_formula_sarar_mixed <- function(obj, ev){
   
