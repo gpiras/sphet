@@ -82,7 +82,12 @@ mobj_gm <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
 summary(mobj_gm)
 mobj_gmh <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
                  model = "lag", het = TRUE)
+mobj_gm2 <- spreg(CRIME ~ INC, columbus, listw, Durbin=TRUE,
+                model = "lag")
 summary(mobj_gmh)
+impacts(mobj_gm, KPformula = TRUE)
+impacts(mobj_gm2, KPformula = TRUE)
+summary(impacts(mobj_gm2, evalues=ev, R=1000), short=TRUE, zstats=TRUE)
 impacts(mobj_gm, listw=listw)
 impacts(mobj_gm, tr=trMatc)
 impacts(mobj_gm, tr=trMC)
@@ -100,6 +105,7 @@ mobj1_gmh <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin= ~ INC,
                   model = "lag", het = TRUE)
 impacts(mobj1_gm, tr=trMatc)
 impacts(mobj1_gm, listw=listw)
+impacts(mobj1_gm, KPformula = TRUE)
 summary(impacts(mobj_gm, evalues=ev, R=200), short=TRUE, zstats=TRUE)
 summary(impacts(mobj1_gm, tr=trMatc, R=200), short=TRUE, zstats=TRUE)
 mobj1_gm <- spreg(CRIME ~ HOVAL, columbus, listw, Durbin= ~ INC,

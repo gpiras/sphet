@@ -795,7 +795,7 @@ impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
      res$n <- n
      res$k <- obj$k
      attr(res, "mixedImps") <- mixedImps
-     class(res) <- c("ols_sphet", "SLX")
+     class(res) <- c("SlX", "ols_sphet")
      
      
      
@@ -900,11 +900,11 @@ impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
       res$n <- n
       res$k <- obj$k
       attr(res, "mixedImps") <- mixedImps
-      class(res) <- c("ols_sphet", "SLX")
+      class(res) <- c("SlX", "ols_sphet")
       
           }    
   
-    spatialreg::impacts.SLX(res)
+    spatialreg::impacts(res)
 }
 
 
@@ -1010,7 +1010,7 @@ impacts.error_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     res$n <- n
     res$k <- obj$k
     attr(res, "mixedImps") <- mixedImps
-    class(res) <- c("ols_sphet", "SLX")
+    class(res) <- c("SlX", "ols_sphet")
     
     
     
@@ -1115,13 +1115,13 @@ impacts.error_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     res$n <- n
     res$k <- obj$k
     attr(res, "mixedImps") <- mixedImps
-    class(res) <- c("ols_sphet", "SLX")
+    class(res) <- c("SlX", "ols_sphet")
     
     
     
   }    
   
-  spatialreg::impacts.SLX(res)
+  spatialreg::impacts(res)
 }
 
 is.formula <- function(x){

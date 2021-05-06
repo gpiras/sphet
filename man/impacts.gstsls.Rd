@@ -53,7 +53,8 @@ sarar1 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) +
                   I(RM^2) +  AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
                 data = boston.c, listw = Wb, model = "sarar")
 summary(sarar1)
-summary(impacts(sarar1, tr=trMatb, R=1000), zstats=TRUE, short=TRUE)
+impacts(sarar1, KPformula = TRUE)
+summary(impacts(sarar1, tr = trMatb, R=1000), zstats=TRUE, short=TRUE)
 summary(impacts(sarar1, evalues = ev, R=1000), zstats=TRUE, short=TRUE)
 
 sarar2 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + 
@@ -61,6 +62,7 @@ sarar2 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) +
                 data = boston.c, listw = Wb, model = "sarar", Durbin = TRUE)
 
 summary(sarar2)
+impacts(sarar2, evalues = ev, KPformula = TRUE)
 impacts(sarar2, evalues = ev)
 impacts(sarar2, listw = spdep::nb2listw(boston.soi))
 impacts(sarar2, tr = trMatb)
@@ -72,6 +74,7 @@ sarar3 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) +
 
 summary(sarar3)
 impacts(sarar3, evalues = ev)
+impacts(sarar3, evalues = ev, KPformula = TRUE)
 impacts(sarar3, listw = spdep::nb2listw(boston.soi))
 impacts(sarar3, tr = trMatb)
 summary(impacts(sarar3, listw = spdep::nb2listw(boston.soi), R=1000), zstats=TRUE, short=TRUE)
