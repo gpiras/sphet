@@ -33,7 +33,7 @@ impacts <- function(obj, ...){
 #' @param ... Arguments passed through to methods in the \pkg{coda} package 
 #'
 #' @references 
-#' Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation Methods for Spatial Econometrics. \emph{Journal of Statistical Software}, 63(18), 1-36. \url{http://www.jstatsoft.org/v63/i18/}.
+#' Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation Methods for Spatial Econometrics. \emph{Journal of Statistical Software}, 63(18), 1-36. \url{https://www.jstatsoft.org/v63/i18/}.
 #' Harry Kelejian, Gianfranco Piras (2020). Spillover effects in spatial models: Generalization and extensions. \emph{Journal of Regional Science}, 60(3), 425-442. \url{https://onlinelibrary.wiley.com/doi/10.1111/jors.12476}
 #'
 #' @return Estimate of the Average Total, Average Direct, and Average Indirect Effects
@@ -336,7 +336,7 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
 #' @return Estimate of the Average Total, Average Direct, and Average Indirect Effects
 #' 
 #' @references 
-#' Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation Methods for Spatial Econometrics. \emph{Journal of Statistical Software}, 63(18), 1-36. \url{http://www.jstatsoft.org/v63/i18/}.
+#' Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation Methods for Spatial Econometrics. \emph{Journal of Statistical Software}, 63(18), 1-36. \url{https://www.jstatsoft.org/v63/i18/}.
 #' Harry Kelejian, Gianfranco Piras (2020). Spillover effects in spatial models: Generalization and extensions. \emph{Journal of Regional Science}, 60(3), 425-442. \url{https://onlinelibrary.wiley.com/doi/10.1111/jors.12476}
 #'
 #' @examples
