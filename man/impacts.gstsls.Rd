@@ -14,7 +14,8 @@
   tol = 1e-06,
   empirical = FALSE,
   Q = NULL,
-  KPformula = FALSE
+  KPformula = FALSE,
+  prt = TRUE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@
 \item{Q}{default NULL, else an integer number of cumulative power series impacts to calculate if \code{tr} is given}
 
 \item{KPformula}{default FALSE, else inference of the impacts based on Kelejian and Piras (2020)}
+
+\item{prt}{prints the KP summary of the VC matrix}
 }
 \value{
 Estimate of the Average Total, Average Direct, and Average Indirect Effects

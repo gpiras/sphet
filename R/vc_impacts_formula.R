@@ -1,4 +1,4 @@
-vc_impacts_formula_lag <- function(obj, ev){
+vc_impacts_formula_lag <- function(obj, ev, prt = T){
   
   type <- "lag" 
   if (is.null(obj$interval)) interval <- 1/range(Re(ev))
@@ -68,7 +68,7 @@ vc_impacts_formula_lag <- function(obj, ev){
   #############################################
   
   
-  
+  if(prt){
   
   cat("Impact Measures (lag, KP_formula):\n")
   tb <- cbind(ADE, AIE, ATE)
@@ -95,10 +95,28 @@ vc_impacts_formula_lag <- function(obj, ev){
   }
   rownames(xx) <- bnames
  print(xx, quote=FALSE)
- results <- list(tb, se, mat, xx)
+  }
+  else{
+    tb <- cbind(ADE, AIE, ATE)
+    colnames(tb) <- c("Direct", "Indirect", "Total")
+    rownames(tb) <- bnames
+    se <- cbind(se_ADE, se_AIE, se_ATE)
+    colnames(se) <- c("Direct", "Indirect", "Total")
+    rownames(se) <- bnames
+    mat <- cbind(ADE, AIE, ATE)/se
+    colnames(mat) <- c("Direct", "Indirect", "Total")
+    rownames(mat) <- bnames
+    xx <- apply(2*(1-pnorm(abs(mat))), 2, format.pval)
+    if (length(bnames) == 1L) {
+      xx <- matrix(xx, ncol=3)
+      colnames(xx) <- c("Direct", "Indirect", "Total")
+    }
+    rownames(xx) <- bnames
+  }
+  results <- list(tb, se, mat, xx)
  invisible(results)
 }
-vc_impacts_formula_sarar <- function(obj, ev){
+vc_impacts_formula_sarar <- function(obj, ev, prt = T){
   
   type <- "sarar" 
   if (is.null(obj$interval)) interval <- 1/range(Re(ev))
@@ -167,7 +185,8 @@ vc_impacts_formula_sarar <- function(obj, ev){
   
   #############################################
   
-  
+  if(prt){
+    
   cat("Impact Measures (lag, KP_formula):\n")
   tb <- cbind(ADE, AIE, ATE)
   colnames(tb) <- c("Direct", "Indirect", "Total")
@@ -193,12 +212,30 @@ vc_impacts_formula_sarar <- function(obj, ev){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
+  }
+  else{
+    tb <- cbind(ADE, AIE, ATE)
+    colnames(tb) <- c("Direct", "Indirect", "Total")
+    rownames(tb) <- bnames
+    se <- cbind(se_ADE, se_AIE, se_ATE)
+    colnames(se) <- c("Direct", "Indirect", "Total")
+    rownames(se) <- bnames
+    mat <- cbind(ADE, AIE, ATE)/se
+    colnames(mat) <- c("Direct", "Indirect", "Total")
+    rownames(mat) <- bnames
+    xx <- apply(2*(1-pnorm(abs(mat))), 2, format.pval)
+    if (length(bnames) == 1L) {
+      xx <- matrix(xx, ncol=3)
+      colnames(xx) <- c("Direct", "Indirect", "Total")
+    }
+    rownames(xx) <- bnames
+  }
   results <- list(tb, se, mat, xx)
   invisible(results)
 }
 
 
-vc_impacts_formula_lag_mixed <- function(obj, ev){
+vc_impacts_formula_lag_mixed <- function(obj, ev, prt = T){
   
   type <- "mixed" 
   if (is.null(obj$interval)) interval <- 1/range(Re(ev))
@@ -402,7 +439,7 @@ if(isTRUE(obj$Durbin)){
      
   }
   
-  
+  if(prt){
   
   cat("Impact Measures (lag, KP_formula):\n")
   tb <- cbind(ADE, AIE, ATE)
@@ -430,10 +467,28 @@ if(isTRUE(obj$Durbin)){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
+  }
+  else{
+    tb <- cbind(ADE, AIE, ATE)
+    colnames(tb) <- c("Direct", "Indirect", "Total")
+    rownames(tb) <- bnames
+    se <- cbind(se_ADE, se_AIE, se_ATE)
+    colnames(se) <- c("Direct", "Indirect", "Total")
+    rownames(se) <- bnames
+    mat <- cbind(ADE, AIE, ATE)/se
+    colnames(mat) <- c("Direct", "Indirect", "Total")
+    rownames(mat) <- bnames
+    xx <- apply(2*(1-pnorm(abs(mat))), 2, format.pval)
+    if (length(bnames) == 1L) {
+      xx <- matrix(xx, ncol=3)
+      colnames(xx) <- c("Direct", "Indirect", "Total")
+    }
+    rownames(xx) <- bnames
+  }
   results <- list(tb, se, mat, xx)
   invisible(results)
 }
-vc_impacts_formula_sarar_mixed <- function(obj, ev){
+vc_impacts_formula_sarar_mixed <- function(obj, ev, prt = T){
   
   type <- "mixed" 
   if (is.null(obj$interval)) interval <- 1/range(Re(ev))
@@ -639,7 +694,7 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev){
     
   }
   
-  
+  if(prt){
   
   cat("Impact Measures (lag, KP_formula):\n")
   tb <- cbind(ADE, AIE, ATE)
@@ -667,6 +722,24 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev){
   }
   rownames(xx) <- bnames
   print(xx, quote=FALSE)
+  }
+  else{
+    tb <- cbind(ADE, AIE, ATE)
+    colnames(tb) <- c("Direct", "Indirect", "Total")
+    rownames(tb) <- bnames
+    se <- cbind(se_ADE, se_AIE, se_ATE)
+    colnames(se) <- c("Direct", "Indirect", "Total")
+    rownames(se) <- bnames
+    mat <- cbind(ADE, AIE, ATE)/se
+    colnames(mat) <- c("Direct", "Indirect", "Total")
+    rownames(mat) <- bnames
+    xx <- apply(2*(1-pnorm(abs(mat))), 2, format.pval)
+    if (length(bnames) == 1L) {
+      xx <- matrix(xx, ncol=3)
+      colnames(xx) <- c("Direct", "Indirect", "Total")
+    }
+    rownames(xx) <- bnames
+  }
   results <- list(tb, se, mat, xx)
   invisible(results)
   }

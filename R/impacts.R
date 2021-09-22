@@ -29,7 +29,8 @@ impacts <- function(obj, ...){
 #' @param tol Argument passed to \code{mvrnorm}: tolerance (relative to largest variance) for numerical lack of positive-definiteness in the coefficient covariance matrix
 #' @param empirical Argument passed to \code{mvrnorm} (default FALSE): if true, the coefficients and their covariance matrix specify the empirical not population mean and covariance matrix
 #' @param Q default NULL, else an integer number of cumulative power series impacts to calculate if \code{tr} is given
-#' @param KPformula default FALSE, else inference of the impacts based on Kelejian and Piras (2020)  
+#' @param KPformula default FALSE, else inference of the impacts based on Kelejian and Piras (2020) 
+#' @param prt prints the KP summary of the VC matrix  
 #' @param ... Arguments passed through to methods in the \pkg{coda} package 
 #'
 #' @references 
@@ -90,7 +91,7 @@ impacts <- function(obj, ...){
 #' @export
 #' @method impacts gstsls
 impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
-                           tol=1e-6, empirical=FALSE, Q=NULL, KPformula = FALSE) {
+                           tol=1e-6, empirical=FALSE, Q=NULL, KPformula = FALSE, prt = TRUE) {
 
   
   
@@ -101,8 +102,8 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
   
   if(isTRUE(KPformula)){
     if(is.null(evalues)) evalues <- eigen(object$listw)$values
-    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_sarar_mixed(object, evalues)
-    else vc_impacts_formula_sarar(object, evalues)
+    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_sarar_mixed(object, evalues, prt)
+    else vc_impacts_formula_sarar(object, evalues, prt)
   }
   else{
   if(isTRUE(object$Durbin) | class(object$Durbin) == "formula"){
@@ -330,7 +331,8 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
 #' @param tol Argument passed to \code{mvrnorm}: tolerance (relative to largest variance) for numerical lack of positive-definiteness in the coefficient covariance matrix
 #' @param empirical Argument passed to \code{mvrnorm} (default FALSE): if true, the coefficients and their covariance matrix specify the empirical not population mean and covariance matrix
 #' @param Q default NULL, else an integer number of cumulative power series impacts to calculate if \code{tr} is given
-#' @param KPformula default FALSE, else inference of the impacts based on Kelejian and Piras (2020)  
+#' @param KPformula default FALSE, else inference of the impacts based on Kelejian and Piras (2020) 
+#' @param prt prints the KP summary of the VC matrix   
 #' @param ... Arguments passed through to methods in the \pkg{coda} package 
 #'
 #' @return Estimate of the Average Total, Average Direct, and Average Indirect Effects
@@ -410,7 +412,7 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
 #' @method impacts stsls_sphet
 impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
                                 evalues=NULL, tol=1e-6, empirical=FALSE, Q=NULL, 
-                                KPformula = FALSE) {
+                                KPformula = FALSE, prt = TRUE) {
   
   
   object <- obj
@@ -420,8 +422,8 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
   
   if(isTRUE(KPformula)){
     if(is.null(evalues)) evalues <- eigen(object$listw)$values
-    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_lag_mixed(object, evalues)
-    else vc_impacts_formula_lag(object, evalues)
+    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_lag_mixed(object, evalues, prt)
+    else vc_impacts_formula_lag(object, evalues, prt)
   }
   else{ 
   
