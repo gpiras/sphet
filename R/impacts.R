@@ -70,6 +70,7 @@ impacts <- function(obj, ...){
 #' summary(sarar3)
 #' impacts(sarar3, evalues = ev)
 #' impacts(sarar3, evalues = ev, KPformula = TRUE)
+#' impacts(sarar3, evalues = ev, KPformula = TRUE, tr = trMatb)
 #' impacts(sarar3, listw = spdep::nb2listw(boston.soi))
 #' impacts(sarar3, tr = trMatb)
 #' summary(impacts(sarar3, listw = spdep::nb2listw(boston.soi), R=1000), zstats=TRUE, short=TRUE)
@@ -101,9 +102,11 @@ impacts.gstsls <- function(obj, ..., tr=NULL, R=NULL, listw=NULL, evalues=NULL,
   
   
   if(isTRUE(KPformula)){
+    if(is.null(tr)){
     if(is.null(evalues)) evalues <- eigen(object$listw)$values
-    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_sarar_mixed(object, evalues, prt)
-    else vc_impacts_formula_sarar(object, evalues, prt)
+    }
+    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_sarar_mixed(object, evalues, tr, prt)
+    else vc_impacts_formula_sarar(object, evalues, tr, prt)
   }
   else{
   if(isTRUE(object$Durbin) | class(object$Durbin) == "formula"){
@@ -421,9 +424,11 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
   
   
   if(isTRUE(KPformula)){
+    if(is.null(tr)){
     if(is.null(evalues)) evalues <- eigen(object$listw)$values
-    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_lag_mixed(object, evalues, prt)
-    else vc_impacts_formula_lag(object, evalues, prt)
+    }
+    if(isTRUE(object$Durbin) | class(object$Durbin) == "formula") vc_impacts_formula_lag_mixed(object, evalues, tr, prt)
+    else vc_impacts_formula_lag(object, evalues, tr, prt)
   }
   else{ 
   

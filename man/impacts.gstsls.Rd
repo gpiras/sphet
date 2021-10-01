@@ -78,6 +78,7 @@ sarar3 <- spreg(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) +
 summary(sarar3)
 impacts(sarar3, evalues = ev)
 impacts(sarar3, evalues = ev, KPformula = TRUE)
+impacts(sarar3, evalues = ev, KPformula = TRUE, tr = trMatb)
 impacts(sarar3, listw = spdep::nb2listw(boston.soi))
 impacts(sarar3, tr = trMatb)
 summary(impacts(sarar3, listw = spdep::nb2listw(boston.soi), R=1000), zstats=TRUE, short=TRUE)

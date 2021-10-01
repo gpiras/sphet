@@ -1,7 +1,10 @@
-vc_impacts_formula_lag <- function(obj, ev, prt = T){
+vc_impacts_formula_lag <- function(obj, ev, tr = NULL, prt = T){
   
   type <- "lag" 
-  if (is.null(obj$interval)) interval <- 1/range(Re(ev))
+  if (is.null(obj$interval)){
+  if(!is.null(tr)) interval <- 1/c(-1,1)
+    else  interval <- 1/range(Re(ev))
+  }
   
   betas <- coefficients(obj)
   p <- length(betas)
@@ -41,12 +44,22 @@ vc_impacts_formula_lag <- function(obj, ev, prt = T){
  
   
   ############ ADE######
+  if(!is.null(tr)){
+    powl <- vector("numeric", length = length(tr))
+    for(i in 1:length(tr)) powl[i] <-  lambda^i
+    tr_G <- n +sum(tr * powl)
+    scl <- 2:length(tr)
+    powl <- vector("numeric", length = (length(tr)-1))
+    for(i in 1:29) powl[i] <-  lambda^i
+    dv_l <- sum(tr * c(0,powl)*c(0,scl))
+  }
+  else{
   tr_G <- sum(1/(1-lambda*ev))
   dv_l <- sum(ev/(1-lambda*ev)^2)
+  }
   
   ADE <- c()
   for(i in 1:p1) ADE <- c(ADE, Re((1/n)*beta[i]*tr_G)) 
-  
   ## Partial Derivatives
   p_l_ADE <- c()
   for(i in 1:p1) p_l_ADE <- c(p_l_ADE, Re((1/n)*beta[i]*dv_l))
@@ -116,10 +129,14 @@ vc_impacts_formula_lag <- function(obj, ev, prt = T){
   results <- list(tb, se, mat, xx)
  invisible(results)
 }
-vc_impacts_formula_sarar <- function(obj, ev, prt = T){
+vc_impacts_formula_sarar <- function(obj, ev, tr = NULL, prt = T){
   
   type <- "sarar" 
-  if (is.null(obj$interval)) interval <- 1/range(Re(ev))
+  
+  if (is.null(obj$interval)){
+    if(!is.null(tr)) interval <- 1/c(-1,1)
+    else  interval <- 1/range(Re(ev))
+  }
   
   betas <- coefficients(obj)
   p <- length(betas)
@@ -159,8 +176,19 @@ vc_impacts_formula_sarar <- function(obj, ev, prt = T){
   for(i in 1:p1) se_ATE <- c(se_ATE, sqrt(as.numeric(matrix(der_ATE[i,], nrow = 1, ncol = 2) %*% 
                                                        Sigma[c(i,pl),c(i,pl)] %*% t(matrix(der_ATE[i,], nrow = 1, ncol = 2)))))
   ############ ADE######
-  tr_G <- sum(1/(1-lambda*ev))
-  dv_l <- sum(ev/(1-lambda*ev)^2)
+  if(!is.null(tr)){
+    powl <- vector("numeric", length = length(tr))
+    for(i in 1:length(tr)) powl[i] <-  lambda^i
+    tr_G <- n +sum(tr * powl)
+    scl <- 2:length(tr)
+    powl <- vector("numeric", length = (length(tr)-1))
+    for(i in 1:29) powl[i] <-  lambda^i
+    dv_l <- sum(tr * c(0,powl)*c(0,scl))
+  }
+  else{
+    tr_G <- sum(1/(1-lambda*ev))
+    dv_l <- sum(ev/(1-lambda*ev)^2)
+  }
   
   ADE <- c()
   for(i in 1:p1) ADE <- c(ADE, Re((1/n)*beta[i]*tr_G)) 
@@ -235,10 +263,14 @@ vc_impacts_formula_sarar <- function(obj, ev, prt = T){
 }
 
 
-vc_impacts_formula_lag_mixed <- function(obj, ev, prt = T){
+vc_impacts_formula_lag_mixed <- function(obj, ev, tr = NULL, prt = T){
   
   type <- "mixed" 
-  if (is.null(obj$interval)) interval <- 1/range(Re(ev))
+  
+  if (is.null(obj$interval)){
+    if(!is.null(tr)) interval <- 1/c(-1,1)
+    else  interval <- 1/range(Re(ev))
+  }
   
 if(isTRUE(obj$Durbin)){  
   
@@ -285,10 +317,33 @@ if(isTRUE(obj$Durbin)){
   
   
   ############ ADE######
-  tr_G <- sum(1/(1-lambda*ev))
-  tr_H <- sum(ev/(1-lambda*ev))
-  tr_H2 <- sum(ev^2/(1-lambda*ev)^2)
-  dv_l <- sum(ev/(1-lambda*ev)^2)
+  
+  if(!is.null(tr)){
+    powl <- vector("numeric", length = length(tr))
+    for(i in 1:length(tr)) powl[i] <-  lambda^i
+    tr_G <- n +sum(tr * powl)
+    powl <- vector("numeric", length = (length(tr)-1))
+    for(i in 0:(length(tr)-1)) powl[i] <-  lambda^i
+    powl <- c(0,powl)
+    tr_H <- sum(tr * powl)
+    powl <- vector("numeric", length = (length(tr)-2))
+    for(i in 1:(length(tr)-2)) powl[i] <-  lambda^i
+    powl <- c(0,1,powl)
+    scl <- 0:(length(tr)-1)
+    tr_H2 <- sum(tr * scl*powl)
+    scl <- 2:length(tr)
+    powl <- vector("numeric", length = (length(tr)-1))
+    for(i in 1:29) powl[i] <-  lambda^i
+    dv_l <- sum(tr * c(0,powl)*c(0,scl))
+    
+  }
+  else{
+    tr_G <- sum(1/(1-lambda*ev))
+    tr_H <- sum(ev/(1-lambda*ev))
+    tr_H2 <- sum(ev^2/(1-lambda*ev)^2)
+    dv_l <- sum(ev/(1-lambda*ev)^2)
+  }
+  
   
   ADE <- c()
   for(i in 1:p1) ADE <- c(ADE, Re((1/n)*P[i,1]*tr_G) + Re((1/n)*P[i,2]*tr_H)) 
@@ -408,10 +463,31 @@ if(isTRUE(obj$Durbin)){
     
     
     ############ ADE######
-    tr_G <- sum(1/(1-lambda*ev))
-    tr_H <- sum(ev/(1-lambda*ev))
-    tr_H2 <- sum(ev^2/(1-lambda*ev)^2)
-    dv_l <- sum(ev/(1-lambda*ev)^2)
+    if(!is.null(tr)){
+      powl <- vector("numeric", length = length(tr))
+      for(i in 1:length(tr)) powl[i] <-  lambda^i
+      tr_G <- n +sum(tr * powl)
+      powl <- vector("numeric", length = (length(tr)-1))
+      for(i in 0:(length(tr)-1)) powl[i] <-  lambda^i
+      powl <- c(0,powl)
+      tr_H <- sum(tr * powl)
+      powl <- vector("numeric", length = (length(tr)-2))
+      for(i in 1:(length(tr)-2)) powl[i] <-  lambda^i
+      powl <- c(0,1,powl)
+      scl <- 0:(length(tr)-1)
+      tr_H2 <- sum(tr * scl*powl)
+      scl <- 2:length(tr)
+      powl <- vector("numeric", length = (length(tr)-1))
+      for(i in 1:29) powl[i] <-  lambda^i
+      dv_l <- sum(tr * c(0,powl)*c(0,scl))
+      
+    }
+    else{
+      tr_G <- sum(1/(1-lambda*ev))
+      tr_H <- sum(ev/(1-lambda*ev))
+      tr_H2 <- sum(ev^2/(1-lambda*ev)^2)
+      dv_l <- sum(ev/(1-lambda*ev)^2)
+    }
     
     ADE <- c()
     for(i in 1:p1) ADE <- c(ADE, Re((1/n)*P[i,1]*tr_G) + Re((1/n)*P[i,2]*tr_H)) 
@@ -488,10 +564,14 @@ if(isTRUE(obj$Durbin)){
   results <- list(tb, se, mat, xx)
   invisible(results)
 }
-vc_impacts_formula_sarar_mixed <- function(obj, ev, prt = T){
+vc_impacts_formula_sarar_mixed <- function(obj, ev, tr = NULL, prt = T){
   
   type <- "mixed" 
-  if (is.null(obj$interval)) interval <- 1/range(Re(ev))
+  
+  if (is.null(obj$interval)){
+    if(!is.null(tr)) interval <- 1/c(-1,1)
+    else  interval <- 1/range(Re(ev))
+  }
   
   if(isTRUE(obj$Durbin)){  
     
@@ -539,10 +619,31 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev, prt = T){
     
     
     ############ ADE######
-    tr_G <- sum(1/(1-lambda*ev))
-    tr_H <- sum(ev/(1-lambda*ev))
-    tr_H2 <- sum(ev^2/(1-lambda*ev)^2)
-    dv_l <- sum(ev/(1-lambda*ev)^2)
+    if(!is.null(tr)){
+      powl <- vector("numeric", length = length(tr))
+      for(i in 1:length(tr)) powl[i] <-  lambda^i
+      tr_G <- n +sum(tr * powl)
+      powl <- vector("numeric", length = (length(tr)-1))
+      for(i in 0:(length(tr)-1)) powl[i] <-  lambda^i
+      powl <- c(0,powl)
+      tr_H <- sum(tr * powl)
+      powl <- vector("numeric", length = (length(tr)-2))
+      for(i in 1:(length(tr)-2)) powl[i] <-  lambda^i
+      powl <- c(0,1,powl)
+      scl <- 0:(length(tr)-1)
+      tr_H2 <- sum(tr * scl*powl)
+      scl <- 2:length(tr)
+      powl <- vector("numeric", length = (length(tr)-1))
+      for(i in 1:29) powl[i] <-  lambda^i
+      dv_l <- sum(tr * c(0,powl)*c(0,scl))
+      
+    }
+    else{
+      tr_G <- sum(1/(1-lambda*ev))
+      tr_H <- sum(ev/(1-lambda*ev))
+      tr_H2 <- sum(ev^2/(1-lambda*ev)^2)
+      dv_l <- sum(ev/(1-lambda*ev)^2)
+    }
     
     ADE <- c()
     for(i in 1:p1) ADE <- c(ADE, Re((1/n)*P[i,1]*tr_G) + Re((1/n)*P[i,2]*tr_H)) 
@@ -663,10 +764,31 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev, prt = T){
     
     
     ############ ADE######
-    tr_G <- sum(1/(1-lambda*ev))
-    tr_H <- sum(ev/(1-lambda*ev))
-    tr_H2 <- sum(ev^2/(1-lambda*ev)^2)
-    dv_l <- sum(ev/(1-lambda*ev)^2)
+    if(!is.null(tr)){
+      powl <- vector("numeric", length = length(tr))
+      for(i in 1:length(tr)) powl[i] <-  lambda^i
+      tr_G <- n +sum(tr * powl)
+      powl <- vector("numeric", length = (length(tr)-1))
+      for(i in 0:(length(tr)-1)) powl[i] <-  lambda^i
+      powl <- c(0,powl)
+      tr_H <- sum(tr * powl)
+      powl <- vector("numeric", length = (length(tr)-2))
+      for(i in 1:(length(tr)-2)) powl[i] <-  lambda^i
+      powl <- c(0,1,powl)
+      scl <- 0:(length(tr)-1)
+      tr_H2 <- sum(tr * scl*powl)
+      scl <- 2:length(tr)
+      powl <- vector("numeric", length = (length(tr)-1))
+      for(i in 1:29) powl[i] <-  lambda^i
+      dv_l <- sum(tr * c(0,powl)*c(0,scl))
+      
+    }
+    else{
+      tr_G <- sum(1/(1-lambda*ev))
+      tr_H <- sum(ev/(1-lambda*ev))
+      tr_H2 <- sum(ev^2/(1-lambda*ev)^2)
+      dv_l <- sum(ev/(1-lambda*ev)^2)
+    }
     
     ADE <- c()
     for(i in 1:p1) ADE <- c(ADE, Re((1/n)*P[i,1]*tr_G) + Re((1/n)*P[i,2]*tr_H)) 
