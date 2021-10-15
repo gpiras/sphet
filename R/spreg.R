@@ -125,9 +125,9 @@
 #'                                       \emph{Journal of Real Estate Finance and Economics}, \bold{17}, pages 99--121.
 #'                                       
 #'                                         
-#'                                            Gianfranco Piras (2010). sphet: Spatial Models with Heteroskedastic Innovations in R. \emph{Journal of Statistical Software}, 35(1), 1-21. \url{https://www.jstatsoft.org/v35/i01/}.
+#'                                            Gianfranco Piras (2010). sphet: Spatial Models with Heteroskedastic Innovations in R. \emph{Journal of Statistical Software}, 35(1), 1-21. \doi{10.18637/jss.v035.i01}.
 #'                                            
-#'                                                Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation Methods for Spatial Econometrics. \emph{Journal of Statistical Software}, 63(18), 1-36. \url{https://www.jstatsoft.org/v63/i18/}.
+#'                                                Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation Methods for Spatial Econometrics. \emph{Journal of Statistical Software}, 63(18), 1-36. \doi{10.18637/jss.v063.i18}.
 #'                                                
 #'@author  Gianfranco Piras \email{gpiras@mac.com}
 #'@examples

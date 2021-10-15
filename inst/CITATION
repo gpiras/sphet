@@ -25,13 +25,13 @@ citEntry(entry = "Article",
   volume       = "35",
   number       = "1",
   pages        = "1--21",
-  url          = "http://www.jstatsoft.org/v35/i01/",
+  doi          = "10.18637/jss.v035.i01",
 
   textVersion  =
   paste("Gianfranco Piras (2010).",
         "sphet: Spatial Models with Heteroskedastic Innovations in R.",
         "Journal of Statistical Software, 35(1), 1-21.",
-        "URL http://www.jstatsoft.org/v35/i01/.")
+        "DOI 10.18637/jss.v035.i01")
 )
 
 citEntry(entry = "Article",
@@ -43,12 +43,12 @@ citEntry(entry = "Article",
   volume       = "63",
   number       = "18",
   pages        = "1--36",
-  url          = "http://www.jstatsoft.org/v63/i18/",
+  doi          = "10.18637/jss.v063.i18",
 
   textVersion  =
   paste("Roger Bivand, Gianfranco Piras (2015).",
         "Comparing Implementations of Estimation Methods for Spatial Econometrics.",
         "Journal of Statistical Software, 63(18), 1-36.",
-        "URL http://www.jstatsoft.org/v63/i18/.")
+        "DOI 10.18637/jss.v063.i18")
 )
 
