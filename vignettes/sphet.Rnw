@@ -710,7 +710,7 @@ summary(res)
 
 Note that this last result corresponds to the one  
 obtained by \code{stsls}
-in \pkg{spdep} (with \code{robust} = \code{FALSE}).
+in \pkg{spatialreg} (with \code{robust} = \code{FALSE}).
 Both functions have a logical argument (\code{W2X})
 that  if set to \code{TRUE} (the default)
 uses the matrix of instruments $H = (X, WX, W^2X)$ 
@@ -738,7 +738,7 @@ If this leads to different significance levels, one should always present
 robust results. 
 
 <<stsls>>=
-res <- stsls(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) 
+res <- spatialreg::stsls(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) 
              + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
              data = boston.c, listw = listw)
 summary(res)
@@ -758,7 +758,7 @@ a GLS estimator is performed that yields different coefficient
 estimates. Results are displayed in the following example.
 
 <<stsls2>>=
-res <- stsls(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) 
+res <- spatialreg::stsls(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2) + I(RM^2) 
              + AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT), 
              data = boston.c, listw = listw, robust = TRUE)
 summary(res)
