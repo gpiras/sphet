@@ -50,7 +50,7 @@ vc_impacts_formula_lag <- function(obj, ev, tr = NULL, prt = T){
     tr_G <- n +sum(tr * powl)
     scl <- 2:length(tr)
     powl <- vector("numeric", length = (length(tr)-1))
-    for(i in 1:29) powl[i] <-  lambda^i
+    for(i in 1:length(powl)) powl[i] <-  lambda^i
     dv_l <- sum(tr * c(0,powl)*c(0,scl))
   }
   else{
@@ -182,7 +182,7 @@ vc_impacts_formula_sarar <- function(obj, ev, tr = NULL, prt = T){
     tr_G <- n +sum(tr * powl)
     scl <- 2:length(tr)
     powl <- vector("numeric", length = (length(tr)-1))
-    for(i in 1:29) powl[i] <-  lambda^i
+    for(i in 1:length(powl)) powl[i] <-  lambda^i
     dv_l <- sum(tr * c(0,powl)*c(0,scl))
   }
   else{
@@ -333,7 +333,7 @@ if(isTRUE(obj$Durbin)){
     tr_H2 <- sum(tr * scl*powl)
     scl <- 2:length(tr)
     powl <- vector("numeric", length = (length(tr)-1))
-    for(i in 1:29) powl[i] <-  lambda^i
+    for(i in 1:length(powl)) powl[i] <-  lambda^i
     dv_l <- sum(tr * c(0,powl)*c(0,scl))
     
   }
@@ -478,7 +478,7 @@ if(isTRUE(obj$Durbin)){
       tr_H2 <- sum(tr * scl*powl)
       scl <- 2:length(tr)
       powl <- vector("numeric", length = (length(tr)-1))
-      for(i in 1:29) powl[i] <-  lambda^i
+      for(i in 1:length(powl)) powl[i] <-  lambda^i
       dv_l <- sum(tr * c(0,powl)*c(0,scl))
       
     }
@@ -634,7 +634,7 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev, tr = NULL, prt = T){
       tr_H2 <- sum(tr * scl*powl)
       scl <- 2:length(tr)
       powl <- vector("numeric", length = (length(tr)-1))
-      for(i in 1:29) powl[i] <-  lambda^i
+      for(i in 1:length(powl)) powl[i] <-  lambda^i
       dv_l <- sum(tr * c(0,powl)*c(0,scl))
       
     }
@@ -779,7 +779,7 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev, tr = NULL, prt = T){
       tr_H2 <- sum(tr * scl*powl)
       scl <- 2:length(tr)
       powl <- vector("numeric", length = (length(tr)-1))
-      for(i in 1:29) powl[i] <-  lambda^i
+      for(i in 1:length(powl)) powl[i] <-  lambda^i
       dv_l <- sum(tr * c(0,powl)*c(0,scl))
       
     }
