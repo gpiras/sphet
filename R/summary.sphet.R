@@ -2,8 +2,6 @@
 #' @aliases summary.sphet
 #' @aliases sumres
 #' @title print method for class sphet
-#' 
-#' 
 #' @description Method used to print objects of class \code{'summary.sphet'} and \code{'sphet'}
 #' 
 #' @usage \method{summary}{sphet}(object, width=getOption("width"), digits=getOption("digits"),obsinfo=FALSE,...)
@@ -65,8 +63,6 @@ else colnames(CoefTable) <- c("Estimate","Std. Error","t-value","Pr(>|t|)")
 #' @name print.summary.sphet
 #' @aliases print.summary.sphet
 #' @title print method for class sphet
-#' 
-#' 
 #' @description Method used to print objects of class \code{'summary.sphet'} and \code{'sphet'}
 #' 
 #' @usage \method{print}{summary.sphet}(x,digits= max(3, getOption("digits") - 2), 
@@ -153,8 +149,6 @@ sumres <- function(x){
 #' @name print.sphet
 #' @aliases print.sphet
 #' @title print method for class sphet
-#' 
-#' 
 #' @description Method used to print objects of class \code{'summary.sphet'} and \code{'sphet'}
 #' 
 #' @usage \method{print}{sphet}(x, digits = max(3, getOption("digits") - 3),...)

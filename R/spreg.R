@@ -129,6 +129,7 @@
 #'                                            
 #'                                                Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation Methods for Spatial Econometrics. \emph{Journal of Statistical Software}, 63(18), 1-36. \doi{10.18637/jss.v063.i18}.
 #'                                                
+#'                                                  Gianfranco Piras, Paolo Postiglione (2022).  A deeper look at impacts in spatial Durbin model with sphet. \emph{Geographical Analysis}, 54(3), 664-684. \url{https://onlinelibrary.wiley.com/doi/10.1111/gean.12318}                                                
 #'@author  Gianfranco Piras \email{gpiras@mac.com}
 #'@examples
 #' data(columbus, package="spdep")
@@ -148,6 +149,8 @@
 #' @rawNamespace import(spatialreg,  except = c(impacts, impacts.stsls))
 #' @import Matrix
 #' @import mvtnorm
+#' @import sf 
+#' @import spData
 #' @importFrom sp spDists
 #' @importFrom stringr str_remove
 #' @importFrom coda as.mcmc

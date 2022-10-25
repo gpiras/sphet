@@ -161,6 +161,8 @@ Arraiz, I. and Drukker, M.D. and Kelejian, H.H. and Prucha, I.R. (2010)
                                            Gianfranco Piras (2010). sphet: Spatial Models with Heteroskedastic Innovations in R. \emph{Journal of Statistical Software}, 35(1), 1-21. \doi{10.18637/jss.v035.i01}.
                                            
                                                Roger Bivand, Gianfranco Piras (2015). Comparing Implementations of Estimation Methods for Spatial Econometrics. \emph{Journal of Statistical Software}, 63(18), 1-36. \doi{10.18637/jss.v063.i18}.
+                                               
+                                                 Gianfranco Piras, Paolo Postiglione (2022).  A deeper look at impacts in spatial Durbin model with sphet. \emph{Geographical Analysis}, 54(3), 664-684. \url{https://onlinelibrary.wiley.com/doi/10.1111/gean.12318}
 }
 \seealso{
 \code{\link{stslshac}}

@@ -47,8 +47,8 @@ sarargmm <- function(formula, data, listw, listw2, endog,
   }
   
   
-  if(Durbin == TRUE | class(Durbin) == "formula"  ){
-    if(class(Durbin) == "formula"){
+  if(isTRUE(Durbin)  | inherits(Durbin, "formula")){
+    if(inherits(Durbin, "formula")){
       ## For each value of K (i.e, 1 or 2) there are four cases:
       # 1) formula = y ~ x1 + x2 + x3, Durbin = ~ x2 + x3 (only a subset of the x's are lagged and all of them are also in the formula)
       # 2) formula = y ~ x1 + x2 + x3, Durbin = ~ x1 + x2 + x3  (same as Durbin = TRUE)
@@ -509,8 +509,8 @@ laggmm <- function(formula, data, listw, listw2, endog,
   if (nrow(x) != nrow(Ws))
     stop("Input data and weights have different dimension")
   
-  if(Durbin == TRUE | class(Durbin) == "formula"  ){
-    if(class(Durbin) == "formula"){
+  if(isTRUE(Durbin)  | inherits(Durbin, "formula")){
+    if(inherits(Durbin, "formula")){
       ## For each value of K (i.e, 1 or 2) there are four cases:
       # 1) formula = y ~ x1 + x2 + x3, Durbin = ~ x2 + x3 (only a subset of the x's are lagged and all of them are also in the formula)
       # 2) formula = y ~ x1 + x2 + x3, Durbin = ~ x1 + x2 + x3  (same as Durbin = TRUE)
@@ -818,8 +818,8 @@ errorgmm <- function(formula, data, listw, listw2, endog,
   if (nrow(x) != nrow(Ws))
     stop("Input data and weights have different dimension")
   
-  if(Durbin == TRUE | class(Durbin) == "formula"  ){
-    if(class(Durbin) == "formula"){
+  if(isTRUE(Durbin)  | inherits(Durbin, "formula")){
+    if(inherits(Durbin, "formula")){
       ## For each value of K (i.e, 1 or 2) there are four cases:
       # 1) formula = y ~ x1 + x2 + x3, Durbin = ~ x2 + x3 (only a subset of the x's are lagged and all of them are also in the formula)
       # 2) formula = y ~ x1 + x2 + x3, Durbin = ~ x1 + x2 + x3  (same as Durbin = TRUE)
@@ -1271,8 +1271,8 @@ laghac <- function(formula, data, listw, listw2, endog,
     stop("Input data and weights have different dimension")
   
   
-  if(Durbin == TRUE | class(Durbin) == "formula"  ){
-    if(class(Durbin) == "formula"){
+  if(isTRUE(Durbin)  | inherits(Durbin, "formula")){
+    if(inherits(Durbin, "formula")){
       ## For each value of K (i.e, 1 or 2) there are four cases:
       # 1) formula = y ~ x1 + x2 + x3, Durbin = ~ x2 + x3 (only a subset of the x's are lagged and all of them are also in the formula)
       # 2) formula = y ~ x1 + x2 + x3, Durbin = ~ x1 + x2 + x3  (same as Durbin = TRUE)
@@ -1593,8 +1593,8 @@ olshac <- function(formula, data, endog, instruments, listw,
   
   K <- ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
   
-  if(Durbin == TRUE | class(Durbin) == "formula"  ){
-    if(class(Durbin) == "formula"){
+  if(isTRUE(Durbin)  | inherits(Durbin, "formula")){
+    if(inherits(Durbin, "formula")){
       ## For each value of K (i.e, 1 or 2) there are four cases:
       # 1) formula = y ~ x1 + x2 + x3, Durbin = ~ x2 + x3 (only a subset of the x's are lagged and all of them are also in the formula)
       # 2) formula = y ~ x1 + x2 + x3, Durbin = ~ x1 + x2 + x3  (same as Durbin = TRUE)
