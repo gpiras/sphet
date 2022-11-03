@@ -75,7 +75,7 @@ vc_impacts_formula_lag <- function(obj, ev, tr = NULL, prt = T){
   AIE <- ATE - ADE
   der_AIE <- der_ATE - der_ADE
   se_AIE <- c()
-  se_AIE <- c(se_AIE, sqrt(as.numeric(matrix(der_AIE[i,], nrow = 1, ncol = 2) %*% 
+  for(i in 1:p1) se_AIE <- c(se_AIE, sqrt(as.numeric(matrix(der_AIE[i,], nrow = 1, ncol = 2) %*% 
                                         Sigma[c(i,pl),c(i,pl)] %*% t(matrix(der_AIE[i,], nrow = 1, ncol = 2)))))
   
   #############################################
@@ -208,7 +208,7 @@ vc_impacts_formula_sarar <- function(obj, ev, tr = NULL, prt = T){
   AIE <- ATE - ADE
   der_AIE <- der_ATE - der_ADE
   se_AIE <- c()
-  se_AIE <- c(se_AIE, sqrt(as.numeric(matrix(der_AIE[i,], nrow = 1, ncol = 2) %*% 
+  for(i in 1:p1) se_AIE <- c(se_AIE, sqrt(as.numeric(matrix(der_AIE[i,], nrow = 1, ncol = 2) %*% 
                                         Sigma[c(i,pl),c(i,pl)] %*% t(matrix(der_AIE[i,], nrow = 1, ncol = 2)))))
   
   #############################################

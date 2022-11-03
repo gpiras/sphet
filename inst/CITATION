@@ -52,3 +52,21 @@ citEntry(entry = "Article",
         "DOI 10.18637/jss.v063.i18")
 )
 
+citEntry(entry = "Article",
+  title        = "A deeper look at impacts in spatial Durbin model with {sphet}",
+  author       = personList(as.person("Gianfranco Piras"),
+                   as.person("Paolo Postiglione")),
+  journal      = "Geographical Analysis",
+  year         = "2022",
+  volume       = "54",
+  number       = "3",
+  pages        = "664--684",
+  doi          = "10.1111/gean.12318",
+
+  textVersion  =
+  paste("Gianfranco Piras, Paolo Postiglione (2022).",
+        "A deeper look at impacts in spatial Durbin model with {sphet}",
+        "Geographical Analysis, 54(3), 664-684.",
+        "https://doi.org/10.1111/gean.12318")
+)
+
