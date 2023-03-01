@@ -480,7 +480,7 @@ laggmm <- function(formula, data, listw, listw2, endog,
                    instruments, lag.instr, 
                    het, verbose, na.action, HAC, cl, Durbin = NULL){
   
-  
+  if(HAC) stop("Please use (model = 'ivhac')")
   mt <- terms(formula,data = data)
   mf <- lm(formula, data, na.action = na.action, method = "model.frame")
   na.act <- attr(mf, 'na.action')
@@ -1234,6 +1234,8 @@ laghac <- function(formula, data, listw, listw2, endog,
                    na.action,  het, HAC, distance, 
                    type, bandwidth, cl, Durbin = NULL){
   
+
+  
   mt <- terms(formula, data = data)
   mf <- lm(formula, data, na.action = na.action, method="model.frame")
   na.act <- attr(mf,'na.action')
@@ -1251,7 +1253,7 @@ laghac <- function(formula, data, listw, listw2, endog,
   
   if(HAC){ 
     if(is.null(distance)) stop("No distance measure specified")
-    if(!inherits(distance,"distance")) 
+    if(!inherits(distance,c("distance", "distance.matrix"))) 
       stop("The distance measure is not a distance object")
     if(!(type %in% c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"))) stop("Unknown kernel")
   }	

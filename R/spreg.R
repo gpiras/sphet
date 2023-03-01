@@ -172,8 +172,7 @@ spreg<-function(formula, data=list(), listw, listw2=NULL,
                 HAC = FALSE, distance = NULL, 
                 type =  c("Epanechnikov","Triangular","Bisquare","Parzen", "QS","TH","Rectangular"), bandwidth="variable", 
                 step1.c = FALSE, control = list(), Durbin = FALSE){
- 
- 
+
   cl = match.call()
 switch(match.arg(model),
        sarar = sarargmm(formula = formula, data = data, listw = listw, listw2 = listw2, endog = endog, 

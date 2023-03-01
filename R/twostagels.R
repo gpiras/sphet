@@ -3,6 +3,7 @@ tsls <- function(y,yend,X,Zinst,end, reg, yor, modified=FALSE, HAC=FALSE, distan
 #silent<-set.VerboseOption(FALSE)
 if(modified){
 	H <- cbind(reg, Zinst)
+	H <- H[, qr(H)$pivot[seq_len(qr(H)$rank)]]
 	Z <- cbind(yend, X)
 	HH <- crossprod(H,H)
 	Hye <- crossprod(H,Z)
@@ -24,7 +25,7 @@ else{
 	#if x does not have an intercept, one should add it to the instruments anyway
 if (K==1)	H <- cbind(1,X,Zinst)
 else	H <- cbind(X,Zinst)
-#print(H[1,])
+  H <- H[, qr(H)$pivot[seq_len(qr(H)$rank)]]
 	Z <- cbind(yend,X)
 	df <- nrow(Z) - ncol(Z)
 	HH <- crossprod(H,H)

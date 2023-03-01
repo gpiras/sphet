@@ -27,7 +27,7 @@
 #' @param HAC if FALSE traditional standard errors are provided.
 #' @param W2X default TRUE. if FALSE only WX are used as instruments in the spatial two stage least squares.
 #' @details 
-#' The default sets the bandwith for each observation to the maximum distance for 
+#' The default sets the bandwidth for each observation to the maximum distance for 
 #' that observation (i.e.
 #' the max of each element of the list of distances). 
 #' 
@@ -147,36 +147,46 @@ if (any(is.na(x)))
 
 	
 #fix the dimensions of the problem
-	n<-nrow(x)
-	k<-ncol(x)	
-	xcolnames<-colnames(x)
-	K<-ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1]==1), 2, 1)
+	n <- nrow(x)
+	k <- ncol(x)	
+	xcolnames <- colnames(x)
+	K <- ifelse(xcolnames[1] == "(Intercept)" || all(x[ ,1] == 1), 2, 1)
 	
 	
-	wy<-lag.listw(listw,y, zero.policy=zero.policy)
-	wy<-array(wy,c(length(y),1))
-	colnames(wy)<-("Wy")
+	wy <- lag.listw(listw,y, zero.policy=zero.policy)
+	wy <- array(wy,c(length(y),1))
+	colnames(wy) <- ("Wy")
 	
 	
 if (any(is.na(wy)))
 	stop("NAs in spatially lagged dependent variable")
 	
 if (k > 1) {
-        WX <- matrix(nrow = n, ncol = (k  - (K - 1)))
-        WWX <- matrix(nrow = n, ncol = (k  - (K - 1)))
+               WX <- matrix(nrow = n, ncol = (k  - (K - 1)))
+if(W2X)        WWX <- matrix(nrow = n, ncol = (k  - (K - 1)))
+        
         for (i in K:k) {
-            wx <- lag.listw(listw, x[, i], zero.policy = zero.policy)
+        
+             wx <- lag.listw(listw, x[, i], zero.policy = zero.policy)
 if(W2X)      wwx<- lag.listw(listw, wx, zero.policy = zero.policy)
+
             if (any(is.na(wx))) 
                 stop("NAs in lagged independent variable")
             WX[, (i - (K - 1))] <- wx
-				 WWX[, (i - (K - 1))] <- wwx
+if(W2X)			WWX[, (i - (K - 1))] <- wwx
 				         }
-    }
+}
+	
+	
+	
 
 #instr<-cbind(WX[,-c(1:8)],WWX[,-c(1:8)]) 
-instr<-cbind(WX,WWX) 
+	if(W2X) instr<-cbind(WX,WWX) 
+	else instr<-cbind(WX) 
 #print(cbind(x,instr)[1,])
+
+
+
 
 ##spatial two stage least square of the initial model
 #print(type)

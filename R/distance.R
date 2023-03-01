@@ -65,19 +65,24 @@
 
 
 
-distance <- function(coord,region.id=NULL,output=TRUE,type=c("NN","distance","inverse"),measure=c("euclidean","gcircle","chebyshev","braycur","canberra"),nn=6, cutoff=FALSE, miles=TRUE,R=NULL, shape.name=NULL,region.id.name=NULL,firstline=FALSE,file.name=NULL) {
+distance <- function(coord,region.id=NULL,
+                     output=TRUE, type=c("NN","distance","inverse"),
+                     measure=c("euclidean","gcircle","chebyshev","braycur","canberra"),
+                     nn=6, cutoff=FALSE, miles=TRUE,R=NULL, 
+                     shape.name=NULL,region.id.name=NULL,
+                     firstline=FALSE,file.name=NULL) {
 	
 	if ( !type %in% c("NN","distance","inverse") ) stop("unknown type")
 	if ( !measure[1] %in% c("euclidean","gcircle","chebyshev","braycur","canberra") ) stop("unknown measure")
 	if(!inherits(coord,c("data.frame","matrix"))){
 		coord <-  as.matrix(coord)
 		}
-	if (is.null(region.id) && ncol(coord)!=3) {
+	if (is.null(region.id) & ncol(coord)!=3) {
 		id<-seq(1,nrow(coord))
 		warning("region.id variable not specified")
 		}
-	if (is.null(region.id) && ncol(coord)==3) id<-coord[,1]
-	if (!is.null(region.id) && ncol(coord) == 3){ 
+	if (is.null(region.id) & ncol(coord)==3) id<-coord[,1]
+	if (!is.null(region.id) & ncol(coord) == 3){ 
 		check<- all.equal(region.id,coord[,1])
 		if ( check!=TRUE ) stop ("region.id and coord[,1] are different")
 		id <- region.id

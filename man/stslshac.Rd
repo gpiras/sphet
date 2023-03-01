@@ -57,7 +57,7 @@ Non-parametric heteroskedasticity and autocorrelation
   where \eqn{R} is a non-stochastic matrix.
 }
 \details{
-The default sets the bandwith for each observation to the maximum distance for 
+The default sets the bandwidth for each observation to the maximum distance for 
 that observation (i.e.
 the max of each element of the list of distances). 
 
