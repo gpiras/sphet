@@ -6,7 +6,7 @@
 \usage{
 spreg(formula, data = list(), listw, listw2 = NULL, 
         endog = NULL, instruments = NULL, 
-        lag.instr = FALSE, initial.value = 0.2, 
+        lag.instr = FALSE, initial.value = 0.2, q = 2,
         model = c("sarar", "lag", "error", "ivhac", "ols"),
         het = FALSE, verbose = FALSE, 
         na.action = na.fail,  HAC = FALSE, 
@@ -36,6 +36,8 @@ as a formula with no dependent variable (instruments = ~ x1 + x2). Note the ~ be
 \item{initial.value}{The initial value for \eqn{\rho}. It can be either numeric (default is 0.2) or
 set to \code{'SAR'}, in which case the optimization will start from the estimated coefficient of a regression of the 2SLS 
 residuals over their spatial lag (i.e. a spatial AR model)}
+
+\item{q}{default equal 2, if 1 the only WX is considered in matrix of instruments}
 
 \item{model}{one of \code{lag}, \code{error}, \code{sarar}, \code{ivhac}, or \code{ols}. 
 If HAC is TRUE, model should be one of \code{ivhac}, or \code{ols}.}
@@ -104,11 +106,13 @@ For the HAC estimator (Kelejian and Prucha, 2007),  there are four possibilities
  \itemize{
        \item A model with only Wy
              \item A model with Wy and additional endogenous 
-                   \item Only additional endogenous (with no Wy)
-                         \item No additional endogenous variables
+                   \item Additional endogenous variables but no Wy
+                         \item No additional endogenous variables (A linear model with HAC estimation)
                          }
+In the first two cases, the \code{model} should be \code{"ivhac"}, 
+in the last two cases, the \code{model} should be \code{"ols"}. 
                          
-Furthermore, the default sets the bandwith for each observation to the maximum distance for that observation (i.e.
+Furthermore, the default sets the bandwidth for each observation to the maximum distance for that observation (i.e.
 the max of each element of the list of distances). 
 
 Six different kernel functions are implemented:
@@ -132,6 +136,113 @@ res <- spreg(CRIME ~ HOVAL + INC, data = columbus , listw = listw,
              het = TRUE, verbose = FALSE, model = "sarar")
 summary(res)
 Effects <- impacts(res, listw = listw, R = 1000)
+
+library(spdep)
+data("baltimore", package = "spData")
+mat <- nb2listw(knn2nb(knearneigh(cbind(baltimore$X,baltimore$Y), 3)))
+
+knb10 <- knn2nb(knearneigh(cbind(baltimore$X,baltimore$Y), k=5))
+dists <- nbdists(knb10, cbind(baltimore$X,baltimore$Y))
+k10lw <- nb2listw(knb10, glist=dists, style="B")
+class(k10lw) <- "distance"
+
+# OLS MODEL
+res <- spreg(PRICE ~ NROOM  +AGE, data = baltimore, listw = mat, 
+verbose = FALSE, model = "ols", Durbin = TRUE, HAC = TRUE, 
+distance = k10lw, type = "Triangular")
+summary(res)
+
+# note model = "ols" but with endogenous variables 
+res <- spreg(PRICE ~ NROOM  +AGE, data = baltimore, listw = mat, 
+verbose = FALSE, model = "ols", Durbin = TRUE, HAC = TRUE, 
+distance = k10lw, type = "Triangular", endog = ~SQFT, 
+instruments = ~GAR + PATIO)
+summary(res)
+
+# ERROR MODEL
+res <- spreg(PRICE ~ NROOM  +AGE, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "error", Durbin = FALSE)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE + SQFT + NBATH, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "error", Durbin = TRUE)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE + SQFT + NBATH, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "error", Durbin = ~SQFT + NBATH)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE +  NBATH, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "error", Durbin = ~SQFT + NBATH)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "error", Durbin = ~SQFT + NBATH)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE -1, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "error", Durbin = ~SQFT + NBATH)
+summary(res)
+
+# LAG MODEL
+res <- spreg(PRICE ~ NROOM  +AGE, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "lag", Durbin = FALSE)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE + SQFT + NBATH, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "lag", Durbin = TRUE)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE + SQFT + NBATH, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "lag", Durbin = ~SQFT + NBATH)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE +  NBATH, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "lag", Durbin = ~SQFT + NBATH)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "lag", Durbin = ~SQFT + NBATH)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE -1, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "lag", Durbin = ~SQFT + NBATH)
+summary(res)
+
+
+# IVHAC MODEL
+res <- spreg(PRICE ~ NROOM  +AGE, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "ivhac", Durbin = FALSE,
+HAC = TRUE, distance = k10lw, type = "Triangular", endog = ~SQFT, 
+instruments = ~GAR + PATIO)
+
+# SARAR MODEL
+res <- spreg(PRICE ~ NROOM  +AGE, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "sarar", Durbin = FALSE, q = 1)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE + SQFT + NBATH, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "sarar", Durbin = TRUE, q = 1)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE + SQFT + NBATH, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "sarar", Durbin = ~SQFT + NBATH, q =2)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE +  NBATH, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "sarar", Durbin = ~SQFT + NBATH)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "sarar", Durbin = ~SQFT + NBATH)
+summary(res)
+
+res <- spreg(PRICE ~ NROOM + AGE -1, data = baltimore, listw = mat, 
+het = TRUE, verbose = FALSE, model = "sarar", Durbin = ~SQFT + NBATH)
+summary(res)
+
+summary(res)
+
 }
 \references{
 Arraiz, I. and Drukker, M.D. and Kelejian, H.H. and Prucha, I.R. (2010) 
