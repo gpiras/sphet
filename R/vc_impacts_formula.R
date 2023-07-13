@@ -684,7 +684,7 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev, tr = NULL, prt = T){
     n <- length(obj$residuals)
     
     Sigma <- obj$var[-p2,-p2]
-    print(Sigma)
+    #print(Sigma)
     if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spatial parameter outside of parameter space")    
     
     dn <- grep("lag_", names(beta)) #which of the names of beta has "lag_"
