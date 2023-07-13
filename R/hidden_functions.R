@@ -822,8 +822,8 @@ errorgmm <- function(formula, data, q = 2, listw, listw2, endog,
         x <- cbind(onx, onboth, wonboth, wonxl)
         colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
         Hin <- cbind(1, x)
-        print(head(x))
-        print(head(Hin))
+        #print(head(x))
+        #print(head(Hin))
         
       } 
       else{
@@ -881,8 +881,8 @@ errorgmm <- function(formula, data, q = 2, listw, listw2, endog,
           x <- cbind(onx, onboth, wonboth, wonxl)
           colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
           Hin <- x
-          print(head(x))
-          print(head(Hin))
+          #print(head(x))
+          #print(head(Hin))
           
         }
         else{
@@ -893,8 +893,8 @@ errorgmm <- function(formula, data, q = 2, listw, listw2, endog,
           x <- cbind(x, wxdur)
           colnames(x) <- c(xcolnames, paste("lag_",colnames(xdur),sep =""))
           Hin <- x
-          print(head(x))
-          print(head(Hin))
+          #print(head(x))
+          #print(head(Hin))
         }
       }
     }
@@ -1513,8 +1513,8 @@ olshac <- function(formula, data, q = 2, endog, instruments, listw,
         x <- cbind(onx, onboth, wonboth, wonxl)
         colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
         Hin <- cbind(1, x)
-        print(head(x))
-        print(head(Hin))
+        #print(head(x))
+        #print(head(Hin))
         
       } 
       else{
@@ -1572,8 +1572,8 @@ olshac <- function(formula, data, q = 2, endog, instruments, listw,
           x <- cbind(onx, onboth, wonboth, wonxl)
           colnames(x) <- c(nmonx,nmonb,nmwonb,nmwonxl)
           Hin <- x
-          print(head(x))
-          print(head(Hin))
+          #print(head(x))
+          #print(head(Hin))
           
         }
         else{
@@ -1584,8 +1584,8 @@ olshac <- function(formula, data, q = 2, endog, instruments, listw,
           x <- cbind(x, wxdur)
           colnames(x) <- c(xcolnames, paste("lag_",colnames(xdur),sep =""))
           Hin <- x
-          print(head(x))
-          print(head(Hin))
+          #print(head(x))
+          #print(head(Hin))
         }
       }
     }
