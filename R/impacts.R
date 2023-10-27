@@ -14,11 +14,8 @@
 #' summary(res)
 #' effects <- impacts(res, listw = listw, R = 399)
 #' summary(effects)
-#' @export
-impacts <- function(obj, ...){
-  UseMethod("impacts", obj)
-}
-
+#' @aliases impacts
+#' @export impacts
 #' @title Generate impacts for objects of class sarar_gmm created in sphet
 #'
 #' @param obj A spreg spatial regression object created by \code{spreg} with model ="sarar"
