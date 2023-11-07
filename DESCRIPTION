@@ -1,7 +1,7 @@
 Package: sphet
 Version: 2.0.5
 Encoding: UTF-8
-Date: 2023-07-13
+Date: 2023-11-07
 Title: Estimation of Spatial Autoregressive Models with and without Heteroskedastic Innovations
 Authors@R: c(person("Gianfranco", "Piras", role = c("aut", "cre"), 
             email = "gpiras@mac.com", 
