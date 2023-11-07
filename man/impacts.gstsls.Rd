@@ -2,7 +2,8 @@
 % Please edit documentation in R/impacts.R
 \name{impacts.gstsls}
 \alias{impacts.gstsls}
-\title{Generate impacts for objects of class sarar_gmm created in sphet}
+\alias{impacts}
+\title{Generate impacts for spreg lag and sarar models}
 \usage{
 \method{impacts}{gstsls}(
   obj,
@@ -43,11 +44,22 @@
 }
 \value{
 Estimate of the Average Total, Average Direct, and Average Indirect Effects
+
+Estimate of the Average Total, Average Direct, and Average Indirect Effects
 }
 \description{
+Generate impacts for spreg lag and sarar models
+
 Generate impacts for objects of class sarar_gmm created in sphet
 }
 \examples{
+data(columbus, package="spdep")
+listw <- spdep::nb2listw(col.gal.nb)
+res <- spreg(CRIME~HOVAL + INC, data=columbus , listw= listw,
+            het = TRUE, verbose = FALSE, model = "sarar")
+summary(res)
+effects <- impacts(res, listw = listw, R = 399)
+summary(effects)
 data(boston, package="spData")
 Wb <- as(spdep::nb2listw(boston.soi), "CsparseMatrix")
 ev <- eigen(Wb)$values

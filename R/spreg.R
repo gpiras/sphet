@@ -256,7 +256,7 @@
 #' @importFrom utils read.table write.table
 #' @import nlme
 #' @importFrom spdep  card  lag.listw  nb2listw  sym.attr.nb vi2mrc
-#' @rawNamespace import(spatialreg,  except = c(impacts, impacts.stsls))
+#' @import spatialreg
 #' @import Matrix
 #' @import mvtnorm
 #' @import sf 
