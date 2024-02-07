@@ -1637,14 +1637,16 @@ olshac <- function(formula, data, q = 2, endog, instruments, listw,
     results$bandwidth <- bandwidth
     results$method <- "s2slshac"
     results$HAC <- HAC
+    results$Durbin <- Durbin
     results$endog <- TRUE
+    results$het <- het
     class(results) <- c("sphet", "ols_sphet")
     
   }
   
   if(model == "ols"){
   if(HAC)  results <- hac.ols(y =y , x = x, HAC=HAC, type=type, bandwidth=bandwidth, distance=distance, het = FALSE)	
-   else  results <-  hac.ols(y =y , x = x, het = het) 
+   else    results <-  hac.ols(y =y , x = x, het = het) 
     model.data <- data.frame(cbind(y, x[, -1]))
     results$call <- cl
     results$listw <- Ws
@@ -1655,6 +1657,7 @@ olshac <- function(formula, data, q = 2, endog, instruments, listw,
     results$HAC <- HAC
     results$Durbin <- Durbin
     results$endog <- FALSE
+    results$het <- het
     class(results) <- c("sphet", "ols_sphet")
   }
   

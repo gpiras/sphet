@@ -197,7 +197,7 @@ results$call<-cl
 results$model<-model.data
 results$type<-type
 results$bandwidth<-bandwidth
-results$method<-"s2slshac"
+results$method<-"legacy"
 results$HAC<-HAC
 results$zero.policy<-zero.policy
 class(results)<-c("sphet", "stsls")
