@@ -720,6 +720,7 @@ if(q == 2) {
   results$HAC <- FALSE
   results$Durbin <- Durbin
   results$endog <- endog
+  results$het <- het
   class(results) <- c("sphet", "lag_gmm", "stsls_sphet") #change to lag gmm
   
   return(results)
@@ -1390,9 +1391,11 @@ laghac <- function(formula, data, q = 2, listw, listw2, endog,
   results$model <- model.data
   results$type <- type
   results$bandwidth <- bandwidth
-  results$method <- "s2slshac"
+  results$method <- "gmm lag"
+  results$Durbin <- Durbin
   results$HAC <- HAC
   results$endog <- endog
+  results$het <- het
   class(results) <- c("sphet", "lag_gmm", "stsls_sphet")
   return(results)
   
