@@ -50,7 +50,7 @@ Generate impacts for objects of class lag_gmm created in sphet
 \examples{
 require("sf", quietly=TRUE)
 library(coda)
-columbus <- st_read(system.file("shapes/columbus.shp", package="spData")[1], quiet=TRUE)
+columbus <- st_read(system.file("shapes/columbus.gpkg", package="spData")[1], quiet=TRUE)
 col.gal.nb <- spdep::read.gal(system.file("weights/columbus.gal", package="spData")[1])
 listw <- spdep::nb2listw(col.gal.nb)
 ev <- spatialreg::eigenw(listw)

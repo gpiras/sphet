@@ -344,7 +344,7 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
 #' @examples
 #' require("sf", quietly=TRUE)
 #' library(coda)
-#' columbus <- st_read(system.file("shapes/columbus.shp", package="spData")[1], quiet=TRUE)
+#' columbus <- st_read(system.file("shapes/columbus.gpkg", package="spData")[1], quiet=TRUE)
 #' col.gal.nb <- spdep::read.gal(system.file("weights/columbus.gal", package="spData")[1])
 #' listw <- spdep::nb2listw(col.gal.nb)
 #' ev <- spatialreg::eigenw(listw)
@@ -689,7 +689,7 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
 #' summary(impacts(lm.D3))
 #' 
 #' require("sf", quietly=TRUE)
-#' columbus <- st_read(system.file("shapes/columbus.shp", package="spData")[1], quiet=TRUE)
+#' columbus <- st_read(system.file("shapes/columbus.gpkg", package="spData")[1], quiet=TRUE)
 #' col.gal.nb <- spdep::read.gal(system.file("weights/columbus.gal", package="spData")[1])
 #' listw <- spdep::nb2listw(col.gal.nb)
 #' knear <- spdep::knearneigh(cbind(columbus$X, columbus$Y), 5)
@@ -933,7 +933,7 @@ impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
 #' @examples
 #' library(sphet)
 #' require("sf", quietly=TRUE)
-#' columbus <- st_read(system.file("shapes/columbus.shp", package="spData")[1], quiet=TRUE)
+#' columbus <- st_read(system.file("shapes/columbus.gpkg", package="spData")[1], quiet=TRUE)
 #' col.gal.nb <- spdep::read.gal(system.file("weights/columbus.gal", package="spData")[1])
 #' listw <- spdep::nb2listw(col.gal.nb)
 #' error1 <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,

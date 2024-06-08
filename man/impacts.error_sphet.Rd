@@ -44,7 +44,7 @@ Generate impacts for objects of class error_sphet created in sphet
 \examples{
 library(sphet)
 require("sf", quietly=TRUE)
-columbus <- st_read(system.file("shapes/columbus.shp", package="spData")[1], quiet=TRUE)
+columbus <- st_read(system.file("shapes/columbus.gpkg", package="spData")[1], quiet=TRUE)
 col.gal.nb <- spdep::read.gal(system.file("weights/columbus.gal", package="spData")[1])
 listw <- spdep::nb2listw(col.gal.nb)
 error1 <- spreg(CRIME ~ INC + HOVAL, columbus, listw, Durbin=TRUE,
