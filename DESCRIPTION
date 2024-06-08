@@ -1,7 +1,7 @@
 Package: sphet
-Version: 2.0.6
+Version: 2.0.7
 Encoding: UTF-8
-Date: 2024-02-07
+Date: 2024-06-08
 Title: Estimation of Spatial Autoregressive Models with and without Heteroskedastic Innovations
 Authors@R: c(person("Gianfranco", "Piras", role = c("aut", "cre"), 
             email = "gpiras@mac.com", 
@@ -18,4 +18,4 @@ Description: Functions for fitting Cliff-Ord-type spatial autoregressive models 
 License: GPL-2
 LazyLoad: yes
 LazyData: no
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
