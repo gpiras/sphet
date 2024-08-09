@@ -10,7 +10,7 @@ Authors@R: c(person("Gianfranco", "Piras", role = c("aut", "cre"),
             email = "Roger.Bivand@nhh.no", 
             comment=c(ORCID="0000-0003-2392-6140")))
 Depends: R (>= 3.0.1)
-Imports: nlme, spatialreg, spdep, Matrix, sp, methods, stats, utils, mvtnorm, stringr, coda, spData, sf
+Imports: nlme, spatialreg, spdep, Matrix, sp, methods, stats, utils, mvtnorm, stringr, coda, spData (>= 2.3.1), sf
 Suggests: 
 URL: https://github.com/gpiras/sphet
 BugReports: https://github.com/gpiras/sphet/issues
@@ -18,4 +18,4 @@ Description: Functions for fitting Cliff-Ord-type spatial autoregressive models 
 License: GPL-2
 LazyLoad: yes
 LazyData: no
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
