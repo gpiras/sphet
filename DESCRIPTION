@@ -18,4 +18,4 @@ Description: Functions for fitting Cliff-Ord-type spatial autoregressive models 
 License: GPL-2
 LazyLoad: yes
 LazyData: no
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
