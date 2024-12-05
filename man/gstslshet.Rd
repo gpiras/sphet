@@ -69,8 +69,8 @@ The GS2SLS residuals are used to obtain a consistent and efficient GM estimator 
 The initial value for the optimization in step 1b is taken to be \code{initial.value}. The initial value in step 1c is the 
 optimal parameter of step 1b. Finally, the initial value for the optimization of step 2b is the optimal parameter of step 1c.
 
-Internally, the object of class \code{listw} is transformed into a \link{Matrix} 
-using the function \link{listw2dgCMatrix}.
+Internally, the object of class \code{listw} is transformed into a \code{Matrix} 
+using the function \code{listw2dgCMatrix}.
 
 
 The expression of the estimated variance covariance matrix of the limiting 
