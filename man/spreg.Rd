@@ -98,7 +98,7 @@ The GS2SLS residuals are used to obtain a consistent and efficient GM estimator 
 The initial value for the optimization in step 1b is taken to be \code{initial.value}. 
 The initial value for the optimization of step 2b is the optimal parameter of step 1b.
 
-Internally, the object of class \code{listw} is transformed into a \link{Matrix} 
+Internally, the object of class \code{listw} is transformed into a \code{Matrix} 
 using the function \link{listw2dgCMatrix}.
 
 For the HAC estimator (Kelejian and Prucha, 2007),  there are four possibilities:
