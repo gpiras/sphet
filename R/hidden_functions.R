@@ -325,7 +325,7 @@ sarargmm <- function(formula, data, q = 2, listw, listw2, endog,
                               gmm.weghts1.c$a.vec2, Hmat, Ggmat$bigG, 
                               gmm.weghts1.c$Phiinv, gmm.weghts1.c$epsilon, 
                               gmm.weghts1.c$Zstar, Ws2, step1.c = TRUE)
-      coeff_2sls <- as.matrix(c(coefficients(firststep), rhotilde))
+      coeff_2sls <- rbind(coefficients(firststep), rhotilde)
       rownames(coeff_2sls) <- c(colnames(Zmat), 'rho')
       s2_2sls <- crossprod(ubase)/(n-k)
       model.data <- data.frame(cbind(y,x[,-1]))
