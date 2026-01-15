@@ -325,15 +325,15 @@ sarargmm <- function(formula, data, q = 2, listw, listw2, endog,
                               gmm.weghts1.c$a.vec2, Hmat, Ggmat$bigG, 
                               gmm.weghts1.c$Phiinv, gmm.weghts1.c$epsilon, 
                               gmm.weghts1.c$Zstar, Ws2, step1.c = TRUE)
-      coeff_2sls <- rbind(coefficients(firststep), rhotilde)
-      rownames(coeff_2sls) <- c(colnames(Zmat), 'rho')
+      coeff_2sls <- c(coefficients(firststep), rhotilde)
+      names(coeff_2sls) <- c(colnames(Zmat), 'rho')
       s2_2sls <- crossprod(ubase)/(n-k)
       model.data <- data.frame(cbind(y,x[,-1]))
       vc_mat <- vcmat_2sls$Omega
-      rownames(vc_mat) <- colnames(vc_mat) <- rownames(coeff_2sls)
+      rownames(vc_mat) <- colnames(vc_mat) <- names(coeff_2sls)
       method <- "gmm sarar"
       
-      k <- nrow(coeff_2sls)
+      k <- length(coeff_2sls)
       R <- matrix(0,1,k)
       R[,((k-1):k)] <- 1
       Rbeta <- R %*% coeff_2sls
@@ -402,16 +402,16 @@ sarargmm <- function(formula, data, q = 2, listw, listw2, endog,
   
   vc_Omega <- vcmat$Omega
   
-  coeff <- as.matrix(c(as.numeric(delta), rhofin))
-  rownames(coeff) <- c(colnames(Zmat), 'rho')
-  rownames(vc_Omega) <- colnames(vc_Omega) <- rownames(coeff)
+  coeff <- c(as.numeric(delta), rhofin)
+  names(coeff) <- c(colnames(Zmat), 'rho')
+  rownames(vc_Omega) <- colnames(vc_Omega) <- names(coeff)
   s2 <- crossprod(utildeb)/(n-k)
   
   model.data<-data.frame(cbind(y,x[,-1]))
   
   method<-"gmm sarar"
   
-  k <- nrow(coeff)
+  k <- length(coeff)
   R <- matrix(0,1,k)
   R[,((k-1):k)] <- 1
   Rbeta <- R %*% coeff
@@ -981,8 +981,8 @@ errorgmm <- function(formula, data, q = 2, listw, listw2, endog,
                               gmm.weghts1.c$Zstar, Ws, step1.c = TRUE)
       
       
-      coeff_2sls <- as.matrix(c(coefficients(firststep), rhotilde))
-      rownames(coeff_2sls)<-c(colnames(Zmat), 'rho')
+      coeff_2sls <- c(coefficients(firststep), rhotilde)
+      names(coeff_2sls)<-c(colnames(Zmat), 'rho')
       s2_2sls<-crossprod(ubase)/(n-k)
       
       
@@ -990,7 +990,7 @@ errorgmm <- function(formula, data, q = 2, listw, listw2, endog,
       
       method<-"gm spatial"
       
-      k <- nrow(coeff_2sls)
+      k <- length(coeff_2sls)
       R <- matrix(0,1,k)
       R[,((k-1):k)] <- 1
       Rbeta <- R%*%coeff_2sls
@@ -1070,8 +1070,8 @@ errorgmm <- function(formula, data, q = 2, listw, listw2, endog,
     
   }
   
-  coeff <- as.matrix(c(as.numeric(delta), rhofin))
-  rownames(coeff) <- c(colnames(Zmat), 'rho')
+  coeff <- c(as.numeric(delta), rhofin)
+  names(coeff) <- c(colnames(Zmat), 'rho')
   s2 <- crossprod(utildeb)/(n-k)
   
   
@@ -1079,7 +1079,7 @@ errorgmm <- function(formula, data, q = 2, listw, listw2, endog,
   
   method <- "gmm error"
   
-  k <- nrow(coeff)
+  k <- length(coeff)
   R <- matrix(0,1,k)
   R[,((k-1):k)] <- 1
   Rbeta <- R %*% coeff

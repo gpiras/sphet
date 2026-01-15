@@ -9,7 +9,7 @@ vc_impacts_formula_lag <- function(obj, ev, tr = NULL, prt = T){
   betas <- coefficients(obj)
   p <- length(betas)
   beta <- betas[-p]
-  names(beta) <- rownames(obj$coefficients)[1:(p-1)]
+  names(beta) <- names(obj$coefficients)[1:(p-1)]
   lambda <- betas[p]
  
   if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spatial parameter outside of parameter space")     
@@ -141,7 +141,7 @@ vc_impacts_formula_sarar <- function(obj, ev, tr = NULL, prt = T){
   betas <- coefficients(obj)
   p <- length(betas)
   beta <- betas[1:(p-2)]
-  names(beta) <- rownames(obj$coefficients)[1:(p-2)]
+  names(beta) <- names(obj$coefficients)[1:(p-2)]
   lambda <- betas[p-1]
   
   if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spatial parameter outside of parameter space")     
@@ -277,7 +277,7 @@ if(isTRUE(obj$Durbin)){
   betas <- coefficients(obj)
   p <- length(betas)
   beta <- betas[-p]
-  names(beta) <- rownames(obj$coefficients)[1:(p-1)]
+  names(beta) <- names(obj$coefficients)[1:(p-1)]
   lambda <- betas[p]
   
   if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spatial parameter outside of parameter space")     
@@ -378,7 +378,7 @@ if(isTRUE(obj$Durbin)){
     beta <- coefs[1:(p2-1)]
     p <- length(beta)
     p1 <- p + 1
-    names(beta) <- rownames(obj$coefficients)[1:(p2-1)]
+    names(beta) <- names(obj$coefficients)[1:(p2-1)]
     icept <- grep("(Intercept)", names(beta))
     iicept <- length(icept) > 0L
     n <- length(obj$residuals)
@@ -578,7 +578,7 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev, tr = NULL, prt = T){
     betas <- coefficients(obj)
     p <- length(betas)
     beta <- betas[1:(p-2)]
-    names(beta) <- rownames(obj$coefficients)[1:(p-2)]
+    names(beta) <- names(obj$coefficients)[1:(p-2)]
     lambda <- betas[p-1]
     
     
@@ -678,7 +678,7 @@ vc_impacts_formula_sarar_mixed <- function(obj, ev, tr = NULL, prt = T){
     beta <- coefs[1:(p2-2)]
     p <- length(beta)
     p1 <- p + 1
-    names(beta) <- rownames(obj$coefficients)[1:(p2-2)]
+    names(beta) <- names(obj$coefficients)[1:(p2-2)]
     icept <- grep("(Intercept)", names(beta))
     iicept <- length(icept) > 0L
     n <- length(obj$residuals)

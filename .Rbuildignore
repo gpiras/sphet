@@ -1,1 +1,3 @@
 sphet.Rproj
+^.*\.Rproj$
+^\.Rproj\.user$

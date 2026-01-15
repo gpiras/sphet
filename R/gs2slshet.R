@@ -42,7 +42,7 @@
 #' The initial value for the optimization in step 1b is taken to be \code{initial.value}. The initial value in step 1c is the 
 #' optimal parameter of step 1b. Finally, the initial value for the optimization of step 2b is the optimal parameter of step 1c.
 #'
-#' Internally, the object of class \code{listw} is transformed into a \link{Matrix} 
+#' Internally, the object of class \code{listw} is transformed into a \link[Matrix]{Matrix} 
 #' using the function \link{listw2dgCMatrix}.
 #'
 #'

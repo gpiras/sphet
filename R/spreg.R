@@ -1,5 +1,5 @@
 #' @name spreg
-#' @aliases spreg
+#' @aliases spreg 
 #' @title GM estimation of a Cliff-Ord type model with Heteroskedastic Innovations
 #' @description Multi step GM/IV estimation of a linear Cliff and Ord -type of model 
 #' of the form:
@@ -51,6 +51,12 @@
 #' @param control A list of control arguments. See \link{nlminb}
 #' @param Durbin Should (some of) the regressors be lagged? Default FALSE. If not \code{FALSE} should be specified 
 #' as a formula with no dependent variable (Durbin = ~ x1 + x2) or set to \code{TRUE}. See details. 
+#' @param object an object of class sphet
+#' @param x printing
+#' @param ... additional parameters to be added
+#' @param width  width 
+#' @param digits number of digits 
+#' @param obsinfo default FALSE
 #' @details
 #' The procedure consists of two steps alternating GM and IV estimators. Each step consists of sub-steps.
 #' In step one \eqn{\delta = [\beta',\lambda]'} is estimated by 2SLS. The 2SLS residuals are first employed
@@ -62,7 +68,7 @@
 #' The initial value for the optimization in step 1b is taken to be \code{initial.value}. 
 #' The initial value for the optimization of step 2b is the optimal parameter of step 1b.
 #' 
-#' Internally, the object of class \code{listw} is transformed into a \link{Matrix} 
+#' Internally, the object of class \code{listw} is transformed into a \link[Matrix]{Matrix} 
 #' using the function \link{listw2dgCMatrix}.
 #' 
 #' For the HAC estimator (Kelejian and Prucha, 2007),  there are four possibilities:

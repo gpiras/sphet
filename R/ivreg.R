@@ -1,7 +1,8 @@
 spatial.ivreg<-function(y, Zmat, Hmat, het, HAC = FALSE, distance, 
                         type =  c("Epanechnikov","Triangular","Bisquare","Parzen", 
                                   "QS","TH","Rectangular"), bandwidth){
- 	df <- nrow(Zmat) - ncol(Zmat)
+ 	nmd <- colnames(Zmat)
+  df <- nrow(Zmat) - ncol(Zmat)
 	HH <- crossprod(Hmat,Hmat)
 	Hye <- crossprod(Hmat, Zmat)
 	bz <- solve(HH,Hye)
@@ -67,8 +68,11 @@ else{
 	vardelta <- ZpZpi * as.numeric(s2)
 	}
 	
-	}
-	result <- list(coefficients=delta, var=vardelta, s2=s2, residuals=as.numeric(e), yhat=yp)
+}
+	
+	delta <- as.numeric(delta)
+	names(delta) <- nmd
+	result <- list(coefficients= delta, var=vardelta, s2=s2, residuals=as.numeric(e), yhat=yp)
 	return(result)
 }
 
@@ -76,13 +80,15 @@ hac.ols <- function(y, x, het, HAC = FALSE, distance,
                     type =  c("Epanechnikov","Triangular","Bisquare","Parzen", 
                                "QS","TH","Rectangular"), bandwidth){
 	
-  
+  nmx <- colnames(x)
   df <- nrow(x) - ncol(x)
 	k <- qr(lm(y ~x-1))$rank
     xpx<-crossprod(x)
     xpxi<-solve(xpx)
 xpy<-crossprod(x, y)
 delta <- crossprod(xpxi, xpy)
+delta <- as.numeric(delta)
+names(delta) <- nmx
 yp <- x %*% delta
 e <- y - yp
 
@@ -141,7 +147,8 @@ s2 <- crossprod(e) / df
 	  }
 	}
 	
-	result <- list(coefficients=delta, var=vardelta, s2=s2, residuals=as.numeric(e), yhat = yp, k = k)
+colnames(vardelta) <- rownames(vardelta) <- nmx
+	result <- list(coefficients= delta, var=vardelta, s2=s2, residuals=as.numeric(e), yhat = yp, k = k)
 
 	return(result)
 }

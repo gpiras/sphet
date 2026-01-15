@@ -1,32 +1,17 @@
-#' @name summary.sphet
-#' @aliases summary.sphet
-#' @aliases sumres
-#' @title print method for class sphet
-#' @description Method used to print objects of class \code{'summary.sphet'} and \code{'sphet'}
-#' 
-#' @usage \method{summary}{sphet}(object, width=getOption("width"), digits=getOption("digits"),obsinfo=FALSE,...)
-#' 
-#' 
-#' @param object an object of class 'sphet'
-#' @param width controls the maximum number of columns on a line used in printing
-#' @param digits minimal number of significant digits, see \code{print.default}
-#' @param obsinfo for objects of class \code{distance}: if \code{TRUE} prints observation-wise information
-#' @param ... additional arguments to be passed
-#' @details The summary function summary.sphet returns an objects of class 'sphet' 
-#' organized in a coefficient matrix.
-#' @seealso \code{\link{gstslshet}}, \code{\link{stslshac}}
-#' 
-#' @author Gianfranco Piras\email{gpiras@mac.com}
-#' @examples
-#' library(spdep)
-#' data(columbus)
-#' listw <- nb2listw(col.gal.nb)
-#' res <- spreg(CRIME~HOVAL + INC, data=columbus, listw=listw, model ="sarar")
-#' summary(res)
+#' @rdname spreg
+#' @method coef sphet
 #' @export
+coef.sphet <- function(object, ...) object$coefficients
+
+
+#' @rdname spreg
+#' @method vcov sphet
+#' @export
+vcov.sphet <- function(object, ...) object$var
+
+#' @rdname spreg
 #' @method summary sphet
-
-
+#' @export
 summary.sphet <- function(object, width=getOption("width"),digits=getOption("digits"),obsinfo=FALSE,...){
 
 	if(inherits(object,"distance")){
@@ -60,36 +45,10 @@ else colnames(CoefTable) <- c("Estimate","Std. Error","t-value","Pr(>|t|)")
 	object
 }
 
-#' @name print.summary.sphet
-#' @aliases print.summary.sphet
-#' @title print method for class sphet
-#' @description Method used to print objects of class \code{'summary.sphet'} and \code{'sphet'}
-#' 
-#' @usage \method{print}{summary.sphet}(x,digits= max(3, getOption("digits") - 2), 
-#' width=getOption("width"), obsinfo=FALSE,...)
-#' 
-#' 
-#' @param x an object of class 'sphet'
-#' @param digits minimal number of significant digits, see \code{print.default}
-#' @param width controls the maximum number of columns on a line used in printing
-#' @param obsinfo for objects of class \code{distance}: if \code{TRUE} prints observation-wise information
-#' @param ... additional arguments to be passed
-#' 
-#' @details The summary function summary.sphet returns an objects of class 'sphet' 
-#' organized in a coefficient matrix.
-#' @seealso \code{\link{gstslshet}}, \code{\link{stslshac}}
-#' 
-#' @author Gianfranco Piras\email{gpiras@mac.com}
-#' @examples
-#' library(spdep)
-#' data(columbus)
-#' listw <- nb2listw(col.gal.nb)
-#' res <- spreg(CRIME~HOVAL + INC, data=columbus, listw=listw, model ="sarar")
-#' summary(res)
-#' @export
+#' @rdname spreg
 #' @method print summary.sphet
-
-	print.summary.sphet <- function(x, digits= max(3, getOption("digits") - 2), width=getOption("width"), obsinfo=FALSE,...){
+#' @export
+print.summary.sphet <- function(x, digits= max(3, getOption("digits") - 2), width=getOption("width"), obsinfo=FALSE,...){
 if(inherits(x,"distance")){
 	cat("\n Number of observations:\n")
 	cat(" n:", x$n, "\n")
@@ -407,31 +366,9 @@ sumres <- function(x){
   sr
 }
 
-#' @name print.sphet
-#' @aliases print.sphet
-#' @title print method for class sphet
-#' @description Method used to print objects of class \code{'summary.sphet'} and \code{'sphet'}
-#' 
-#' @usage \method{print}{sphet}(x, digits = max(3, getOption("digits") - 3),...)
-#' 
-#' 
-#' @param x an object of class 'sphet'
-#' @param digits minimal number of significant digits, see \code{print.default}
-#' @param ... additional arguments to be passed
-#' @details The summary function summary.sphet returns an objects of class 'sphet' 
-#' organized in a coefficient matrix.
-#' @seealso \code{\link{gstslshet}}, \code{\link{stslshac}}
-#' 
-#' @author Gianfranco Piras\email{gpiras@mac.com}
-#' @examples
-#' library(spdep)
-#' data(columbus)
-#' listw <- nb2listw(col.gal.nb)
-#' res <- spreg(CRIME~HOVAL + INC, data=columbus, listw=listw, model ="sarar")
-#' summary(res)
-#' @export
+#' @rdname spreg
 #' @method print sphet
-
+#' @export
 print.sphet <- function(x, digits = max(3, getOption("digits") - 3),...) 
 {
 	if(inherits(x,"distance")){ 

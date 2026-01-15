@@ -125,7 +125,7 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
   
     p <- length(beta)
     p1 <- p + 1
-    names(beta) <- rownames(object$coefficients)[1:(p2-2)]
+    names(beta) <- names(object$coefficients)[1:(p2-2)]
     icept <- grep("(Intercept)", names(beta))
     iicept <- length(icept) > 0L
     n <- length(object$residuals)
@@ -269,7 +269,7 @@ if((lambda > interval[2] ) | (lambda < interval[1])) warning("Value of the spati
     lambda <- coefs[p2-1]
     rho <- coefs[p2]
     beta <- coefs[1:(p2-2)]
-    names(beta) <- rownames(object$coefficients)[1:(p2-2)]
+    names(beta) <- names(object$coefficients)[1:(p2-2)]
     p <- length(beta)
     p1 <- p + 1
 
@@ -440,7 +440,7 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
    beta <- coefs[1:(p2-1)]
    p <- length(beta)
    p1 <- p + 1
-   names(beta) <- rownames(object$coefficients)[1:(p2-1)]
+   names(beta) <- names(object$coefficients)[1:(p2-1)]
    icept <- grep("(Intercept)", names(beta))
    iicept <- length(icept) > 0L
    n <- length(object$residuals)
@@ -592,7 +592,7 @@ impacts.stsls_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
     p2 <- length(coefs)
     lambda <- coefs[p2]
     beta <- coefs[1:(p2-1)]
-    names(beta) <- rownames(object$coefficients)[1:(p2-1)]
+    names(beta) <- names(object$coefficients)[1:(p2-1)]
     p <- length(beta)
     p1 <- p + 1
 
@@ -752,7 +752,7 @@ impacts.ols_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
      beta <- drop(obj$coefficients)
      Sigma <- obj$var
     p <- length(beta)
-   names(beta) <- rownames(obj$coefficients)
+   names(beta) <- names(obj$coefficients)
     #print(beta)
     
    icept <- grep("(Intercept)", names(beta))
@@ -961,13 +961,13 @@ impacts.error_sphet <- function(obj, ..., tr=NULL, R=NULL, listw=NULL,
   
   
   cf <- drop(obj$coefficients)
-  names(cf) <- rownames(obj$coefficients)
+  names(cf) <- names(obj$coefficients)
   rho <- length(cf)
   beta <- cf[-rho]
   Sigma <- obj$var[-rho,-rho]
   colnames(Sigma) <- rownames(Sigma) <- names(cf)[-rho]
   p <- length(beta)
-  names(beta) <- rownames(obj$coefficients)[-rho]
+  names(beta) <- names(obj$coefficients)[-rho]
   #print(Sigma)
   
   icept <- grep("(Intercept)", names(beta))
